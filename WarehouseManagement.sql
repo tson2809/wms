@@ -2,7 +2,7 @@
 CREATE DATABASE quan_li_dien_gia_dung CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE quan_li_dien_gia_dung;
 
--- Bảng Roles: Quản lý các vai trò trong hệ thống
+-- Bảng Roles
 CREATE TABLE roles (
     role_id INT AUTO_INCREMENT PRIMARY KEY,
     role_name VARCHAR(50) UNIQUE NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE roles (
     INDEX idx_is_active (is_active)
 );
 
--- Bảng Users: Quản lý thông tin người dùng
+-- Bảng Users
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE users (
     INDEX idx_is_active (is_active)
 );
 
--- Bảng Permissions: Quản lý các quyền trong hệ thống
+-- Bảng Permissions
 CREATE TABLE permissions (
     permission_id INT AUTO_INCREMENT PRIMARY KEY,
     permission_name VARCHAR(100) UNIQUE NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE permissions (
     INDEX idx_module (module)
 );
 
--- Bảng Role_Permissions: Quan hệ nhiều-nhiều giữa Roles và Permissions
+-- Bảng Role_Permissions
 CREATE TABLE role_permissions (
     role_permission_id INT AUTO_INCREMENT PRIMARY KEY,
     role_id INT NOT NULL,
@@ -89,21 +89,21 @@ INSERT INTO permissions (permission_name, permission_description, module) VALUES
 ('Edit Role Permissions', 'Chỉnh sửa quyền của vai trò', 'Admin');
 
 -- Insert Role_Permissions
--- Admin có tất cả quyền
+-- Admin
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.role_id, p.permission_id
 FROM roles r
 CROSS JOIN permissions p
 WHERE r.role_name = 'Admin';
 
--- User có quyền Common
+-- User
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.role_id, p.permission_id
 FROM roles r
 CROSS JOIN permissions p
 WHERE r.role_name = 'User' AND p.module = 'Common';
 
--- Manager có quyền Common + Manager
+-- Manager
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.role_id, p.permission_id
 FROM roles r
