@@ -8,9 +8,7 @@ CREATE TABLE roles (
     role_name VARCHAR(50) UNIQUE NOT NULL,
     role_description TEXT,
     is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_role_name (role_name),
-    INDEX idx_is_active (is_active)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Bảng Users
@@ -26,11 +24,7 @@ CREATE TABLE users (
     role_id INT,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE SET NULL,
-    INDEX idx_username (username),
-    INDEX idx_email (email),
-    INDEX idx_role_id (role_id),
-    INDEX idx_is_active (is_active)
+    FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE SET NULL
 );
 
 -- Bảng Permissions
@@ -39,8 +33,7 @@ CREATE TABLE permissions (
     permission_name VARCHAR(100) UNIQUE NOT NULL,
     permission_description TEXT,
     module VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_module (module)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Bảng Role_Permissions
@@ -50,9 +43,7 @@ CREATE TABLE role_permissions (
     permission_id INT NOT NULL,
     FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE CASCADE,
     FOREIGN KEY (permission_id) REFERENCES permissions(permission_id) ON DELETE CASCADE,
-    UNIQUE KEY unique_role_permission (role_id, permission_id),
-    INDEX idx_role_id (role_id),
-    INDEX idx_permission_id (permission_id)
+    UNIQUE KEY unique_role_permission (role_id, permission_id)
 );
 
 -- Insert Roles
