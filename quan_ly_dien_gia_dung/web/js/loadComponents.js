@@ -14,11 +14,11 @@ function loadComponent(elementId, componentPath) {
 document.addEventListener('DOMContentLoaded', function() {
     // Load both components
     const sidebarPromise = document.getElementById('sidebar-container') 
-        ? loadComponent('sidebar-container', 'components/sidebar.html')
+        ? loadComponent('sidebar-container', 'components/sidebar.jsp')
         : Promise.resolve();
     
     const navbarPromise = document.getElementById('navbar-container')
-        ? loadComponent('navbar-container', 'components/navbar.html')
+        ? loadComponent('navbar-container', 'components/navbar.jsp')
         : Promise.resolve();
     
     // Wait for both components to load, then initialize sidebar toggler
