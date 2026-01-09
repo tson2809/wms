@@ -8,23 +8,20 @@ import dal.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.Part;
-import java.io.File;
 import model.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  *
  * @author hung
  */
-@WebServlet(name = "ProfileController", urlPatterns = {"/profile"})
-@MultipartConfig
-public class ProfileController extends HttpServlet {
+@WebServlet(name = "ChangePassController", urlPatterns = {"/change-password"})
+public class ChangePassController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -43,15 +40,14 @@ public class ProfileController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ProfileController</title>");
+            out.println("<title>Servlet ChangePassController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ProfileController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet ChangePassController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
     }
-    private UserDAO userDAO = new UserDAO();
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -62,21 +58,14 @@ public class ProfileController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    private UserDAO userDAO = new UserDAO();
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        User loggedUser = (session != null) ? (User) session.getAttribute("user") : null;
-
-        if (loggedUser == null) {
-            response.sendRedirect("login");
-            return;
-        }
-
-        User user = userDAO.getUserById(loggedUser.getUserId());
-        request.setAttribute("user", user);
-        request.setAttribute("activePage", "profile");
-        request.getRequestDispatcher("/view/common/profile.jsp").forward(request, response);
+        request.setAttribute("activePage", "password");
+        request.getRequestDispatcher("/view/common/change-password.jsp").forward(request, response);
     }
 
     /**
@@ -91,56 +80,34 @@ public class ProfileController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        User loggedUser = (session != null) ? (User) session.getAttribute("user") : null;
-
-        if (loggedUser == null) {
+        if (session == null || session.getAttribute("user") == null) {
             response.sendRedirect("login");
             return;
         }
-
-        String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
-        if (phone == null) {
-            phone = loggedUser.getPhone();
+        User sessionUser = (User) session.getAttribute("user");
+        int userId = sessionUser.getUserId();
+        String currentPassword = request.getParameter("currentPassword");
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
+        if (currentPassword == null || currentPassword.isEmpty()) {
+            response.sendRedirect("change-password?error=wrong");
+            return;
         }
-        if (address == null) {
-            address = loggedUser.getAddress();
+        if (!newPassword.equals(confirmPassword)) {
+            response.sendRedirect("change-password?error=confirm");
+            return;
         }
-        String avatarName = loggedUser.getAvatar();
-
-        Part avatarPart = request.getPart("avatar");
-        if (avatarPart != null && avatarPart.getSize() > 0) {
-            String fileName = avatarPart.getSubmittedFileName();
-            String ext = fileName.substring(fileName.lastIndexOf("."));
-            String newAvatar = "u" + loggedUser.getUserId() + "_" + System.currentTimeMillis() + ext;
-
-            String uploadPath = getServletContext().getRealPath("/uploads");
-            File dir = new File(uploadPath);
-            if (!dir.exists()) {
-                dir.mkdir();
-            }
-
-            avatarPart.write(uploadPath + File.separator + newAvatar);
-            avatarName = newAvatar;
+        if (!userDAO.checkCurrentPassword(userId, currentPassword)) {
+            response.sendRedirect("change-password?error=wrong");
+            return;
         }
-
-        User user = new User();
-        user.setUserId(loggedUser.getUserId());
-        user.setPhone(phone);
-        user.setAddress(address);
-        user.setAvatar(avatarName);
-
-        boolean success = userDAO.updateProfile(user);
-
-        if (success) {
-            loggedUser.setPhone(phone);
-            loggedUser.setAddress(address);
-            loggedUser.setAvatar(avatarName);
-            session.setAttribute("user", loggedUser);
-            response.sendRedirect("profile?success=true");
-        } else {
-            response.sendRedirect("profile?error=true");
+        boolean updated = userDAO.updatePassword(userId, newPassword);
+        if (updated) {
+            session.invalidate();
+            response.sendRedirect("login?passwordChanged=true");
+            return;
         }
+        response.sendRedirect("change-password?error=unknown");
     }
 
     /**
@@ -153,4 +120,11 @@ public class ProfileController extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
+    public static void main(String[] args) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String password = "12345";
+
+        String hash = encoder.encode(password);
+        System.out.println(hash);
+    }
 }
