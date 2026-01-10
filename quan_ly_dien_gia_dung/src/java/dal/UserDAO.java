@@ -62,28 +62,6 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    public User getUserByUsername(String username) {
-        String sql = "SELECT user_id, username, email, password_hash, role_id, is_active FROM users WHERE username = ?";
-        try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, username);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    User user = new User();
-                    user.setUserId(rs.getInt("user_id"));
-                    user.setUsername(rs.getString("username"));
-                    user.setEmail(rs.getString("email"));
-                    user.setPasswordHash(rs.getString("password_hash"));
-                    user.setRoleId(rs.getInt("role_id"));
-                    user.setActive(rs.getBoolean("is_active"));
-                    return user;
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public boolean checkCurrentPassword(int userId, String currentPassword) {
         String sql = "SELECT password_hash FROM users WHERE user_id = ?";
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -112,5 +90,23 @@ public class UserDAO extends DBContext {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public User findByEmail(String email) {
+        String sql = "SELECT user_id, email FROM users WHERE email = ?";
+        try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setEmail(rs.getString("email"));
+                    return user;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
