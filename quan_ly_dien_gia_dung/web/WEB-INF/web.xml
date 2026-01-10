@@ -9,9 +9,25 @@
         <servlet-name>ViewPermissionController</servlet-name>
         <servlet-class>controller.ViewPermissionController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>UpdateUserController</servlet-name>
+        <servlet-class>controller.UpdateUserController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ViewRoleController</servlet-name>
+        <servlet-class>controller.ViewRoleController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ViewPermissionController</servlet-name>
         <url-pattern>/viewpermission</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UpdateUserController</servlet-name>
+        <url-pattern>/UpdateUser</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ViewRoleController</servlet-name>
+        <url-pattern>/ViewRole</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
