@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.User;
+import model.UserH;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
@@ -84,7 +84,7 @@ public class ChangePassController extends HttpServlet {
             response.sendRedirect("login");
             return;
         }
-        User sessionUser = (User) session.getAttribute("user");
+        UserH sessionUser = (UserH) session.getAttribute("user");
         int userId = sessionUser.getUserId();
         String currentPassword = request.getParameter("currentPassword");
         String newPassword = request.getParameter("newPassword");
