@@ -23,6 +23,15 @@ public class User {
     private int roleId;
     private boolean active;
     private Timestamp createdAt;
+    private String roleName;
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
 
     public User() {
     }
