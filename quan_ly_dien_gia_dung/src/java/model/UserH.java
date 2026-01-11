@@ -10,7 +10,7 @@ import java.sql.Timestamp;
  *
  * @author hung
  */
-public class User {
+public class UserH {
 
     private int userId;
     private String username;
@@ -33,7 +33,7 @@ public class User {
         this.roleName = roleName;
     }
 
-    public User() {
+    public UserH() {
     }
 
     public int getUserId() {
