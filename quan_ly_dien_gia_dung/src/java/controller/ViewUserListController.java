@@ -56,11 +56,30 @@ public class ViewUserListController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     private UserDAO userDAO = new UserDAO();
+    private static int PAGE_SIZE = 10;
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        List<User> users = userDAO.getAllUsers();
+        int page = 1;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null) {
+            page = Integer.parseInt(pageParam);
+        }
+        String keyword = request.getParameter("keyword");
+        String role = request.getParameter("role");
+        String activeParam = request.getParameter("active");
+        Boolean active = null;
+        if ("1".equals(activeParam)) active = true;
+        if ("0".equals(activeParam)) active = false;
+        int totalUsers = userDAO.countUsers(keyword, role, active);
+        int totalPages = (int) Math.ceil((double) totalUsers / PAGE_SIZE);
+        List<User> users = userDAO.getUsersByPage(
+                page, PAGE_SIZE, keyword, role, active
+        );
         request.setAttribute("users", users);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalUsers", totalUsers);
         request.getRequestDispatcher("/view/dashboard/user-list.jsp").forward(request, response);
     } 
 
