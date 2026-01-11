@@ -5,6 +5,7 @@
 package dal;
 
 import model.User;
+import model.Role;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -134,5 +135,87 @@ public class UserDAO extends DBContext {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public int countUsers(String keyword, String role, Boolean active) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM users u "
+                + "LEFT JOIN roles r ON u.role_id = r.role_id WHERE 1=1 "
+        );
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.isEmpty()) {
+            sql.append("AND u.full_name LIKE ? ");
+            params.add("%" + keyword + "%");
+        }
+        if (role != null && !role.isEmpty()) {
+            sql.append("AND r.role_name = ? ");
+            params.add(role);
+        }
+        if (active != null) {
+            sql.append("AND u.is_active = ? ");
+            params.add(active);
+        }
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<User> getUsersByPage(int page, int pageSize, String keyword, String role, Boolean active) {
+        List<User> list = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+        StringBuilder sql = new StringBuilder(
+                "SELECT u.user_id, u.username, u.email, u.full_name, u.phone, "
+                + "u.is_active, r.role_name "
+                + "FROM users u "
+                + "LEFT JOIN roles r ON u.role_id = r.role_id WHERE 1=1 "
+        );
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.isEmpty()) {
+            sql.append("AND u.full_name LIKE ? ");
+            params.add("%" + keyword + "%");
+        }
+        if (role != null && !role.isEmpty()) {
+            sql.append("AND r.role_name = ? ");
+            params.add(role);
+        }
+        if (active != null) {
+            sql.append("AND u.is_active = ? ");
+            params.add(active);
+        }
+        sql.append("ORDER BY u.user_id LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add(offset);
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User u = new User();
+                    u.setUserId(rs.getInt("user_id"));
+                    u.setUsername(rs.getString("username"));
+                    u.setEmail(rs.getString("email"));
+                    u.setFullName(rs.getString("full_name"));
+                    u.setPhone(rs.getString("phone"));
+                    u.setActive(rs.getBoolean("is_active"));
+                    u.setRoleName(rs.getString("role_name"));
+                    list.add(u);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
