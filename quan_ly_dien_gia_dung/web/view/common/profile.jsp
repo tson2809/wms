@@ -19,68 +19,57 @@
             <%@ include file="components/ProfileSideBar.jsp" %>
             <div class="content">
                 <div id="navbar-container"></div>
-
                 <div class="container-fluid pt-4 px-4">
                     <div class="row">
-
                         <div class="col-lg-4">
                             <div class="bg-light rounded p-4 text-center">
                                 <img id="avatarPreview"
-                                     src="${user.avatar != null ? 'uploads/'.concat(user.avatar) : 'img/default-avatar.png'}"
-                                     class="rounded-circle mb-3"
+                                     src="${user.avatar != null ? 'uploads/images/'.concat(user.avatar) : 'img/default-avatar.png'}"
+                                     class="rounded-circle"
                                      style="width:120px;height:120px;object-fit:cover;">
                                 <br>
-
                                 <form action="profile"
                                       method="post"
                                       enctype="multipart/form-data"
-                                      id="profileForm">
-
+                                      id="avatarForm">
                                     <input type="file"
                                            id="avatarInput"
                                            name="avatar"
                                            class="d-none"
                                            accept="image/*">
-
                                     <button type="button"
                                             class="btn btn-outline-primary btn-sm"
                                             onclick="selectAvatar()">
                                         Change Avatar
                                     </button>
                                 </form>
-
                                 <h5 class="mt-3 mb-0">${user.username}</h5>
                             </div>
                         </div>
-
                         <div class="col-lg-8">
                             <div class="bg-light rounded p-4">
                                 <form action="profile"
                                       method="post"
                                       enctype="multipart/form-data"
                                       id="profileForm">
-
                                     <div class="mb-3">
                                         <label class="form-label">Username</label>
                                         <input class="form-control"
                                                value="${user.username}"
                                                readonly>
                                     </div>
-
                                     <div class="mb-3">
                                         <label class="form-label">Full Name</label>
                                         <input class="form-control"
                                                value="${user.fullName}"
                                                readonly>
                                     </div>
-
                                     <div class="mb-3">
                                         <label class="form-label">Email</label>
                                         <input class="form-control"
                                                value="${user.email}"
                                                readonly>
                                     </div>
-
                                     <div class="mb-3">
                                         <label class="form-label">Phone</label>
                                         <input class="form-control editable"
@@ -88,7 +77,6 @@
                                                value="${user.phone}"
                                                readonly>
                                     </div>
-
                                     <div class="mb-3">
                                         <label class="form-label">Address</label>
                                         <input class="form-control editable"
@@ -131,12 +119,12 @@
                                                 }
 
                                                 document.getElementById('avatarInput').addEventListener('change', function () {
-                                                    if (this.files.length > 0) {
-                                                        document.getElementById('avatarPreview').src =
-                                                                URL.createObjectURL(this.files[0]);
-                                                        document.getElementById('profileForm').submit();
-                                                    }
-                                                });
+    if (this.files.length > 0) {
+        document.getElementById('avatarPreview').src =
+            URL.createObjectURL(this.files[0]);
+        document.getElementById('avatarForm').submit();
+    }
+});
         </script>
     </body>
 </html>

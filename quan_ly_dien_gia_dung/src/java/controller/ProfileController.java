@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import java.io.File;
+import java.util.UUID;
 import model.User;
 
 /**
@@ -90,14 +91,12 @@ public class ProfileController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
+        HttpSession session = request.getSession();
         User loggedUser = (session != null) ? (User) session.getAttribute("user") : null;
-
         if (loggedUser == null) {
             response.sendRedirect("login");
             return;
         }
-
         String phone = request.getParameter("phone");
         String address = request.getParameter("address");
         if (phone == null) {
@@ -107,31 +106,31 @@ public class ProfileController extends HttpServlet {
             address = loggedUser.getAddress();
         }
         String avatarName = loggedUser.getAvatar();
-
+        String projectRoot = System.getProperty("user.dir");
+        String uploadPath = projectRoot + File.separator + "uploads" + File.separator + "images";
+        File dir = new File(uploadPath);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
         Part avatarPart = request.getPart("avatar");
         if (avatarPart != null && avatarPart.getSize() > 0) {
-            String fileName = avatarPart.getSubmittedFileName();
-            String ext = fileName.substring(fileName.lastIndexOf("."));
-            String newAvatar = "u" + loggedUser.getUserId() + "_" + System.currentTimeMillis() + ext;
 
-            String uploadPath = getServletContext().getRealPath("/uploads");
-            File dir = new File(uploadPath);
-            if (!dir.exists()) {
-                dir.mkdir();
+            String originalName = avatarPart.getSubmittedFileName();
+            String ext = "";
+            int dot = originalName.lastIndexOf(".");
+            if (dot > 0) {
+                ext = originalName.substring(dot);
             }
-
+            String newAvatar = UUID.randomUUID().toString() + ext;
             avatarPart.write(uploadPath + File.separator + newAvatar);
             avatarName = newAvatar;
         }
-
         User user = new User();
         user.setUserId(loggedUser.getUserId());
         user.setPhone(phone);
         user.setAddress(address);
         user.setAvatar(avatarName);
-
         boolean success = userDAO.updateProfile(user);
-
         if (success) {
             loggedUser.setPhone(phone);
             loggedUser.setAddress(address);
@@ -152,5 +151,4 @@ public class ProfileController extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
 }
