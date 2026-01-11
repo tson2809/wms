@@ -18,7 +18,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.User;
+import model.UserH;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Properties;
@@ -91,7 +91,7 @@ public class ForgotPasswordController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String email = request.getParameter("email");
-        User user = userDAO.findByEmail(email);
+        UserH user = userDAO.findByEmail(email);
         if (user == null) {
             request.setAttribute("error", "Email does not exist in the system");
             request.getRequestDispatcher("forgot-password.jsp").forward(request, response);
