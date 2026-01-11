@@ -13,7 +13,6 @@
         <link href="../css/bootstrap.min.css" rel="stylesheet">
     </head>
     <body>
-
         <div class="container mt-4">
             <h3>User List</h3>
             <table class="table table-bordered table-hover">
