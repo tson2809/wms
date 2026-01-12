@@ -62,9 +62,10 @@ public class ResetPasswordController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    UserDAO userDAO = new UserDAO();
+    private UserDAO userDAO = new UserDAO();
     private static final String SECRET_KEY = "";
     private static final Set<String> USED_TOKENS = Collections.synchronizedSet(new HashSet<>());
+    private static final String PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -79,6 +80,7 @@ public class ResetPasswordController extends HttpServlet {
             response.sendRedirect("signin.jsp");
             return;
         }
+
         request.setAttribute("token", token);
         request.getRequestDispatcher("reset-password.jsp").forward(request, response);
     }
@@ -108,6 +110,12 @@ public class ResetPasswordController extends HttpServlet {
         String confirm = request.getParameter("confirmPassword");
         if (!password.equals(confirm)) {
             request.setAttribute("error", "Passwords do not match");
+            request.setAttribute("token", token);
+            request.getRequestDispatcher("reset-password.jsp").forward(request, response);
+            return;
+        }
+        if (!password.matches(PASSWORD_REGEX)) {
+            request.setAttribute("error","Password must contain uppercase, lowercase, number, special character and be at least 8 characters");
             request.setAttribute("token", token);
             request.getRequestDispatcher("reset-password.jsp").forward(request, response);
             return;
