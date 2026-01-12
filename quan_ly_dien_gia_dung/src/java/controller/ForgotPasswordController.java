@@ -67,7 +67,7 @@ public class ForgotPasswordController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    UserDAO userDAO = new UserDAO();
+    private UserDAO userDAO = new UserDAO();
     private static final String SECRET_KEY = "";
     private static final long EXPIRE_MINUTES = 30;
     private static final String FROM_EMAIL = "";
