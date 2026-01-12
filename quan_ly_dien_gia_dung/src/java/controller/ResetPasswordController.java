@@ -75,12 +75,6 @@ public class ResetPasswordController extends HttpServlet {
             response.sendRedirect("signin.jsp");
             return;
         }
-        Integer userId = verifyToken(token);
-        if (userId == null) {
-            response.sendRedirect("signin.jsp");
-            return;
-        }
-
         request.setAttribute("token", token);
         request.getRequestDispatcher("reset-password.jsp").forward(request, response);
     }
