@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import model.UserH;
+import model.User;
 
 /**
  *
@@ -73,14 +73,14 @@ public class ViewUserListController extends HttpServlet {
         if ("0".equals(activeParam)) active = false;
         int totalUsers = userDAO.countUsers(keyword, role, active);
         int totalPages = (int) Math.ceil((double) totalUsers / PAGE_SIZE);
-        List<UserH> users = userDAO.getUsersByPage(
+        List<User> users = userDAO.getUsersByPage(
                 page, PAGE_SIZE, keyword, role, active
         );
         request.setAttribute("users", users);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalUsers", totalUsers);
-        request.getRequestDispatcher("/view/dashboard/user-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/user-list.jsp").forward(request, response);
     } 
 
     /** 

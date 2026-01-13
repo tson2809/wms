@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import java.io.File;
 import java.util.UUID;
-import model.UserH;
+import model.User;
 
 /**
  *
@@ -67,12 +67,12 @@ public class ProfileController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        UserH loggedUser = (session != null) ? (UserH) session.getAttribute("user") : null;
+        User loggedUser = (session != null) ? (User) session.getAttribute("user") : null;
         if (loggedUser == null) {
             response.sendRedirect("login");
             return;
         }
-        UserH user = userDAO.getUserByIdH(loggedUser.getUserId());
+        User user = userDAO.getUserByIdH(loggedUser.getUserId());
         request.setAttribute("user", user);
         request.setAttribute("activePage", "profile");
         request.getRequestDispatcher("/view/common/profile.jsp").forward(request, response);
@@ -90,7 +90,7 @@ public class ProfileController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        UserH loggedUser = (session != null) ? (UserH) session.getAttribute("user") : null;
+        User loggedUser = (session != null) ? (User) session.getAttribute("user") : null;
         if (loggedUser == null) {
             response.sendRedirect("login");
             return;
@@ -123,7 +123,7 @@ public class ProfileController extends HttpServlet {
             avatarPart.write(uploadPath + File.separator + newAvatar);
             avatarName = newAvatar;
         }
-        UserH user = new UserH();
+        User user = new User();
         user.setUserId(loggedUser.getUserId());
         user.setPhone(phone);
         user.setAddress(address);
