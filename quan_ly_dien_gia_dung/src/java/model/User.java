@@ -15,24 +15,30 @@ public class User {
     private String email;
     private String password;
     private String fullName;
+    private String phone;
     private String address;
     private String avatar;
-    private Role role;  
+    private Role role;
+    private int roleId;
+    private String roleName;
     private boolean isActive;
     private Timestamp createAt;
 
     public User() {
     }
 
-    public User(int userId, String userName, String email, String password, String fullName, String address, String avatar, Role role, boolean isActive, Timestamp createAt) {
+    public User(int userId, String userName, String email, String password, String fullName, String phone, String address, String avatar, Role role, int roleId, String roleName, boolean isActive, Timestamp createAt) {
         this.userId = userId;
         this.userName = userName;
         this.email = email;
         this.password = password;
         this.fullName = fullName;
+        this.phone = phone;
         this.address = address;
         this.avatar = avatar;
         this.role = role;
+        this.roleId = roleId;
+        this.roleName = roleName;
         this.isActive = isActive;
         this.createAt = createAt;
     }
@@ -53,6 +59,14 @@ public class User {
         this.userName = userName;
     }
 
+    public String getUsername() {
+        return userName;
+    }
+
+    public void setUsername(String username) {
+        this.userName = username;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -69,12 +83,28 @@ public class User {
         this.password = password;
     }
 
+    public String getPasswordHash() {
+        return password;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.password = passwordHash;
+    }
+
     public String getFullName() {
         return fullName;
     }
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getAddress() {
@@ -101,8 +131,32 @@ public class User {
         this.role = role;
     }
 
+    public int getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(int roleId) {
+        this.roleId = roleId;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
     public boolean isIsActive() {
         return isActive;
+    }
+    
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
     }
 
     public void setIsActive(boolean isActive) {
@@ -115,6 +169,14 @@ public class User {
 
     public void setCreateAt(Timestamp createAt) {
         this.createAt = createAt;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createAt = createdAt;
     }
 
     @Override

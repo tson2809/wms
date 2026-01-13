@@ -24,7 +24,6 @@ import java.util.Base64;
 import java.util.Properties;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import model.UserH;
 
 /**
  *
@@ -69,10 +68,11 @@ public class ForgotPasswordController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     UserDAO userDAO = new UserDAO();
-    private static final String SECRET_KEY = "";
+    private static final String SECRET_KEY = "9H8fTz2RkL8aWcXQv1u7N4M0JkZPqXyB";
     private static final long EXPIRE_MINUTES = 30;
     private static final String FROM_EMAIL = "";
     private static final String APP_PASSWORD = "";
+
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -92,7 +92,7 @@ public class ForgotPasswordController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String email = request.getParameter("email");
-        UserH user = userDAO.findByEmail(email);
+        User user = userDAO.findByEmail(email);
         if (user == null) {
             request.setAttribute("error", "Email does not exist in the system");
             request.getRequestDispatcher("forgot-password.jsp").forward(request, response);
