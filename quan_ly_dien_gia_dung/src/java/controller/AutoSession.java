@@ -14,14 +14,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  *
- * @author hung
+ * @author thais
  */
-@WebServlet(name = "ChangePassController", urlPatterns = {"/change-password"})
-public class ChangePassController extends HttpServlet {
+@WebServlet(name = "AutoSession", urlPatterns = {"/auto-session"})
+public class AutoSession extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -40,10 +39,10 @@ public class ChangePassController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ChangePassController</title>");
+            out.println("<title>Servlet AutoSession</title>");            
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ChangePassController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet AutoSession at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -58,14 +57,16 @@ public class ChangePassController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    private UserDAO userDAO = new UserDAO();
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setAttribute("activePage", "password");
-        request.getRequestDispatcher("/view/common/change-password.jsp").forward(request, response);
+         HttpSession session = request.getSession();
+        UserDAO userDAO = new UserDAO();
+        if (session.getAttribute("user") == null) {
+            User user = userDAO.getUserByIdH(1);
+            session.setAttribute("user", user);
+        }
+        response.sendRedirect(request.getContextPath() + "/profile");
     }
 
     /**
@@ -79,35 +80,7 @@ public class ChangePassController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect("login");
-            return;
-        }
-        User sessionUser = (User) session.getAttribute("user");
-        int userId = sessionUser.getUserId();
-        String currentPassword = request.getParameter("currentPassword");
-        String newPassword = request.getParameter("newPassword");
-        String confirmPassword = request.getParameter("confirmPassword");
-        if (currentPassword == null || currentPassword.isEmpty()) {
-            response.sendRedirect("change-password?error=wrong");
-            return;
-        }
-        if (!newPassword.equals(confirmPassword)) {
-            response.sendRedirect("change-password?error=confirm");
-            return;
-        }
-        if (!userDAO.checkCurrentPassword(userId, currentPassword)) {
-            response.sendRedirect("change-password?error=wrong");
-            return;
-        }
-        boolean updated = userDAO.updatePassword(userId, newPassword);
-        if (updated) {
-            session.invalidate();
-            response.sendRedirect("login?passwordChanged=true");
-            return;
-        }
-        response.sendRedirect("change-password?error=unknown");
+        processRequest(request, response);
     }
 
     /**
@@ -120,11 +93,4 @@ public class ChangePassController extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
-    public static void main(String[] args) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String password = "12345";
-
-        String hash = encoder.encode(password);
-        System.out.println(hash);
-    }
 }

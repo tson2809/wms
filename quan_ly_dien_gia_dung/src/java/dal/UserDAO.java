@@ -3,7 +3,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package dal;
-import model.UserH;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -74,7 +73,7 @@ public class UserDAO extends DBContext {
  * @author hung
  */
 
-    public UserH getUserByIdH(int userId) {
+    public User getUserByIdH(int userId) {
         String sql = "SELECT user_id, username, email, password_hash, full_name, phone, address, "
                 + "avatar, role_id, is_active, created_at FROM users WHERE user_id = ?";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -83,7 +82,7 @@ public class UserDAO extends DBContext {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    UserH user = new UserH();
+                    User user = new User();
                     user.setUserId(rs.getInt("user_id"));
                     user.setUsername(rs.getString("username"));
                     user.setEmail(rs.getString("email"));
@@ -105,12 +104,12 @@ public class UserDAO extends DBContext {
         return null;
     }
 
-    public List<UserH> getAllUsers() {
-        List<UserH> list = new ArrayList<>();
+    public List<User> getAllUsers() {
+        List<User> list = new ArrayList<>();
         String sql = "SELECT user_id, username, email, full_name, phone, address, avatar, role_id, is_active, created_at FROM users";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                UserH user = new UserH();
+                User user = new User();
                 user.setUserId(rs.getInt("user_id"));
                 user.setUsername(rs.getString("username"));
                 user.setEmail(rs.getString("email"));
@@ -129,7 +128,7 @@ public class UserDAO extends DBContext {
         return list;
     }
 
-    public boolean updateProfile(UserH user) {
+    public boolean updateProfile(User user) {
         String sql = "UPDATE users SET phone = ?, address = ?, avatar = ? WHERE user_id = ?";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, user.getPhone());
@@ -173,13 +172,13 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    public UserH findByEmail(String email) {
+    public User findByEmail(String email) {
         String sql = "SELECT user_id, email FROM users WHERE email = ?";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    UserH user = new UserH();
+                    User user = new User();
                     user.setUserId(rs.getInt("user_id"));
                     user.setEmail(rs.getString("email"));
                     return user;
@@ -276,8 +275,8 @@ public class UserDAO extends DBContext {
         return 0;
     }
 
-    public List<UserH> getUsersByPage(int page, int pageSize, String keyword, String role, Boolean active) {
-        List<UserH> list = new ArrayList<>();
+    public List<User> getUsersByPage(int page, int pageSize, String keyword, String role, Boolean active) {
+        List<User> list = new ArrayList<>();
         int offset = (page - 1) * pageSize;
         StringBuilder sql = new StringBuilder(
                 "SELECT u.user_id, u.username, u.email, u.full_name, u.phone, "
@@ -308,7 +307,7 @@ public class UserDAO extends DBContext {
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    UserH u = new UserH();
+                    User u = new User();
                     u.setUserId(rs.getInt("user_id"));
                     u.setUsername(rs.getString("username"));
                     u.setEmail(rs.getString("email"));
