@@ -29,9 +29,11 @@
     <body>
         <div class="container mt-4">
             <div class="container-fluid position-relative bg-white d-flex p-0">
-                <%@ include file="/components/sidebar.jsp" %>
+                
+                <div id="sidebar-container"></div>
                 <div class="content">
                     <div id="navbar-container"></div>
+                    <div class="container-fluid pt-4 px-4">
                     <div class="d-flex justify-content-between align-items-center mb-3 user-list-header">
                         <h5 class="mb-0">Members List</h5>
                         <button class="btn add-member-btn">
@@ -143,6 +145,8 @@
                     </div>
                 </div>
             </div>
+        </div>
+        </div>
     </body>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
