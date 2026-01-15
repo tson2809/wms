@@ -95,6 +95,7 @@ public class ProfileController extends HttpServlet {
             response.sendRedirect("login");
             return;
         }
+        String email = request.getParameter("email");
         String phone = request.getParameter("phone");
         String address = request.getParameter("address");
         if (phone == null) {
@@ -125,11 +126,13 @@ public class ProfileController extends HttpServlet {
         }
         User user = new User();
         user.setUserId(loggedUser.getUserId());
+        user.setEmail(email);
         user.setPhone(phone);
         user.setAddress(address);
         user.setAvatar(avatarName);
         boolean success = userDAO.updateProfile(user);
         if (success) {
+            loggedUser.setEmail(email);
             loggedUser.setPhone(phone);
             loggedUser.setAddress(address);
             loggedUser.setAvatar(avatarName);

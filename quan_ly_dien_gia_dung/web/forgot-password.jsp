@@ -28,7 +28,7 @@
                                 <a href="signin.jsp"><h3 class="text-primary"><i class="fa fa-hashtag me-2"></i>DASHMIN</h3></a>
                                 <h3>Forgot Password</h3>
                             </div>
-                            <form action="forgot-password" method="post">
+                            <form action="forgot-password" method="post" onsubmit="this.querySelector('button').disabled=true;">
                                 <div class="form-floating mb-3">
                                     <input type="email" class="form-control" name="email" placeholder="name@example.com" required>
                                     <label>Email address</label>

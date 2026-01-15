@@ -68,18 +68,11 @@ public class UserDAO extends DBContext {
         return null;
     }
 
-/**
- *
- * @author hung
- */
-
     public User getUserByIdH(int userId) {
         String sql = "SELECT user_id, username, email, password_hash, full_name, phone, address, "
                 + "avatar, role_id, is_active, created_at FROM users WHERE user_id = ?";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
-
             ps.setInt(1, userId);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     User user = new User();
@@ -97,7 +90,6 @@ public class UserDAO extends DBContext {
                     return user;
                 }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -129,12 +121,13 @@ public class UserDAO extends DBContext {
     }
 
     public boolean updateProfile(User user) {
-        String sql = "UPDATE users SET phone = ?, address = ?, avatar = ? WHERE user_id = ?";
+        String sql = "UPDATE users SET email=?, phone = ?, address = ?, avatar = ? WHERE user_id = ?";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, user.getPhone());
-            ps.setString(2, user.getAddress());
-            ps.setString(3, user.getAvatar());
-            ps.setInt(4, user.getUserId());
+            ps.setString(1, user.getEmail());
+            ps.setString(2, user.getPhone());
+            ps.setString(3, user.getAddress());
+            ps.setString(4, user.getAvatar());
+            ps.setInt(5, user.getUserId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
