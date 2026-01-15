@@ -3,8 +3,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package dal;
-
-import model.UserH;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,14 +10,70 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import model.User;
+import java.sql.*;
+import model.Role;
+
+/**
+ *
+ * @author laptop368
+ */
+public class UserDAO extends DBContext {
+
+    public User getUserById(int id) {
+        String sql = """
+        SELECT 
+            u.user_id,
+            u.username,
+            u.email,
+            u.password_hash,
+            u.full_name,
+            u.address,
+            u.avatar,
+            u.is_active,
+            u.created_at,
+            r.role_id,
+            r.role_name
+        FROM users u
+        INNER JOIN roles r ON u.role_id = r.role_id
+        WHERE u.user_id = ?
+    """;
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                User user = new User();
+                user.setUserId(rs.getInt("user_id"));
+                user.setUserName(rs.getString("username"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password_hash"));
+                user.setFullName(rs.getString("full_name"));
+                user.setAddress(rs.getString("address"));
+                user.setAvatar(rs.getString("avatar"));
+                user.setIsActive(rs.getBoolean("is_active"));
+                user.setCreateAt(rs.getTimestamp("created_at"));
+
+                Role role = new Role();
+                role.setRoleId(rs.getInt("role_id"));
+                role.setRoleName(rs.getString("role_name"));
+                user.setRole(role);
+
+                return user;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 /**
  *
  * @author hung
  */
-public class UserDAO extends DBContext {
 
-    public UserH getUserByIdH(int userId) {
+    public User getUserByIdH(int userId) {
         String sql = "SELECT user_id, username, email, password_hash, full_name, phone, address, "
                 + "avatar, role_id, is_active, created_at FROM users WHERE user_id = ?";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -28,7 +82,7 @@ public class UserDAO extends DBContext {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    UserH user = new UserH();
+                    User user = new User();
                     user.setUserId(rs.getInt("user_id"));
                     user.setUsername(rs.getString("username"));
                     user.setEmail(rs.getString("email"));
@@ -50,12 +104,12 @@ public class UserDAO extends DBContext {
         return null;
     }
 
-    public List<UserH> getAllUsers() {
-        List<UserH> list = new ArrayList<>();
+    public List<User> getAllUsers() {
+        List<User> list = new ArrayList<>();
         String sql = "SELECT user_id, username, email, full_name, phone, address, avatar, role_id, is_active, created_at FROM users";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                UserH user = new UserH();
+                User user = new User();
                 user.setUserId(rs.getInt("user_id"));
                 user.setUsername(rs.getString("username"));
                 user.setEmail(rs.getString("email"));
@@ -74,7 +128,7 @@ public class UserDAO extends DBContext {
         return list;
     }
 
-    public boolean updateProfile(UserH user) {
+    public boolean updateProfile(User user) {
         String sql = "UPDATE users SET phone = ?, address = ?, avatar = ? WHERE user_id = ?";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, user.getPhone());
@@ -118,13 +172,13 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    public UserH findByEmail(String email) {
+    public User findByEmail(String email) {
         String sql = "SELECT user_id, email FROM users WHERE email = ?";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    UserH user = new UserH();
+                    User user = new User();
                     user.setUserId(rs.getInt("user_id"));
                     user.setEmail(rs.getString("email"));
                     return user;
@@ -136,6 +190,58 @@ public class UserDAO extends DBContext {
         return null;
     }
 
+    public boolean update(User user) {
+
+        String sql = """
+        UPDATE users
+        SET username = ?,
+            email = ?,
+            password_hash = ?,
+            full_name = ?,
+            address = ?,
+            avatar = ?,
+            role_id = ?,
+            is_active = ?
+        WHERE user_id = ?
+    """;
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+
+            ps.setString(1, user.getUserName());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPassword());
+            ps.setString(4, user.getFullName());
+            ps.setString(5, user.getAddress());
+            ps.setString(6, user.getAvatar());
+            ps.setInt(7, user.getRole().getRoleId());
+            ps.setBoolean(8, user.isIsActive());
+            ps.setInt(9, user.getUserId());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        UserDAO dao = new UserDAO();
+        Role role = new Role();
+        role.setRoleId(2);
+        User user = new User();
+        user.setUserId(3);
+        user.setUserName("admin_updated");
+        user.setEmail("admin_updated@gmail.com");
+        user.setPassword("123456");
+        user.setFullName("Admin Updated");
+        user.setAddress("Ha Noi");
+        user.setAvatar("avatar_updated.png");
+        user.setRole(role);
+        user.setIsActive(true);
+
+        boolean success = dao.update(user);
+    }
     public int countUsers(String keyword, String role, Boolean active) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM users u "
@@ -169,8 +275,8 @@ public class UserDAO extends DBContext {
         return 0;
     }
 
-    public List<UserH> getUsersByPage(int page, int pageSize, String keyword, String role, Boolean active) {
-        List<UserH> list = new ArrayList<>();
+    public List<User> getUsersByPage(int page, int pageSize, String keyword, String role, Boolean active) {
+        List<User> list = new ArrayList<>();
         int offset = (page - 1) * pageSize;
         StringBuilder sql = new StringBuilder(
                 "SELECT u.user_id, u.username, u.email, u.full_name, u.phone, "
@@ -201,7 +307,7 @@ public class UserDAO extends DBContext {
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    UserH u = new UserH();
+                    User u = new User();
                     u.setUserId(rs.getInt("user_id"));
                     u.setUsername(rs.getString("username"));
                     u.setEmail(rs.getString("email"));

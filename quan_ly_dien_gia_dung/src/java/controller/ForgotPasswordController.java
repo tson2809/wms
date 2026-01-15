@@ -73,6 +73,7 @@ public class ForgotPasswordController extends HttpServlet {
     private static final String FROM_EMAIL = "";
     private static final String APP_PASSWORD = "";
 
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
