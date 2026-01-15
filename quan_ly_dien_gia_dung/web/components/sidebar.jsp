@@ -23,6 +23,10 @@
             <a href="inventory.jsp" class="nav-item nav-link"><i class="fa fa-clipboard-check me-2"></i>Kiểm kê</a>
             
             <a href="reports.jsp" class="nav-item nav-link"><i class="fa fa-chart-line me-2"></i>Báo cáo</a>
+            
+            <a href="${pageContext.request.contextPath}/viewpermission" class="nav-item nav-link"><i class="fa fa-user-shield me-2"></i>Quyền hệ thống</a>
+            
+            <a href="${pageContext.request.contextPath}/ViewRole" class="nav-item nav-link"><i class="fa fa-users-cog me-2"></i>Quản lí cấp bậc</a>
         </div>
     </nav>
 </div>
