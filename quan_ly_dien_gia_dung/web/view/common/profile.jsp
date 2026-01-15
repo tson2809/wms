@@ -66,7 +66,8 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Email</label>
-                                        <input class="form-control"
+                                        <input class="form-control editable"
+                                               name="email"
                                                value="${user.email}"
                                                readonly>
                                     </div>
@@ -119,12 +120,12 @@
                                                 }
 
                                                 document.getElementById('avatarInput').addEventListener('change', function () {
-    if (this.files.length > 0) {
-        document.getElementById('avatarPreview').src =
-            URL.createObjectURL(this.files[0]);
-        document.getElementById('avatarForm').submit();
-    }
-});
+                                                    if (this.files.length > 0) {
+                                                        document.getElementById('avatarPreview').src =
+                                                                URL.createObjectURL(this.files[0]);
+                                                        document.getElementById('avatarForm').submit();
+                                                    }
+                                                });
         </script>
     </body>
 </html>
