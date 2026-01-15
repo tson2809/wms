@@ -50,7 +50,9 @@
                             <div class="d-flex justify-content-between align-items-center mb-3 user-list-header">
                                 <h5 class="mb-0">Members List</h5>
                                 <button class="btn add-member-btn">
-                                    + Add new member
+                                    <a  href="${pageContext.request.contextPath}/user-add">
+                                        Add new member
+                                    </a>
                                 </button>
                             </div>
                             <form action="user-list" method="get" class="user-filter-form mb-3">
@@ -112,21 +114,36 @@
                                             </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
-                                                    <a href=""
+                                                    <a href="${pageContext.request.contextPath}/user-detail?id=${u.userId}"
                                                        class="action-btn action-view"
                                                        title="View user">
                                                         <iconify-icon icon="majesticons:eye-line"></iconify-icon>
                                                     </a>
-                                                    <a href=""
+                                                    <a href="${pageContext.request.contextPath}/UpdateUser?id=${u.userId}"
                                                        class="action-btn action-edit"
                                                        title="Edit user">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
-                                                    <a href=""
-                                                       class="action-btn action-deactivate"
-                                                       title="Deactivate account">
-                                                        <iconify-icon icon="mdi:account-off-outline"></iconify-icon>
-                                                    </a>
+                                                        <c:choose>
+                                                            <c:when test="${u.active}">
+                                                                <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn deactive user này?')">
+                                                                    <input type="hidden" name="id" value="${u.userId}">
+                                                                    <input type="hidden" name="active" value="false">
+                                                                    <button type="submit" class="btn btn-sm btn-secondary" title="Deactive">
+                                                                        <i class="fa fa-user-slash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn active user này?')">
+                                                                    <input type="hidden" name="id" value="${u.userId}">
+                                                                    <input type="hidden" name="active" value="true">
+                                                                    <button type="submit" class="btn btn-sm btn-success" title="Active">
+                                                                        <i class="fa fa-user-check"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                 </div>
                                             </td>
                                         </tr>                          
