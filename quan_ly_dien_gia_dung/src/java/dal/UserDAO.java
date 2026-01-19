@@ -190,6 +190,24 @@ public class UserDAO extends DBContext {
         return null;
     }
 
+    public User findByUsername(String username) {
+        String sql = "SELECT user_id, username FROM users WHERE username = ?";
+        try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setUsername(rs.getString("username"));
+                    return user;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public boolean update(User user) {
 
         String sql = """
