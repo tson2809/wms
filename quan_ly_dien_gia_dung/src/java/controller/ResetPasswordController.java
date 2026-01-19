@@ -19,7 +19,6 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  *
@@ -72,16 +71,16 @@ public class ResetPasswordController extends HttpServlet {
             throws ServletException, IOException {
         String token = request.getParameter("token");
         if (token == null || USED_TOKENS.contains(token)) {
-            response.sendRedirect("signin.jsp");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         Integer userId = verifyToken(token);
         if (userId == null) {
-            response.sendRedirect("signin.jsp");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         request.setAttribute("token", token);
-        request.getRequestDispatcher("reset-password.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/common/reset-password.jsp").forward(request, response);
     }
 
     /**
@@ -97,12 +96,12 @@ public class ResetPasswordController extends HttpServlet {
             throws ServletException, IOException {
         String token = request.getParameter("token");
         if (token == null || USED_TOKENS.contains(token)) {
-            response.sendRedirect("signin.jsp");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         Integer userId = verifyToken(token);
         if (userId == null) {
-            response.sendRedirect("signin.jsp");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         String password = request.getParameter("password");
@@ -110,13 +109,13 @@ public class ResetPasswordController extends HttpServlet {
         if (!password.equals(confirm)) {
             request.setAttribute("error", "Passwords do not match");
             request.setAttribute("token", token);
-            request.getRequestDispatcher("reset-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/common/reset-password.jsp").forward(request, response);
             return;
         }
         userDAO.updatePassword(userId, password);
         USED_TOKENS.add(token);
         request.setAttribute("message", "Password reset successfully");
-        request.getRequestDispatcher("signin.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/common/login.jsp").forward(request, response);
     }
 
     private Integer verifyToken(String token) {
