@@ -58,6 +58,7 @@
                                             <option value="Admin" ${param.role == 'Admin' ? 'selected' : ''}>Admin</option>
                                             <option value="Manager" ${param.role == 'Manager' ? 'selected' : ''}>Manager</option>
                                             <option value="Staff" ${param.role == 'Staff' ? 'selected' : ''}>Staff</option>
+                                            <option value="Staff" ${param.role == 'Sale' ? 'selected' : ''}>Sale</option>
                                         </select>
                                     </div>
 
