@@ -18,7 +18,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.UserH;
+import model.User;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Properties;
@@ -68,7 +68,7 @@ public class ForgotPasswordController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     private UserDAO userDAO = new UserDAO();
-    private static final String SECRET_KEY = "";
+    private static final String SECRET_KEY = "9H8fTz2RkL8aWcXQv1u7N4M0JkZPqXyB";
     private static final long EXPIRE_MINUTES = 30;
     private static final String FROM_EMAIL = "";
     private static final String APP_PASSWORD = "";
@@ -92,7 +92,7 @@ public class ForgotPasswordController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String email = request.getParameter("email");
-        UserH user = userDAO.findByEmail(email);
+        User user = userDAO.findByEmail(email);
         if (user == null) {
             request.setAttribute("error", "Email does not exist in the system");
             request.getRequestDispatcher("forgot-password.jsp").forward(request, response);
