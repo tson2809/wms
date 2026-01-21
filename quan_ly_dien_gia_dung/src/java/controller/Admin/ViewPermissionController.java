@@ -34,25 +34,12 @@ public class ViewPermissionController extends HttpServlet {
         
         List<Permission> allPermissions = permissionDAO.getAllPermission();
         
-        Map<String, List<Permission>> permissionsByModule = new LinkedHashMap<>();
-        
-        for (Permission p : allPermissions) {
-            String module = p.getModule();
-            if (module != null && !module.trim().isEmpty()) {
-                if (!permissionsByModule.containsKey(module)) {
-                    permissionsByModule.put(module, new ArrayList<>());
-                }
-                permissionsByModule.get(module).add(p);
-            }
-        }
-        
         Map<Integer, List<Integer>> allRolePermissions = new LinkedHashMap<>();
         for (Role role : allRoles) {
             List<Integer> permissionIds = roleDAO.getRolePermissionIds(role.getRoleId());
             allRolePermissions.put(role.getRoleId(), permissionIds);
         }
         
-        request.setAttribute("permissionsByModule", permissionsByModule);
         request.setAttribute("allPermissions", allPermissions);
         request.setAttribute("allRoles", allRoles);
         request.setAttribute("allRolePermissions", allRolePermissions);

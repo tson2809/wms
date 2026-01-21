@@ -82,85 +82,66 @@
 
                         <div class="col-12">
                             <div class="bg-light rounded h-100 p-4">
-                                <!-- Filter -->
-                                <div class="mb-4">
-                                    <select class="form-select" id="moduleFilter" style="max-width: 300px;">
-                                        <option value="all">All</option>
-                                        <c:forEach var="entry" items="${permissionsByModule}">
-                                            <option value="${entry.key}">${entry.key}</option>
-                                        </c:forEach>
-                                    </select>
-                                </div>
-                                
                                 <form id="permissionForm" method="POST" action="viewpermission">
 
-                                    <!-- check có data không -->
-                                    <c:if test="${empty permissionsByModule}">
+                                    <c:if test="${empty allPermissions}">
                                         <div class="alert alert-warning">
                                             Không có permission nào trong hệ thống!
                                         </div>
                                     </c:if>
 
-                                    <c:forEach var="entry" items="${permissionsByModule}">
-                                        <div class="module-section mb-3" data-module-name="${entry.key}">
-                                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                                <h4 class="mb-0">
-                                                    <i class="fa fa-folder text-primary me-2"></i>
-                                                    ${entry.key}
-                                                </h4>
-                                                <div class="btn-group" role="group">
-                                                    <c:forEach var="role" items="${allRoles}">
-                                                        <button type="button" 
-                                                                class="btn btn-sm btn-outline-primary select-all-role-btn role-button" 
-                                                                data-module="${entry.key}"
-                                                                data-role="${role.roleId}"
-                                                                data-role-id="${role.roleId}">
-                                                            All ${role.roleName}
-                                                        </button>
-                                                    </c:forEach>
-                                                </div>
-                                            </div>
-
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered table-hover">
-                                                    <thead class="table-primary">
-                                                        <tr>
-                                                            <th style="width: 25%">Permission</th>
-                                                            <th style="width: 35%">Description</th>
-                                                            <c:forEach var="role" items="${allRoles}">
-                                                                <th class="text-center role-column" data-role-id="${role.roleId}" style="width: 13%">${role.roleName}</th>
-                                                            </c:forEach>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <c:forEach var="permission" items="${entry.value}">
-                                                            <tr>
-                                                                <td class="align-middle">
-                                                                    <strong>${permission.permissionName}</strong>
-                                                                </td>
-
-                                                                <td class="align-middle">
-                                                                    <small class="text-muted">${permission.permissionDescription}</small>
-                                                                </td>
-
-                                                                <c:forEach var="role" items="${allRoles}">
-                                                                    <td class="text-center align-middle role-column" data-role-id="${role.roleId}">
-                                                                        <input class="form-check-input role-checkbox" 
-                                                                               type="checkbox" 
-                                                                               name="permissions_${role.roleId}"
-                                                                               value="${permission.permissionId}" 
-                                                                               data-module="${entry.key}"
-                                                                               data-role="${role.roleId}"
-                                                                               ${allRolePermissions[role.roleId].contains(permission.permissionId) ? 'checked' : ''}>
-                                                                    </td>
-                                                                </c:forEach>
-                                                            </tr>
-                                                        </c:forEach>
-                                                    </tbody>
-                                                </table>
+                                    <c:if test="${not empty allPermissions}">
+                                        <div class="mb-3">
+                                            <div class="btn-group" role="group">
+                                                <c:forEach var="role" items="${allRoles}">
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-primary select-all-role-btn" 
+                                                            data-role="${role.roleId}"
+                                                            data-role-id="${role.roleId}">
+                                                        Select All ${role.roleName}
+                                                    </button>
+                                                </c:forEach>
                                             </div>
                                         </div>
-                                    </c:forEach>
+
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-hover">
+                                                <thead class="table-primary">
+                                                    <tr>
+                                                        <th style="width: 25%">Permission</th>
+                                                        <th style="width: 35%">Description</th>
+                                                        <c:forEach var="role" items="${allRoles}">
+                                                            <th class="text-center role-column" data-role-id="${role.roleId}" style="width: 13%">${role.roleName}</th>
+                                                        </c:forEach>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <c:forEach var="permission" items="${allPermissions}">
+                                                        <tr>
+                                                            <td class="align-middle">
+                                                                <strong>${permission.permissionName}</strong>
+                                                            </td>
+
+                                                            <td class="align-middle">
+                                                                <small class="text-muted">${permission.permissionDescription}</small>
+                                                            </td>
+
+                                                            <c:forEach var="role" items="${allRoles}">
+                                                                <td class="text-center align-middle role-column" data-role-id="${role.roleId}">
+                                                                    <input class="form-check-input role-checkbox" 
+                                                                           type="checkbox" 
+                                                                           name="permissions_${role.roleId}"
+                                                                           value="${permission.permissionId}" 
+                                                                           data-role="${role.roleId}"
+                                                                           ${allRolePermissions[role.roleId].contains(permission.permissionId) ? 'checked' : ''}>
+                                                                </td>
+                                                            </c:forEach>
+                                                        </tr>
+                                                    </c:forEach>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </c:if>
                                     <div class="mt-4 text-center">
                                         <button type="submit" class="btn btn-success">
                                             Save Changes
@@ -199,22 +180,6 @@
 
         <script>
                                             $(document).ready(function () {
-                                                // Filter Module
-                                                $('#moduleFilter').change(function () {
-                                                    var selectedModule = $(this).val();
-
-                                                    if (selectedModule === 'all') {
-                                                        // Hiện tất cả modules
-                                                        $('.module-section').show();
-                                                    } else {
-                                                        // Ẩn tất cả modules trước
-                                                        $('.module-section').hide();
-
-                                                        // Chỉ hiện module được chọn
-                                                        $('.module-section[data-module-name="' + selectedModule + '"]').show();
-                                                    }
-                                                });
-
                                                 // Confirm
                                                 $('#permissionForm').submit(function (e) {
                                                     if (!confirm('Bạn có chắc muốn lưu thay đổi cho TẤT CẢ các roles?')) {
@@ -223,14 +188,13 @@
                                                     }
                                                 });
 
-                                                // Xử lý khi click nút "All <RoleName>"
+                                                // Xử lý khi click nút "Select All <RoleName>"
                                                 $('.select-all-role-btn').click(function () {
-                                                    var module = $(this).data('module');
                                                     var roleId = $(this).data('role');
                                                     var btn = $(this);
 
-                                                    // Tìm tất cả checkboxes của role này trong module này
-                                                    var checkboxes = $('.role-checkbox[data-module="' + module + '"][data-role="' + roleId + '"]');
+                                                    // Tìm tất cả checkboxes của role này
+                                                    var checkboxes = $('.role-checkbox[data-role="' + roleId + '"]');
 
                                                     // Kiểm tra xem tất cả đã được check chưa
                                                     var allChecked = checkboxes.filter(':checked').length === checkboxes.length;
@@ -248,11 +212,10 @@
 
                                                 // Cập nhật style của button khi user manually check/uncheck
                                                 $('.role-checkbox').change(function () {
-                                                    var module = $(this).data('module');
                                                     var roleId = $(this).data('role');
 
-                                                    var checkboxes = $('.role-checkbox[data-module="' + module + '"][data-role="' + roleId + '"]');
-                                                    var btn = $('.select-all-role-btn[data-module="' + module + '"][data-role="' + roleId + '"]');
+                                                    var checkboxes = $('.role-checkbox[data-role="' + roleId + '"]');
+                                                    var btn = $('.select-all-role-btn[data-role="' + roleId + '"]');
 
                                                     var allChecked = checkboxes.filter(':checked').length === checkboxes.length;
 
@@ -265,9 +228,8 @@
 
                                                 // Khởi tạo style của buttons lúc load trang
                                                 $('.select-all-role-btn').each(function () {
-                                                    var module = $(this).data('module');
                                                     var roleId = $(this).data('role');
-                                                    var checkboxes = $('.role-checkbox[data-module="' + module + '"][data-role="' + roleId + '"]');
+                                                    var checkboxes = $('.role-checkbox[data-role="' + roleId + '"]');
                                                     var allChecked = checkboxes.filter(':checked').length === checkboxes.length;
 
                                                     if (allChecked && checkboxes.length > 0) {
