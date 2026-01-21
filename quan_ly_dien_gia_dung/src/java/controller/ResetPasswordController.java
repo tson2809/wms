@@ -63,7 +63,7 @@ public class ResetPasswordController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     UserDAO userDAO = new UserDAO();
-    private static final String SECRET_KEY = "";
+    private static final String SECRET_KEY = "9H8fTz2RkL8aWcXQv1u7N4M0JkZPqXyB";
     private static final Set<String> USED_TOKENS = Collections.synchronizedSet(new HashSet<>());
 
     @Override
