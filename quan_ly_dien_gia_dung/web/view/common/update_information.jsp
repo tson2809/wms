@@ -115,12 +115,12 @@
                                             </select>
                                         </div>
 
-                                        <div class="col-12">
+<!--                                        <div class="col-12">
                                             <label class="form-label">New Password</label>
                                             <input type="password" class="form-control"
                                                    name="password"
                                                    placeholder="Leave blank to keep old password">
-                                        </div>
+                                        </div>-->
 
                                     </div>
                                 </div>
