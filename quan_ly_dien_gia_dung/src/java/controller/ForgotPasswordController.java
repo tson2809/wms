@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.User;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Properties;
 import javax.crypto.Mac;
@@ -67,12 +68,9 @@ public class ForgotPasswordController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    private UserDAO userDAO = new UserDAO();
-    private static final String SECRET_KEY = "9H8fTz2RkL8aWcXQv1u7N4M0JkZPqXyB";
-    private static final long EXPIRE_MINUTES = 30;
+    private final UserDAO userDAO = new UserDAO();
     private static final String FROM_EMAIL = "khung123450@gmail.com";
     private static final String APP_PASSWORD = "ddoqgmmoqxzngmmf";
-
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -95,48 +93,61 @@ public class ForgotPasswordController extends HttpServlet {
         User user = userDAO.findByEmail(email);
         if (user == null) {
             request.setAttribute("error", "Email does not exist in the system");
-            request.getRequestDispatcher("view/common/forgot-password.jsp").forward(request, response);
+            request.getRequestDispatcher("forgot-password.jsp").forward(request, response);
             return;
         }
-        String token = generateToken(user.getUserId());
-        sendEmail(email, token);
-        request.setAttribute("message", "Reset password link has been sent to your email");
+        String newPassword = generateRandomPassword();
+        userDAO.updatePassword(user.getUserId(), newPassword);
+        sendEmail(email, newPassword);
+        request.setAttribute("message",
+                "A new password has been sent to your email");
         request.getRequestDispatcher("view/common/forgot-password.jsp").forward(request, response);
     }
 
-    private String generateToken(int userId) {
-        try {
-            long expiry = System.currentTimeMillis() + EXPIRE_MINUTES * 60 * 1000;
-            String data = userId + ":" + expiry;
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(SECRET_KEY.getBytes(), "HmacSHA256"));
-            String sig = Base64.getEncoder().encodeToString(mac.doFinal(data.getBytes(StandardCharsets.UTF_8)));
-            return Base64.getUrlEncoder().encodeToString((data + ":" + sig).getBytes());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    private String generateRandomPassword() {
+        String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String lower = "abcdefghijklmnopqrstuvwxyz";
+        String digits = "0123456789";
+        String special = "@$!%*?&";
+        String all = upper + lower + digits + special;
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+        sb.append(upper.charAt(random.nextInt(upper.length())));
+        sb.append(lower.charAt(random.nextInt(lower.length())));
+        sb.append(digits.charAt(random.nextInt(digits.length())));
+        sb.append(special.charAt(random.nextInt(special.length())));
+        for (int i = 4; i < 8; i++) {
+            sb.append(all.charAt(random.nextInt(all.length())));
         }
+        return sb.toString();
     }
 
-    private void sendEmail(String to, String token) {
+    private void sendEmail(String to, String newPassword) {
         try {
             Properties props = new Properties();
             props.put("mail.smtp.host", "smtp.gmail.com");
             props.put("mail.smtp.port", "587");
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
+
             Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(FROM_EMAIL, APP_PASSWORD);
                 }
             });
+
             Message msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(FROM_EMAIL));
             msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-            msg.setSubject("Reset Password");
-            String link = "http://localhost:8080/quan_ly_dien_gia_dung/reset-password?token=" + token;
-            msg.setText("Click the link to reset your password:\n" + link 
-                    +"\n The link will be expire after 30 minute ");
+            msg.setSubject("Your New Password");
+
+            msg.setText(
+                    "Your password has been reset.\n\n"
+                    + "New password: " + newPassword + "\n\n"
+                    + "Please log in and change your password immediately."
+            );
+
             Transport.send(msg);
         } catch (Exception e) {
             e.printStackTrace();

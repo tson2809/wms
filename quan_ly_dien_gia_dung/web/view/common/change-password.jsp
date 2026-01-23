@@ -22,7 +22,7 @@
                 <div class="container-fluid pt-4 px-4">
                     <div class="row justify-content-center">
                         <div class="col-lg-5">
-                            <div class="bg-light rounded p-4">
+                            <div class="bg-light rounded p-4">                            
                                 <h5 class="mb-4">Change Password</h5>
                                 <c:if test="${param.error == 'wrong'}">
                                     <div class="alert alert-danger">Current password is incorrect</div>
@@ -30,7 +30,12 @@
                                 <c:if test="${param.error == 'confirm'}">
                                     <div class="alert alert-danger">Password confirmation does not match</div>
                                 </c:if>
-                                <form action="change-password" method="post" onsubmit="return validatePassword()">
+                                    <c:if test="${param.error == 'weak'}">
+                                    <div class="alert alert-danger">
+                                        Password must contain uppercase, lowercase, number, special character and be at least 8 characters
+                                    </div>
+                                </c:if>
+                                <form action="change-password" method="post"">
                                     <div class="mb-3">
                                         <label class="form-label">Current Password</label>
                                         <input type="password" name="currentPassword" class="form-control" required>
@@ -55,34 +60,10 @@
                     </div>
                 </div>
             </div>
-
-            <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top">
-                <i class="bi bi-arrow-up"></i>
-            </a>
         </div>
-
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/loadComponents.js"></script>
         <script src="${pageContext.request.contextPath}/js/main.js"></script>
-
-        <script>
-                                    function validatePassword() {
-                                        const pwd = document.getElementById("newPassword").value;
-                                        const confirm = document.getElementById("confirmPassword").value;
-                                        const error = document.getElementById("passwordError");
-                                        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-                                        if (!regex.test(pwd)) {
-                                            error.innerText = "Password must be at least 8 characters and include uppercase, lowercase, number and special character";
-                                            return false;
-                                        }
-                                        if (pwd !== confirm) {
-                                            error.innerText = "Password confirmation does not match";
-                                            return false;
-                                        }
-                                        error.innerText = "";
-                                        return true;
-                                    }
-        </script>
     </body>
 </html>
