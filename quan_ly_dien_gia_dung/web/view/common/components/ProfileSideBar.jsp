@@ -20,6 +20,11 @@
                class="nav-item nav-link ${activePage == 'password' ? 'active' : ''}">
                 <i class="fa fa-key me-2"></i>Change Password
             </a>
+                
+                <a href="${pageContext.request.contextPath}/indexAdmin"
+               class="nav-item nav-link ${activePage == 'password' ? 'active' : ''}">
+                <i class="fa fa-tachometer-alt me-2"></i>Trang chủ
+            </a>
 
             <hr>
         </div>

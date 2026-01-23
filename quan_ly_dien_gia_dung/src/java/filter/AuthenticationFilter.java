@@ -61,7 +61,6 @@ public class AuthenticationFilter implements Filter {
         String roleNameLower = roleName.toLowerCase();
         boolean hasAccess = false;
 
-        // Kiểm tra URL yêu cầu và so sánh với role của user
         if (requestURI.contains("/view/admin/")) {
             hasAccess = roleNameLower.equals("admin");
         } else if (requestURI.contains("/view/manager/")) {

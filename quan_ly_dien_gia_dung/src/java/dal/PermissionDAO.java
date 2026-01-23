@@ -31,11 +31,10 @@ public class PermissionDAO extends DBContext {
                 int permissionId = rs.getInt("permission_id");
                 String permissionName = rs.getString("permission_name");
                 String permissionDescription = rs.getString("permission_description");
-                String module = rs.getString("module");
                 Date createdAt = rs.getDate("created_at");
                 
                 Permission permission = new Permission(permissionId, permissionName, 
-                                                      permissionDescription, module, createdAt);
+                                                      permissionDescription, createdAt);
                 list.add(permission);
             }
         } catch (SQLException ex) {
@@ -47,15 +46,13 @@ public class PermissionDAO extends DBContext {
     public int updatePermission(Permission p) {
         int n = 0;
         String sql = """
-                     UPDATE permissions SET permission_name = ?, permission_description = ?, 
-                         module = ? 
+                     UPDATE permissions SET permission_name = ?, permission_description = ? 
                      WHERE permission_id = ?
                      """;
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
             pre.setString(1, p.getPermissionName());
             pre.setString(2, p.getPermissionDescription());
-            pre.setString(3, p.getModule());
-            pre.setInt(4, p.getPermissionId());
+            pre.setInt(3, p.getPermissionId());
             n = pre.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(PermissionDAO.class.getName()).log(Level.SEVERE, null, ex);

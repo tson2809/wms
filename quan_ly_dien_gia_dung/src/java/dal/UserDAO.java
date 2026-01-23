@@ -28,6 +28,7 @@ public class UserDAO extends DBContext {
             u.email,
             u.password_hash,
             u.full_name,
+            u.phone,
             u.address,
             u.avatar,
             u.is_active,
@@ -50,6 +51,7 @@ public class UserDAO extends DBContext {
                 user.setEmail(rs.getString("email"));
                 user.setPassword(rs.getString("password_hash"));
                 user.setFullName(rs.getString("full_name"));
+                user.setPhone(rs.getString("phone"));
                 user.setAddress(rs.getString("address"));
                 user.setAvatar(rs.getString("avatar"));
                 user.setIsActive(rs.getBoolean("is_active"));
@@ -207,8 +209,9 @@ public class UserDAO extends DBContext {
         UPDATE users
         SET username = ?,
             email = ?,
-            password_hash = ?,
+            
             full_name = ?,
+            phone = ?,
             address = ?,
             avatar = ?,
             role_id = ?,
@@ -220,8 +223,9 @@ public class UserDAO extends DBContext {
 
             ps.setString(1, user.getUserName());
             ps.setString(2, user.getEmail());
-            ps.setString(3, user.getPassword());
-            ps.setString(4, user.getFullName());
+            
+            ps.setString(3, user.getFullName());
+            ps.setString(4, user.getPhone());
             ps.setString(5, user.getAddress());
             ps.setString(6, user.getAvatar());
             ps.setInt(7, user.getRole().getRoleId());
@@ -244,8 +248,9 @@ public class UserDAO extends DBContext {
         user.setUserId(3);
         user.setUserName("admin_updated");
         user.setEmail("admin_updated@gmail.com");
-        user.setPassword("123456");
+        
         user.setFullName("Admin Updated");
+        user.setPhone("0123456789");
         user.setAddress("Ha Noi");
         user.setAvatar("avatar_updated.png");
         user.setRole(role);

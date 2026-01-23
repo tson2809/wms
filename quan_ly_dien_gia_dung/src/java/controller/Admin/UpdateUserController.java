@@ -25,7 +25,6 @@ import model.User;
  *
  * @author laptop368
  */
-
 @WebServlet(name = "UpdateUserController", urlPatterns = {"/UpdateUser"})
 @MultipartConfig
 
@@ -96,12 +95,16 @@ public class UpdateUserController extends HttpServlet {
         String username = request.getParameter("username");
         String email = request.getParameter("email");
         String fullName = request.getParameter("fullName");
+        String phone = request.getParameter("phone");
         String address = request.getParameter("address");
-        String password = request.getParameter("password");
+
         int roleId = Integer.parseInt(request.getParameter("roleId"));
         boolean isActive = Boolean.parseBoolean(request.getParameter("isActive"));
 
         boolean hasError = false;
+
+        String phoneRegex = "^0\\d{9}$";
+        String emailRegex = "^.+@.+$";
         if (username == null || username.isBlank()) {
             request.setAttribute("usernameError", "Username không được để trống");
             hasError = true;
@@ -109,6 +112,10 @@ public class UpdateUserController extends HttpServlet {
 
         if (email == null || email.isBlank()) {
             request.setAttribute("emailError", "Email không được để trống");
+            hasError = true;
+        }
+        if (!email.matches(emailRegex)) {
+            request.setAttribute("emailError", "Email không hợp lệ");
             hasError = true;
         }
 
@@ -119,6 +126,17 @@ public class UpdateUserController extends HttpServlet {
 
         if (address == null || address.isBlank()) {
             request.setAttribute("addressError", "Địa chỉ không được để trống");
+            hasError = true;
+        }
+
+        if (phone == null || phone.isBlank()) {
+            request.setAttribute("phoneError", "Số điện thoại không được để trống");
+            hasError = true;
+        } else if (!phone.matches(phoneRegex)) {
+            request.setAttribute(
+                    "phoneError",
+                    "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0"
+            );
             hasError = true;
         }
 
@@ -134,24 +152,28 @@ public class UpdateUserController extends HttpServlet {
         old.setFullName(fullName);
         old.setAddress(address);
         old.setIsActive(isActive);
-
-        if (password != null && !password.isBlank()) {
-            old.setPassword(password); // test, chưa hash
-        }
+        old.setPhone(phone);
 
         Role role = new Role();
         role.setRoleId(roleId);
         old.setRole(role);
 
         // ===== UPLOAD AVATAR =====
-        
         Part avatarPart = request.getPart("avatar");
         if (avatarPart != null && avatarPart.getSize() > 0) {
 
             String fileName = Paths.get(avatarPart.getSubmittedFileName())
                     .getFileName().toString();
 
-        String uploadPath = getServletContext().getRealPath("/img/avatar");
+            String rootPath = getServletContext().getRealPath("/");
+            if (rootPath.contains("build")) {
+                rootPath = rootPath.substring(0, rootPath.indexOf("build"));
+            }
+
+            // 📁 web/img/avatar
+            String uploadPath = rootPath + "web"
+                    + File.separator + "img"
+                    + File.separator + "avatar";
 
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {

@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  *
@@ -66,7 +67,14 @@ public class LoginController extends HttpServlet {
         }
 
         String storedPassword = fullUser.getPassword();
-        if (storedPassword == null || !password.equals(storedPassword)) {
+        if (storedPassword == null) {
+            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
+            request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
+            return;
+        }
+        
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        if (!encoder.matches(password, storedPassword)) {
             request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
             request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
             return;
