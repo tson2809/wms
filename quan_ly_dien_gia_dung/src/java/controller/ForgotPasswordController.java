@@ -70,8 +70,8 @@ public class ForgotPasswordController extends HttpServlet {
     private UserDAO userDAO = new UserDAO();
     private static final String SECRET_KEY = "9H8fTz2RkL8aWcXQv1u7N4M0JkZPqXyB";
     private static final long EXPIRE_MINUTES = 30;
-    private static final String FROM_EMAIL = "";
-    private static final String APP_PASSWORD = "";
+    private static final String FROM_EMAIL = "khung123450@gmail.com";
+    private static final String APP_PASSWORD = "ddoqgmmoqxzngmmf";
 
 
     @Override
