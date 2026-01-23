@@ -125,6 +125,7 @@ public class ForgotPasswordController extends HttpServlet {
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
             Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
+                @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(FROM_EMAIL, APP_PASSWORD);
                 }
