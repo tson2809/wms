@@ -72,7 +72,12 @@ public class ResetPasswordController extends HttpServlet {
             throws ServletException, IOException {
         String token = request.getParameter("token");
         if (token == null || USED_TOKENS.contains(token)) {
-            response.sendRedirect("signin.jsp");
+            response.sendRedirect("/signin");
+            return;
+        }
+        Integer userId = verifyToken(token);
+        if (userId == null) {
+            response.sendRedirect("/signin");
             return;
         }
         request.setAttribute("token", token);
@@ -109,7 +114,7 @@ public class ResetPasswordController extends HttpServlet {
             return;
         }
         if (!password.matches(PASSWORD_REGEX)) {
-            request.setAttribute("error","Password must contain uppercase, lowercase, number, special character and be at least 8 characters");
+            request.setAttribute("error", "Password must contain uppercase, lowercase, number, special character and be at least 8 characters");
             request.setAttribute("token", token);
             request.getRequestDispatcher("reset-password.jsp").forward(request, response);
             return;
