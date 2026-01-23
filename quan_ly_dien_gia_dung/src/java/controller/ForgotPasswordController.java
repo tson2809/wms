@@ -77,7 +77,7 @@ public class ForgotPasswordController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("forgot-password.jsp").forward(request, response);
+        request.getRequestDispatcher("view/common/forgot-password.jsp").forward(request, response);
     }
 
     /**
@@ -95,13 +95,13 @@ public class ForgotPasswordController extends HttpServlet {
         User user = userDAO.findByEmail(email);
         if (user == null) {
             request.setAttribute("error", "Email does not exist in the system");
-            request.getRequestDispatcher("forgot-password.jsp").forward(request, response);
+            request.getRequestDispatcher("view/common/forgot-password.jsp").forward(request, response);
             return;
         }
         String token = generateToken(user.getUserId());
         sendEmail(email, token);
         request.setAttribute("message", "Reset password link has been sent to your email");
-        request.getRequestDispatcher("forgot-password.jsp").forward(request, response);
+        request.getRequestDispatcher("view/common/forgot-password.jsp").forward(request, response);
     }
 
     private String generateToken(int userId) {

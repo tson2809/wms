@@ -10,21 +10,20 @@
 
         <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-        <link href="css/bootstrap.min.css" rel="stylesheet">
-        <link href="css/style.css" rel="stylesheet">
+        <link href="${pageContext.request.contextPath}/css/bootstrap.min.css" rel="stylesheet">
+        <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
     </head>
 
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <%@ include file="components/ProfileSideBar.jsp" %>
+            <jsp:include page="/view/common/components/ProfileSideBar.jsp" />
             <div class="content">
-                <div id="navbar-container"></div>
                 <div class="container-fluid pt-4 px-4">
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="bg-light rounded p-4 text-center">
                                 <img id="avatarPreview"
-                                     src="${user.avatar != null ? 'uploads/images/'.concat(user.avatar) : 'img/default-avatar.png'}"
+                                     src="${user.avatar != null && !user.avatar.isEmpty() ? pageContext.request.contextPath.concat('/').concat(user.avatar) : ''}"
                                      class="rounded-circle"
                                      style="width:120px;height:120px;object-fit:cover;">
                                 <br>
@@ -104,8 +103,8 @@
             </div>
         </div>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="js/loadComponents.js"></script>
-        <script src="js/main.js"></script>
+        <script src="${pageContext.request.contextPath}/js/loadComponents.js"></script>
+        <script src="${pageContext.request.contextPath}/js/main.js"></script>
         <script>
                                                 function enableEdit() {
                                                     document.querySelectorAll('.editable').forEach(i => {

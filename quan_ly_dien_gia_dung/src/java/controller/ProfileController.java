@@ -105,8 +105,7 @@ public class ProfileController extends HttpServlet {
             address = loggedUser.getAddress();
         }
         String avatarName = loggedUser.getAvatar();
-        String projectRoot = System.getProperty("user.dir");
-        String uploadPath = projectRoot + File.separator + "uploads" + File.separator + "images";
+        String uploadPath = getServletContext().getRealPath("/img/avatar");
         File dir = new File(uploadPath);
         if (!dir.exists()) {
             dir.mkdirs();
@@ -122,7 +121,7 @@ public class ProfileController extends HttpServlet {
             }
             String newAvatar = UUID.randomUUID().toString() + ext;
             avatarPart.write(uploadPath + File.separator + newAvatar);
-            avatarName = newAvatar;
+            avatarName = "img/avatar/" + newAvatar;
         }
         User user = new User();
         user.setUserId(loggedUser.getUserId());
