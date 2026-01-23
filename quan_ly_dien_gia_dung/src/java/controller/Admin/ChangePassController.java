@@ -60,6 +60,8 @@ public class ChangePassController extends HttpServlet {
      */
     private UserDAO userDAO = new UserDAO();
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private static final String PASSWORD_REGEX
+            = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -95,6 +97,10 @@ public class ChangePassController extends HttpServlet {
         }
         if (!newPassword.equals(confirmPassword)) {
             response.sendRedirect("change-password?error=confirm");
+            return;
+        }
+        if (!newPassword.matches(PASSWORD_REGEX)) {
+            response.sendRedirect("change-password?error=weak");
             return;
         }
         if (!userDAO.checkCurrentPassword(userId, currentPassword)) {
