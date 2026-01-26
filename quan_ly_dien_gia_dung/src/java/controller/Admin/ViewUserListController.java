@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-
 package controller.Admin;
 
 import dal.UserDAO;
@@ -20,46 +19,50 @@ import model.User;
  *
  * @author hung
  */
-@WebServlet(name="ViewUserListController", urlPatterns={"/user-list"})
+@WebServlet(name = "ViewUserListController", urlPatterns = {"/user-list"})
 public class ViewUserListController extends HttpServlet {
-   
-    /** 
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ViewUserListController</title>");  
+            out.println("<title>Servlet ViewUserListController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ViewUserListController at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet ViewUserListController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
-    } 
+    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /** 
+    /**
      * Handles the HTTP <code>GET</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    private UserDAO userDAO = new UserDAO();
-    private static int PAGE_SIZE = 10;
+    private final UserDAO userDAO = new UserDAO();
+    private static final int PAGE_SIZE = 10;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         int page = 1;
         String pageParam = request.getParameter("page");
         if (pageParam != null) {
@@ -69,22 +72,38 @@ public class ViewUserListController extends HttpServlet {
         String role = request.getParameter("role");
         String activeParam = request.getParameter("active");
         Boolean active = null;
-        if ("1".equals(activeParam)) active = true;
-        if ("0".equals(activeParam)) active = false;
+        if ("1".equals(activeParam)) {
+            active = true;
+        }
+        if ("0".equals(activeParam)) {
+            active = false;
+        }
+        String sort = request.getParameter("sort");
+        String dir = request.getParameter("dir");
+        if (sort == null || sort.isEmpty()) {
+            sort = "full_name";
+        }
+        if (dir == null || dir.isEmpty()) {
+            dir = "asc";
+        }
         int totalUsers = userDAO.countUsers(keyword, role, active);
         int totalPages = (int) Math.ceil((double) totalUsers / PAGE_SIZE);
+        if (page > totalPages && totalPages > 0) {
+            page = totalPages;
+        }
         List<User> users = userDAO.getUsersByPage(
-                page, PAGE_SIZE, keyword, role, active
+                page, PAGE_SIZE, keyword, role, active, sort, dir
         );
         request.setAttribute("users", users);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalUsers", totalUsers);
         request.getRequestDispatcher("/view/admin/user-list.jsp").forward(request, response);
-    } 
+    }
 
-    /** 
+    /**
      * Handles the HTTP <code>POST</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -92,12 +111,13 @@ public class ViewUserListController extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /** 
+    /**
      * Returns a short description of the servlet.
+     *
      * @return a String containing servlet description
      */
     @Override

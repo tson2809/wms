@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package dal;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -223,7 +224,7 @@ public class UserDAO extends DBContext {
 
             ps.setString(1, user.getUserName());
             ps.setString(2, user.getEmail());
-            
+
             ps.setString(3, user.getFullName());
             ps.setString(4, user.getPhone());
             ps.setString(5, user.getAddress());
@@ -248,7 +249,7 @@ public class UserDAO extends DBContext {
         user.setUserId(3);
         user.setUserName("admin_updated");
         user.setEmail("admin_updated@gmail.com");
-        
+
         user.setFullName("Admin Updated");
         user.setPhone("0123456789");
         user.setAddress("Ha Noi");
@@ -258,6 +259,7 @@ public class UserDAO extends DBContext {
 
         boolean success = dao.update(user);
     }
+
     public int countUsers(String keyword, String role, Boolean active) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM users u "
@@ -290,18 +292,18 @@ public class UserDAO extends DBContext {
         }
         return 0;
     }
-    
-    public List<User> getUsersByPage(int page, int pageSize, String keyword, String role, Boolean active) {
+
+    public List<User> getUsersByPage(int page,int pageSize,String keyword,String role,Boolean active,String sort,String dir) {
         List<User> list = new ArrayList<>();
         int offset = (page - 1) * pageSize;
         StringBuilder sql = new StringBuilder(
                 "SELECT u.user_id, u.username, u.email, u.full_name, u.phone, "
                 + "u.is_active, r.role_name "
                 + "FROM users u "
-                + "LEFT JOIN roles r ON u.role_id = r.role_id WHERE 1=1 "
+                + "LEFT JOIN roles r ON u.role_id = r.role_id "
+                + "WHERE 1=1 "
         );
         List<Object> params = new ArrayList<>();
-
         if (keyword != null && !keyword.isEmpty()) {
             sql.append("AND u.full_name LIKE ? ");
             params.add("%" + keyword + "%");
@@ -314,7 +316,17 @@ public class UserDAO extends DBContext {
             sql.append("AND u.is_active = ? ");
             params.add(active);
         }
-        sql.append("ORDER BY u.user_id LIMIT ? OFFSET ?");
+        String orderBy = "u.user_id";
+        if ("full_name".equals(sort)) {
+            orderBy = "u.full_name";
+        } else if ("role".equals(sort)) {
+            orderBy = "r.role_name";
+        } else if ("status".equals(sort)) {
+            orderBy = "u.is_active";
+        }
+        String direction = "asc".equalsIgnoreCase(dir) ? "ASC" : "DESC";
+        sql.append("ORDER BY ").append(orderBy).append(" ").append(direction).append(" ");
+        sql.append("LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add(offset);
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
@@ -339,21 +351,30 @@ public class UserDAO extends DBContext {
         }
         return list;
     }
-    
+
     private String resolveSortColumn(String sortBy) {
         if (sortBy == null) {
             return "u.user_id";
         }
         return switch (sortBy) {
-            case "id" -> "u.user_id";
-            case "username" -> "u.username";
-            case "email" -> "u.email";
-            case "fullName" -> "u.full_name";
-            case "phone" -> "u.phone";
-            case "role" -> "r.role_name";
-            case "status" -> "u.is_active";
-            case "createdAt" -> "u.created_at";
-            default -> "u.user_id";
+            case "id" ->
+                "u.user_id";
+            case "username" ->
+                "u.username";
+            case "email" ->
+                "u.email";
+            case "fullName" ->
+                "u.full_name";
+            case "phone" ->
+                "u.phone";
+            case "role" ->
+                "r.role_name";
+            case "status" ->
+                "u.is_active";
+            case "createdAt" ->
+                "u.created_at";
+            default ->
+                "u.user_id";
         };
     }
 
@@ -363,7 +384,6 @@ public class UserDAO extends DBContext {
         }
         return "desc".equalsIgnoreCase(sortDir) ? "DESC" : "ASC";
     }
-
 
     public int countUsers(String keyword, Integer roleId, Boolean isActive) {
         StringBuilder sql = new StringBuilder("""
