@@ -86,7 +86,7 @@
                                         <button type="submit" class="btn btn-primary w-100">
                                             Search
                                         </button>
-                                        <button type="reset" class="btn btn-secondary w-100" onclick="window.location.href='user-list'">
+                                        <button type="reset" class="btn btn-secondary w-100" onclick="window.location.href = 'user-list'">
                                             Clear Filter
                                         </button>
                                     </div>
@@ -95,11 +95,32 @@
                             <table class="table align-middle">
                                 <thead>
                                     <tr>
-                                        <th>Full name</th>
+                                        <th>
+                                            <a href="user-list?sort=full_name&dir=${param.sort == 'full_name' && param.dir == 'asc' ? 'desc' : 'asc'}">
+                                                Full name
+                                                <c:if test="${param.sort == 'full_name'}">
+                                                    ${param.dir == 'asc' ? '▲' : '▼'}
+                                                </c:if>
+                                            </a>
+                                        </th>
                                         <th>Email</th>
                                         <th>Phone</th>
-                                        <th>Role</th>
-                                        <th>Status</th>
+                                        <th>
+                                            <a href="user-list?sort=role&dir=${param.sort == 'role' && param.dir == 'asc' ? 'desc' : 'asc'}">
+                                                Role
+                                                <c:if test="${param.sort == 'role'}">
+                                                    ${param.dir == 'asc' ? '▲' : '▼'}
+                                                </c:if>
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="user-list?sort=status&dir=${param.sort == 'status' && param.dir == 'asc' ? 'desc' : 'asc'}">
+                                                Status
+                                                <c:if test="${param.sort == 'status'}">
+                                                    ${param.dir == 'asc' ? '▲' : '▼'}
+                                                </c:if>
+                                            </a>
+                                        </th>
                                         <th class="action-col">Action</th>
                                     </tr>
                                 </thead>
@@ -126,26 +147,26 @@
                                                        title="Edit user">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
-                                                        <c:choose>
-                                                            <c:when test="${u.active}">
-                                                                <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn deactive user này?')">
-                                                                    <input type="hidden" name="id" value="${u.userId}">
-                                                                    <input type="hidden" name="active" value="false">
-                                                                    <button type="submit" class="btn btn-sm btn-secondary" title="Deactive">
-                                                                        <i class="fa fa-user-slash"></i>
-                                                                    </button>
-                                                                </form>
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn active user này?')">
-                                                                    <input type="hidden" name="id" value="${u.userId}">
-                                                                    <input type="hidden" name="active" value="true">
-                                                                    <button type="submit" class="btn btn-sm btn-success" title="Active">
-                                                                        <i class="fa fa-user-check"></i>
-                                                                    </button>
-                                                                </form>
-                                                            </c:otherwise>
-                                                        </c:choose>
+                                                    <c:choose>
+                                                        <c:when test="${u.active}">
+                                                            <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn deactive user này?')">
+                                                                <input type="hidden" name="id" value="${u.userId}">
+                                                                <input type="hidden" name="active" value="false">
+                                                                <button type="submit" class="btn btn-sm btn-secondary" title="Deactive">
+                                                                    <i class="fa fa-user-slash"></i>
+                                                                </button>
+                                                            </form>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn active user này?')">
+                                                                <input type="hidden" name="id" value="${u.userId}">
+                                                                <input type="hidden" name="active" value="true">
+                                                                <button type="submit" class="btn btn-sm btn-success" title="Active">
+                                                                    <i class="fa fa-user-check"></i>
+                                                                </button>
+                                                            </form>
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </div>
                                             </td>
                                         </tr>                          
@@ -155,22 +176,28 @@
                             <div class="pagination-wrapper">
                                 <div class="pagination-controls">
                                     <a class="page-btn ${currentPage == 1 ? 'disabled' : ''}"
-                                       href="user-list?page=${currentPage - 1}">
+                                       href="user-list?page=${currentPage - 1}&keyword=${param.keyword}&role=${param.role}&active=${param.active}&sort=${param.sort}&dir=${param.dir}">
                                         ‹
                                     </a>
                                     <span class="page-number">
                                         Page
                                         <form action="user-list" method="get" class="page-jump-form">
+                                            <input type="hidden" name="keyword" value="${param.keyword}">
+                                            <input type="hidden" name="role" value="${param.role}">
+                                            <input type="hidden" name="active" value="${param.active}">
+                                            <input type="hidden" name="sort" value="${param.sort}">
+                                            <input type="hidden" name="dir" value="${param.dir}">
                                             <input type="number"
                                                    name="page"
                                                    min="1"
                                                    max="${totalPages}"
-                                                   value="${currentPage}">
+                                                   value="${currentPage}"
+                                                   onchange="this.form.submit()">
                                         </form>
                                         of ${totalPages}
                                     </span>
                                     <a class="page-btn ${currentPage == totalPages ? 'disabled' : ''}"
-                                       href="user-list?page=${currentPage + 1}">
+                                       href="user-list?page=${currentPage + 1}&keyword=${param.keyword}&role=${param.role}&active=${param.active}&sort=${param.sort}&dir=${param.dir}">
                                         ›
                                     </a>
                                 </div>
