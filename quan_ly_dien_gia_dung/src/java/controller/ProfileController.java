@@ -98,12 +98,17 @@ public class ProfileController extends HttpServlet {
         String email = request.getParameter("email");
         String phone = request.getParameter("phone");
         String address = request.getParameter("address");
-        if (phone == null) {
+
+        if (email == null || email.isBlank()) {
+            email = loggedUser.getEmail();
+        }
+        if (phone == null || phone.isBlank()) {
             phone = loggedUser.getPhone();
         }
-        if (address == null) {
+        if (address == null || address.isBlank()) {
             address = loggedUser.getAddress();
         }
+
         String avatarName = loggedUser.getAvatar();
         String uploadPath = getServletContext().getRealPath("/img/avatar");
         File dir = new File(uploadPath);
