@@ -4,7 +4,6 @@
  */
 package dal;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,6 +40,37 @@ public class SupplierDAO extends DBContext {
                 Timestamp createdAt = rs.getTimestamp("created_at");
                 Supplier s = new Supplier(supplierId, supplierName, contactPerson, email, phone, status, description, createdAt);
                 list.add(s);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(SupplierDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
+    public List<Supplier> searchSuppliers(String search) {
+        List<Supplier> list = new ArrayList<>();
+        String sql = """
+                     SELECT * FROM suppliers
+                     WHERE supplier_name LIKE ? OR contact_person LIKE ? OR email LIKE ? OR phone LIKE ?
+                     ORDER BY supplier_id DESC
+                     """;
+        String pattern = "%" + search.trim() + "%";
+        try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
+            pre.setString(1, pattern);
+            pre.setString(2, pattern);
+            pre.setString(3, pattern);
+            pre.setString(4, pattern);
+            ResultSet rs = pre.executeQuery();
+            while (rs.next()) {
+                int supplierId = rs.getInt("supplier_id");
+                String supplierName = rs.getString("supplier_name");
+                String contactPerson = rs.getString("contact_person");
+                String email = rs.getString("email");
+                String phone = rs.getString("phone");
+                String status = rs.getString("status");
+                String description = rs.getString("description");
+                Timestamp createdAt = rs.getTimestamp("created_at");
+                list.add(new Supplier(supplierId, supplierName, contactPerson, email, phone, status, description, createdAt));
             }
         } catch (SQLException ex) {
             Logger.getLogger(SupplierDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -120,32 +150,6 @@ public class SupplierDAO extends DBContext {
         return n;
     }
 
-    public List<Supplier> getSuppliersByStatus(String st) {
-        List<Supplier> list = new ArrayList<>();
-        String sql = """
-                     SELECT * FROM suppliers WHERE status = ? ORDER BY supplier_id ASC
-                     """;
-        try {
-            PreparedStatement pre = this.getConnection().prepareStatement(sql);
-            pre.setString(1, st);
-            ResultSet rs = pre.executeQuery();
-            while (rs.next()) {
-                int supplierId = rs.getInt("supplier_id");
-                String supplierName = rs.getString("supplier_name");
-                String contactPerson = rs.getString("contact_person");
-                String email = rs.getString("email");
-                String phone = rs.getString("phone");
-                String description = rs.getString("description");
-                Timestamp createdAt = rs.getTimestamp("created_at");
-                Supplier s = new Supplier(supplierId, supplierName, contactPerson, email, phone, st, description, createdAt);
-                list.add(s);
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(SupplierDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return list;
-    }
-
     public boolean updateSupplierStatus(int supplierId, String status) {
         String sql = "UPDATE suppliers SET status = ? WHERE supplier_id = ?";
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
@@ -156,84 +160,6 @@ public class SupplierDAO extends DBContext {
             Logger.getLogger(SupplierDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
-    }
-
-    public int countSuppliers(String keyword, String status) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM suppliers WHERE 1=1 ");
-        List<Object> params = new ArrayList<>();
-        if (keyword != null && !keyword.isBlank()) {
-            sql.append("AND (supplier_name LIKE ? OR contact_person LIKE ? OR email LIKE ? OR phone LIKE ?) ");
-            String kw = "%" + keyword.trim() + "%";
-            params.add(kw);
-            params.add(kw);
-            params.add(kw);
-            params.add(kw);
-        }
-        if (status != null && !status.isEmpty()) {
-            sql.append("AND status = ? ");
-            params.add(status);
-        }
-        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(SupplierDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return 0;
-    }
-
-    public List<Supplier> getSuppliersByPage(int page, int pageSize, String keyword, String status, String sort, String dir) {
-        List<Supplier> list = new ArrayList<>();
-        int offset = (page - 1) * pageSize;
-        StringBuilder sql = new StringBuilder("SELECT * FROM suppliers WHERE 1=1 ");
-        List<Object> params = new ArrayList<>();
-        if (keyword != null && !keyword.isBlank()) {
-            sql.append("AND (supplier_name LIKE ? OR contact_person LIKE ? OR email LIKE ? OR phone LIKE ?) ");
-            String kw = "%" + keyword.trim() + "%";
-            params.add(kw);
-            params.add(kw);
-            params.add(kw);
-            params.add(kw);
-        }
-        if (status != null && !status.isEmpty()) {
-            sql.append("AND status = ? ");
-            params.add(status);
-        }
-        String orderBy = "supplier_id";
-        if ("supplier_name".equals(sort)) orderBy = "supplier_name";
-        else if ("status".equals(sort)) orderBy = "status";
-        String direction = "asc".equalsIgnoreCase(dir) ? "ASC" : "DESC";
-        sql.append("ORDER BY ").append(orderBy).append(" ").append(direction).append(" LIMIT ? OFFSET ?");
-        params.add(pageSize);
-        params.add(offset);
-        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    int supplierId = rs.getInt("supplier_id");
-                    String supplierName = rs.getString("supplier_name");
-                    String contactPerson = rs.getString("contact_person");
-                    String email = rs.getString("email");
-                    String phone = rs.getString("phone");
-                    String st = rs.getString("status");
-                    String description = rs.getString("description");
-                    Timestamp createdAt = rs.getTimestamp("created_at");
-                    Supplier s = new Supplier(supplierId, supplierName, contactPerson, email, phone, st, description, createdAt);
-                    list.add(s);
-                }
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(SupplierDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return list;
     }
 
     public static void main(String[] args) {
