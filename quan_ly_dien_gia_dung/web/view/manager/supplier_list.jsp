@@ -133,19 +133,18 @@
                                 <a href="${pageContext.request.contextPath}/supplier-add" class="btn btn-primary">Thêm nhà cung cấp</a>
                             </div>
                             <form action="${pageContext.request.contextPath}/supplier-list" method="post" class="mb-3 supplier-filter-form">
-                                <input type="hidden" name="pageSize" value="${pageSize}">
+                                <input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                 <input type="hidden" name="page" value="1">
                                 <div class="row g-3 align-items-end">
                                     <div class="col-md-5">
                                         <label class="form-label">Tìm kiếm</label>
-                                        <input type="text" name="keyword" value="${keyword}" class="form-control" placeholder="Tên, email, SĐT...">
+                                        <input type="text" name="search" value="${search}" class="form-control" placeholder="Tên, email, SĐT...">
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label">Sắp xếp theo tên</label>
                                         <select name="sort" class="form-select" onchange="this.form.submit()">
-                                            <option value="" ${(empty sort || sort == 'supplier_id') ? 'selected' : ''}>Mặc định</option>
-                                            <option value="supplier_name" ${sort == 'supplier_name' && dir != 'desc' ? 'selected' : ''}>A-Z</option>
-                                            <option value="supplier_name_desc" ${sort == 'supplier_name' && dir == 'desc' ? 'selected' : ''}>Z-A</option>
+                                            <option value="name_asc" ${(empty sort || sort == 'name_asc') ? 'selected' : ''}>Tên A-Z</option>
+                                            <option value="name_desc" ${sort == 'name_desc' ? 'selected' : ''}>Tên Z-A</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
@@ -168,27 +167,17 @@
                             <table class="table table-hover align-middle">
                                 <thead>
                                     <tr>
+                                        <th>ID</th>
                                         <th>
                                             <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline">
-                                                <input type="hidden" name="keyword" value="${keyword}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="page" value="${currentPage}"><input type="hidden" name="pageSize" value="${pageSize}"><input type="hidden" name="sort" value="supplier_id"><input type="hidden" name="dir" value="${sort == 'supplier_id' && dir == 'asc' ? 'desc' : 'asc'}">
-                                                <button type="submit" class="btn btn-link link-secondary text-decoration-none p-0 border-0">ID</button>
-                                            </form>
-                                        </th>
-                                        <th>
-                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline">
-                                                <input type="hidden" name="keyword" value="${keyword}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="page" value="${currentPage}"><input type="hidden" name="pageSize" value="${pageSize}"><input type="hidden" name="sort" value="supplier_name"><input type="hidden" name="dir" value="${(sort == 'supplier_name' && dir != 'desc') ? 'desc' : 'asc'}">
+                                                <input type="hidden" name="search" value="${search}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="page" value="${page}"><input type="hidden" name="numberPerPage" value="${numberPerPage}"><input type="hidden" name="sort" value="${sort == 'name_asc' ? 'name_desc' : 'name_asc'}">
                                                 <button type="submit" class="btn btn-link link-secondary text-decoration-none p-0 border-0">Tên nhà cung cấp</button>
                                             </form>
                                         </th>
                                         <th>Người liên hệ</th>
                                         <th>Email</th>
                                         <th>Số điện thoại</th>
-                                        <th>
-                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline">
-                                                <input type="hidden" name="keyword" value="${keyword}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="page" value="${currentPage}"><input type="hidden" name="pageSize" value="${pageSize}"><input type="hidden" name="sort" value="status"><input type="hidden" name="dir" value="${sort == 'status' && dir == 'asc' ? 'desc' : 'asc'}">
-                                                <button type="submit" class="btn btn-link link-secondary text-decoration-none p-0 border-0">Trạng thái</button>
-                                            </form>
-                                        </th>
+                                        <th>Trạng thái</th>
                                         <th class="action-col">Thao tác</th>
                                     </tr>
                                 </thead>
@@ -215,12 +204,6 @@
                                                             <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn deactive nhà cung cấp này?')">
                                                                 <input type="hidden" name="id" value="${s.supplierId}">
                                                                 <input type="hidden" name="status" value="inactive">
-                                                                <input type="hidden" name="keyword" value="${keyword}">
-                                                                <input type="hidden" name="statusFilter" value="${status}">
-                                                                <input type="hidden" name="sort" value="${sort}">
-                                                                <input type="hidden" name="dir" value="${dir}">
-                                                                <input type="hidden" name="page" value="${currentPage}">
-                                                                <input type="hidden" name="pageSize" value="${pageSize}">
                                                                 <button type="submit" class="btn btn-sm btn-secondary" title="Deactive">
                                                                     <i class="fa fa-user-slash"></i>
                                                                 </button>
@@ -230,12 +213,6 @@
                                                             <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn active nhà cung cấp này?')">
                                                                 <input type="hidden" name="id" value="${s.supplierId}">
                                                                 <input type="hidden" name="status" value="active">
-                                                                <input type="hidden" name="keyword" value="${keyword}">
-                                                                <input type="hidden" name="statusFilter" value="${status}">
-                                                                <input type="hidden" name="sort" value="${sort}">
-                                                                <input type="hidden" name="dir" value="${dir}">
-                                                                <input type="hidden" name="page" value="${currentPage}">
-                                                                <input type="hidden" name="pageSize" value="${pageSize}">
                                                                 <button type="submit" class="btn btn-sm btn-success" title="Active">
                                                                     <i class="fa fa-user-check"></i>
                                                                 </button>
@@ -255,12 +232,12 @@
                                 <div class="d-flex flex-wrap align-items-center gap-3 pt-3 mb-4 border-top-0">
                                     <div class="d-flex align-items-center gap-2 flex-grow-1">
                                         <c:choose>
-                                            <c:when test="${currentPage == 1}">
+                                            <c:when test="${page == 1}">
                                                 <span class="page-btn disabled">‹</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline">
-                                                    <input type="hidden" name="page" value="${currentPage - 1}"><input type="hidden" name="keyword" value="${keyword}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="sort" value="${sort}"><input type="hidden" name="dir" value="${dir}"><input type="hidden" name="pageSize" value="${pageSize}">
+                                                    <input type="hidden" name="page" value="${page - 1}"><input type="hidden" name="search" value="${search}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="sort" value="${sort}"><input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                                     <button type="submit" class="page-btn border-0 bg-transparent p-0">‹</button>
                                                 </form>
                                             </c:otherwise>
@@ -268,22 +245,21 @@
                                         <span class="page-number">
                                             Trang
                                             <form action="${pageContext.request.contextPath}/supplier-list" method="post" class="page-jump-form d-inline">
-                                                <input type="hidden" name="keyword" value="${keyword}">
+                                                <input type="hidden" name="search" value="${search}">
                                                 <input type="hidden" name="status" value="${status}">
                                                 <input type="hidden" name="sort" value="${sort}">
-                                                <input type="hidden" name="dir" value="${dir}">
-                                                <input type="hidden" name="pageSize" value="${pageSize}">
-                                                <input type="number" name="page" min="1" max="${totalPages}" value="${currentPage}" onchange="this.form.submit()">
+                                                <input type="hidden" name="numberPerPage" value="${numberPerPage}">
+                                                <input type="number" name="page" min="1" max="${listOfPage}" value="${page}" onchange="this.form.submit()">
                                             </form>
-                                            / ${totalPages}
+                                            / ${listOfPage}
                                         </span>
                                         <c:choose>
-                                            <c:when test="${currentPage == totalPages}">
+                                            <c:when test="${page == listOfPage}">
                                                 <span class="page-btn disabled">›</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline">
-                                                    <input type="hidden" name="page" value="${currentPage + 1}"><input type="hidden" name="keyword" value="${keyword}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="sort" value="${sort}"><input type="hidden" name="dir" value="${dir}"><input type="hidden" name="pageSize" value="${pageSize}">
+                                                    <input type="hidden" name="page" value="${page + 1}"><input type="hidden" name="search" value="${search}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="sort" value="${sort}"><input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                                     <button type="submit" class="page-btn border-0 bg-transparent p-0">›</button>
                                                 </form>
                                             </c:otherwise>
@@ -291,14 +267,15 @@
                                     </div>
                                     <div class="d-flex align-items-center gap-2 ms-n5">
                                         <label class="form-label small mb-0 me-2">Hiển thị</label>
-                                        <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" id="pageSizeForm">
-                                            <input type="hidden" name="page" value="1"><input type="hidden" name="keyword" value="${keyword}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="sort" value="${sort}"><input type="hidden" name="dir" value="${dir}">
-                                            <select name="pageSize" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
-                                                <option value="5" ${pageSize == 5 ? 'selected' : ''}>5</option>
-                                                <option value="10" ${pageSize == 10 ? 'selected' : ''}>10</option>
-                                                <option value="20" ${pageSize == 20 ? 'selected' : ''}>20</option>
+                                        <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" id="numberPerPageForm">
+                                            <input type="hidden" name="page" value="1"><input type="hidden" name="search" value="${search}"><input type="hidden" name="status" value="${status}"><input type="hidden" name="sort" value="${sort}">
+                                            <select name="numberPerPage" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                                                <option value="5" ${numberPerPage == 5 ? 'selected' : ''}>5</option>
+                                                <option value="10" ${numberPerPage == 10 ? 'selected' : ''}>10</option>
+                                                <option value="20" ${numberPerPage == 20 ? 'selected' : ''}>20</option>
                                             </select>
                                         </form>
+                                        <span class="small text-muted">kết quả</span>
                                     </div>
                                     <div class="flex-grow-1"></div>
                                 </div>
