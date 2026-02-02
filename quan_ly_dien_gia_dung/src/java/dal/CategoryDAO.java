@@ -324,4 +324,85 @@ public class CategoryDAO extends DBContext {
             return false;
         }
     }
+
+    public boolean updateCategoryStatus(int id, String status) {
+        String sql = "UPDATE categories SET status = ? WHERE category_id = ?";
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public int countCategories(String keyword, String status) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM categories WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append(" AND category_name LIKE ? ");
+            params.add("%" + keyword.trim() + "%");
+        }
+        if (status != null && !status.isBlank() && !"all".equalsIgnoreCase(status)) {
+            sql.append(" AND status = ? ");
+            params.add(status);
+        }
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<Category> getCategoriesByPage(int page, int pageSize, String keyword, String status) {
+        List<Category> categories = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM categories WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append(" AND category_name LIKE ? ");
+            params.add("%" + keyword.trim() + "%");
+        }
+        if (status != null && !status.isBlank() && !"all".equalsIgnoreCase(status)) {
+            sql.append(" AND status = ? ");
+            params.add(status);
+        }
+
+        sql.append(" ORDER BY category_id ");
+        sql.append(" LIMIT ? OFFSET ? ");
+        params.add(pageSize);
+        params.add(offset);
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Category category = new Category();
+                category.setCategoryId(rs.getInt("category_id"));
+                category.setCategoryName(rs.getString("category_name"));
+                category.setDescription(rs.getString("description"));
+                category.setStatus(rs.getString("status"));
+                category.setCreatedAt(rs.getTimestamp("created_at"));
+                categories.add(category);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return categories;
+    }
 }
