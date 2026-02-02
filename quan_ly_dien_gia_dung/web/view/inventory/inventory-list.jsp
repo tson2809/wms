@@ -95,11 +95,7 @@
                                     <tr style="background-color:#f0f0f0;">
                                         <th>ID</th>
                                         <th>
-                                            <a href="inventory-list?sort=name
-                                               &dir=${param.sort == 'name' && param.dir == 'asc' ? 'desc' : 'asc'}
-                                               &keyword=${param.keyword}
-                                               &categoryId=${param.categoryId}
-                                               &status=${param.status}">
+                                            <a href="${pageContext.request.contextPath}/inventory-list?sort=name&dir=${param.sort == 'name' && param.dir == 'asc' ? 'desc' : 'asc'}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}">
                                                 Product Name
                                                 <c:if test="${param.sort == 'name'}">
                                                     ${param.dir == 'asc' ? '▲' : '▼'}
@@ -108,11 +104,7 @@
                                         </th>
                                         <th>Category</th>
                                         <th>
-                                            <a href="inventory-list?sort=quantity
-                                               &dir=${param.sort == 'quantity' && param.dir == 'asc' ? 'desc' : 'asc'}
-                                               &keyword=${param.keyword}
-                                               &categoryId=${param.categoryId}
-                                               &status=${param.status}">
+                                            <a href="${pageContext.request.contextPath}/inventory-list?sort=quantity&dir=${param.sort == 'quantity' && param.dir == 'asc' ? 'desc' : 'asc'}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}">
                                                 Quantity
                                                 <c:if test="${param.sort == 'quantity'}">
                                                     ${param.dir == 'asc' ? '▲' : '▼'}
