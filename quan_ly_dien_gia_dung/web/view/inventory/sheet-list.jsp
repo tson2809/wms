@@ -105,10 +105,12 @@
                                                   </span>
                                             </td>
                                             <td class="text-center">
-                                                <a href="inventory-sheet-view?id=${s.sheetId}"
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    View
-                                                </a>
+                                                <c:if test="${s.status ne 'draft'}">
+                                                    <a href="${pageContext.request.contextPath}/inventory-sheet-view?id=${s.sheetId}"
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        View
+                                                    </a>
+                                                </c:if>
                                                 <c:if test="${s.status == 'draft'}">
                                                     <a href="inventory-sheet-edit?id=${s.sheetId}"
                                                        class="btn btn-sm btn-outline-warning">
@@ -116,11 +118,26 @@
                                                     </a>
                                                 </c:if>
                                                 <c:if test="${s.status == 'submitted'}">
-                                                    <a href="inventory-sheet-approve?id=${s.sheetId}"
-                                                       class="btn btn-sm btn-outline-success"
-                                                       onclick="return confirm('Approve this sheet?')">
-                                                        Approve
-                                                    </a>
+                                                    <form method="post"
+                                                          action="${pageContext.request.contextPath}/inventory-sheet-approve"
+                                                          style="display:inline;">
+                                                        <input type="hidden" name="id" value="${s.sheetId}">
+                                                        <input type="hidden" name="action" value="approve">
+                                                        <button class="btn btn-sm btn-outline-success"
+                                                                onclick="return confirm('Approve this sheet?')">
+                                                            Approve
+                                                        </button>
+                                                    </form>
+                                                    <form method="post"
+                                                          action="${pageContext.request.contextPath}/inventory-sheet-approve"
+                                                          style="display:inline;">
+                                                        <input type="hidden" name="id" value="${s.sheetId}">
+                                                        <input type="hidden" name="action" value="reject">
+                                                        <button class="btn btn-sm btn-outline-danger"
+                                                                onclick="return confirm('Reject this sheet?')">
+                                                            Reject
+                                                        </button>
+                                                    </form>
                                                 </c:if>
                                             </td>
                                         </tr>
