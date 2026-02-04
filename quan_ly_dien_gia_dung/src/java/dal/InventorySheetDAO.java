@@ -8,12 +8,46 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import model.InventorySheet;
+import model.ProductInventory;
 
 /**
  *
  * @author hung
  */
 public class InventorySheetDAO extends DBContext {
+
+    public InventorySheet getSheetById(int sheetId) {
+        String sql
+                = "SELECT s.sheet_id, s.sheet_code, s.inventory_date, s.status, s.notes, "
+                + "c.category_name, u.full_name AS created_by, s.created_at "
+                + "FROM inventory_sheets s "
+                + "LEFT JOIN categories c ON s.category_id = c.category_id "
+                + "LEFT JOIN users u ON s.created_by = u.user_id "
+                + "WHERE s.sheet_id = ?";
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, sheetId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                InventorySheet s = new InventorySheet();
+                s.setSheetId(rs.getInt("sheet_id"));
+                s.setSheetCode(rs.getString("sheet_code"));
+                s.setInventoryDate(rs.getDate("inventory_date"));
+                s.setStatus(rs.getString("status"));
+                s.setNotes(rs.getString("notes"));
+                s.setCategoryName(rs.getString("category_name"));
+                s.setCreatedByName(rs.getString("created_by"));
+                s.setCreatedAt(rs.getTimestamp("created_at"));
+                return s;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public List<InventorySheet> getSheetsByYear(int year) {
         List<InventorySheet> list = new ArrayList<>();
@@ -155,6 +189,54 @@ public class InventorySheetDAO extends DBContext {
             ps.setInt(2, sheetId);
             ps.executeUpdate();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<ProductInventory> getSheetDetails(int sheetId) {
+        List<ProductInventory> list = new ArrayList<>();
+        String sql
+                = "SELECT d.detail_id, p.product_name, pv.sku, "
+                + "d.system_quantity, d.counted_quantity "
+                + "FROM inventory_sheet_details d "
+                + "JOIN product_variants pv ON d.variant_id = pv.variant_id "
+                + "JOIN products p ON pv.product_id = p.product_id "
+                + "WHERE d.sheet_id = ?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, sheetId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ProductInventory pi = new ProductInventory();
+                pi.setDetailId(rs.getInt("detail_id"));
+                pi.setProductName(rs.getString("product_name"));
+                pi.setSku(rs.getString("sku"));
+                pi.setSystemQuantity(rs.getInt("system_quantity"));
+                pi.setCountedQuantity(rs.getInt("counted_quantity"));
+                list.add(pi);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public void updateCountedQuantities(String[] detailIds, String[] countedQtys) {
+
+        String sql
+                = "UPDATE inventory_sheet_details "
+                + "SET counted_quantity = ? "
+                + "WHERE detail_id = ?";
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+
+            for (int i = 0; i < detailIds.length; i++) {
+                ps.setInt(1, Integer.parseInt(countedQtys[i]));
+                ps.setInt(2, Integer.parseInt(detailIds[i]));
+                ps.addBatch();
+            }
+            ps.executeBatch();
+
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

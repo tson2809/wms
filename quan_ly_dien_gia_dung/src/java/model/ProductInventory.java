@@ -20,7 +20,15 @@ public class ProductInventory {
     private String sku;
     private int systemQuantity;
     private Integer countedQuantity;
+    private int detailId;
 
+    public int getDetailId() {
+        return detailId;
+    }
+
+    public void setDetailId(int detailId) {
+        this.detailId = detailId;
+    }
     public int getVariantId() {
         return variantId;
     }
