@@ -21,6 +21,29 @@ import model.Supplier;
  */
 public class SupplierDAO extends DBContext {
 
+    public List<Supplier> getActiveSuppliers() {
+        List<Supplier> list = new ArrayList<>();
+        String sql = "SELECT * FROM suppliers WHERE status = 'active' ORDER BY supplier_name";
+        try (PreparedStatement pre = this.getConnection().prepareStatement(sql);
+             ResultSet rs = pre.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Supplier(
+                        rs.getInt("supplier_id"),
+                        rs.getString("supplier_name"),
+                        rs.getString("contact_person"),
+                        rs.getString("email"),
+                        rs.getString("phone"),
+                        rs.getString("status"),
+                        rs.getString("description"),
+                        rs.getTimestamp("created_at")
+                ));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(SupplierDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
     public List<Supplier> getAllSuppliers() {
         List<Supplier> list = new ArrayList<>();
         String sql = """
