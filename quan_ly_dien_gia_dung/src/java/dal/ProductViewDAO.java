@@ -12,15 +12,12 @@ import java.util.List;
 import model.ProductView;
 
 /**
- * DAO để lấy danh sách ProductView
- * 
+ *
  * @author laptop368
  */
 public class ProductViewDAO extends DBContext {
 
-    /**
-     * Đếm tổng số sản phẩm
-     */
+    
     public int countProduct() {
         String sql = "SELECT COUNT(*) FROM products";
         try (PreparedStatement st = this.getConnection().prepareStatement(sql);
@@ -34,9 +31,7 @@ public class ProductViewDAO extends DBContext {
         return 0;
     }
 
-    /**
-     * Lấy danh sách sản phẩm với phân trang
-     */
+    
     public List<ProductView> getProductWithPaging(int offset, int size) {
         List<ProductView> list = new ArrayList<>();
         String sql = "SELECT p.product_id, p.product_name, p.category_id, p.brand_id, "
@@ -85,9 +80,7 @@ public class ProductViewDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Đếm số sản phẩm với filter
-     */
+    
     public int countProductWithFilter(Integer categoryId, Integer brandId, String status) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(DISTINCT p.product_id) FROM products p WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
@@ -123,9 +116,7 @@ public class ProductViewDAO extends DBContext {
         return 0;
     }
 
-    /**
-     * Lấy danh sách sản phẩm với filter và phân trang
-     */
+    
     public List<ProductView> getProductWithFilter(Integer categoryId, Integer brandId, String status, int offset,
             int size) {
         List<ProductView> list = new ArrayList<>();
@@ -196,9 +187,7 @@ public class ProductViewDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Tìm kiếm sản phẩm theo tên sản phẩm, tên category, tên thương hiệu
-     */
+    
     public List<ProductView> searchProducts(String keyword, int offset, int size) {
         List<ProductView> list = new ArrayList<>();
 
@@ -250,10 +239,7 @@ public class ProductViewDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Đếm số sản phẩm tìm kiếm được theo tên sản phẩm, tên category, tên thương
-     * hiệu
-     */
+    
     public int countSearchProducts(String keyword) {
         String sql = "SELECT COUNT(DISTINCT p.product_id) FROM products p "
                 + "LEFT JOIN categories c ON p.category_id = c.category_id "
@@ -274,10 +260,7 @@ public class ProductViewDAO extends DBContext {
         return 0;
     }
 
-    /**
-     * Lấy danh sách sản phẩm với search + filter và phân trang
-     * Kết hợp cả tìm kiếm theo keyword và lọc theo category, brand, status
-     */
+    
     public List<ProductView> getProductWithSearchAndFilter(String keyword, Integer categoryId, Integer brandId,
             String status, int offset, int size) {
         List<ProductView> list = new ArrayList<>();
@@ -360,9 +343,7 @@ public class ProductViewDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Đếm số sản phẩm với search + filter
-     */
+    
     public int countProductWithSearchAndFilter(String keyword, Integer categoryId, Integer brandId, String status) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(DISTINCT p.product_id) FROM products p "
@@ -414,9 +395,7 @@ public class ProductViewDAO extends DBContext {
         return 0;
     }
     
-    /**
-     * Cập nhật trạng thái sản phẩm
-     */
+    
     public boolean updateProductStatus(int productId, String status) {
         String sql = "UPDATE products SET status = ? WHERE product_id = ?";
         
