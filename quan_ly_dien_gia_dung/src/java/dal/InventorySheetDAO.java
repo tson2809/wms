@@ -241,4 +241,168 @@ public class InventorySheetDAO extends DBContext {
         }
     }
 
+    public List<InventorySheet> getSheetsPaging(
+            Integer year, Integer month, String createdBy,
+            String sort, String dir,
+            int page, int pageSize) {
+
+        List<InventorySheet> list = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+
+        if (sort == null) {
+            sort = "date";
+        }
+        if (dir == null) {
+            dir = "desc";
+        }
+
+        String order = "s.inventory_date";
+        if ("status".equals(sort)) {
+            order = "s.status";
+        }
+
+        StringBuilder sql = new StringBuilder("""
+        SELECT s.sheet_id, s.sheet_code, s.inventory_date, s.status,
+               c.category_name, u.full_name
+        FROM inventory_sheets s
+        LEFT JOIN categories c ON s.category_id = c.category_id
+        LEFT JOIN users u ON s.created_by = u.user_id
+        WHERE 1=1
+    """);
+
+        if (year != null) {
+            sql.append(" AND YEAR(s.inventory_date)=? ");
+        }
+        if (month != null) {
+            sql.append(" AND MONTH(s.inventory_date)=? ");
+        }
+        if (createdBy != null && !createdBy.isEmpty()) {
+            sql.append(" AND u.full_name LIKE ? ");
+        }
+
+        sql.append(" ORDER BY ").append(order).append(" ").append(dir);
+        sql.append(" LIMIT ?,?");
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+            int index = 1;
+
+            if (year != null) {
+                ps.setInt(index++, year);
+            }
+            if (month != null) {
+                ps.setInt(index++, month);
+            }
+            if (createdBy != null && !createdBy.isEmpty()) {
+                ps.setString(index++, "%" + createdBy + "%");
+            }
+
+            ps.setInt(index++, offset);
+            ps.setInt(index, pageSize);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                InventorySheet s = new InventorySheet();
+                s.setSheetId(rs.getInt("sheet_id"));
+                s.setSheetCode(rs.getString("sheet_code"));
+                s.setInventoryDate(rs.getDate("inventory_date"));
+                s.setStatus(rs.getString("status"));
+                s.setCategoryName(rs.getString("category_name"));
+                s.setCreatedByName(rs.getString("full_name"));
+                list.add(s);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public int countSheets(Integer year, Integer month, String createdBy) {
+
+        StringBuilder sql = new StringBuilder("""
+        SELECT COUNT(*)
+        FROM inventory_sheets s
+        LEFT JOIN users u ON s.created_by = u.user_id
+        WHERE 1=1
+    """);
+
+        if (year != null) {
+            sql.append(" AND YEAR(s.inventory_date)=?");
+        }
+        if (month != null) {
+            sql.append(" AND MONTH(s.inventory_date)=?");
+        }
+        if (createdBy != null && !createdBy.isEmpty()) {
+            sql.append(" AND u.full_name LIKE ?");
+        }
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+            int index = 1;
+
+            if (year != null) {
+                ps.setInt(index++, year);
+            }
+            if (month != null) {
+                ps.setInt(index++, month);
+            }
+            if (createdBy != null && !createdBy.isEmpty()) {
+                ps.setString(index++, "%" + createdBy + "%");
+            }
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public List<Integer> getAvailableYears() {
+        List<Integer> list = new ArrayList<>();
+
+        String sql = """
+        SELECT DISTINCT YEAR(inventory_date) AS y
+        FROM inventory_sheets
+        ORDER BY y DESC
+    """;
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(rs.getInt("y"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<String> searchUserName(String keyword) {
+        List<String> list = new ArrayList<>();
+        String sql = "SELECT full_name FROM users WHERE full_name LIKE ? LIMIT 10";
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, "%" + keyword + "%");
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(rs.getString(1));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
