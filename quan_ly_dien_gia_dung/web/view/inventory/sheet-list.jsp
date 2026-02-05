@@ -34,10 +34,12 @@
 
         <!-- Template Stylesheet -->
         <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
+        <link href="${pageContext.request.contextPath}/css/user-list.css" rel="stylesheet">
+        <link href="${pageContext.request.contextPath}/css/inventory.css" rel="stylesheet">
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/admin/components/sidebarAdmin.jsp" />
+            <jsp:include page="/view/inventory/components/sidebarInventory.jsp"/>
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
 
@@ -50,40 +52,74 @@
                                 + Create New Sheet
                             </a>
                         </div>
-                        <form method="get" action="${pageContext.request.contextPath}/inventory-sheet-list"
+                        <form method="get" action="${pageContext.request.contextPath}/inventory-sheet-list" 
                               class="row g-2 mb-3">
 
                             <div class="col-auto">
-                                <select name="year" class="form-select">
-                                    <c:forEach begin="2023" end="2030" var="y">
-                                        <option value="${y}" ${y == year ? 'selected' : ''}>
-                                            ${y}
-                                        </option>
+                                <select name="year" class="form-select" onchange="this.form.submit()">
+                                    <option value="">All year</option>
+                                    <c:forEach items="${years}" var="y">
+                                        <option value="${y}" ${param.year==y?'selected':''}>${y}</option>
                                     </c:forEach>
                                 </select>
                             </div>
 
                             <div class="col-auto">
                                 <select name="month" class="form-select">
-                                    <option value="">All months</option>
-                                    <c:forEach begin="1" end="12" var="m">
-                                        <option value="${m}" ${m == month ? 'selected' : ''}>
-                                            Month ${m}
+                                    <option value="">All month</option>
+                                    <c:forEach items="${months}" var="m">
+                                        <option value="${m}" ${param.month==m?'selected':''}>
+                                            <c:choose>
+                                                <c:when test="${m==1}">January</c:when>
+                                                <c:when test="${m==2}">February</c:when>
+                                                <c:when test="${m==3}">March</c:when>
+                                                <c:when test="${m==4}">April</c:when>
+                                                <c:when test="${m==5}">May</c:when>
+                                                <c:when test="${m==6}">June</c:when>
+                                                <c:when test="${m==7}">July</c:when>
+                                                <c:when test="${m==8}">August</c:when>
+                                                <c:when test="${m==9}">September</c:when>
+                                                <c:when test="${m==10}">October</c:when>
+                                                <c:when test="${m==11}">November</c:when>
+                                                <c:when test="${m==12}">December</c:when>
+                                            </c:choose>
                                         </option>
                                     </c:forEach>
                                 </select>
                             </div>
 
-                            <div class="col-auto">
-                                <button class="btn btn-primary">Filter</button>
+                            <div class="col-auto position-relative">
+                                <input type="text"
+                                       name="createdBy"
+                                       id="createdByInput"
+                                       value="${param.createdBy}"
+                                       class="form-control"
+                                       placeholder="Created by...">
+
+                                <div id="suggestBox"
+                                     class="list-group position-absolute w-100"
+                                     style="z-index:1000;"></div>
                             </div>
 
+                            <div class="col-auto">
+                                <button class="btn btn-primary">Search</button>
+                                <a href="${pageContext.request.contextPath}/inventory-sheet-list"
+                               class="btn btn-success">
+                                Clear
+                            </a>
+                            </div>
+                            
                         </form>
+
                         <table class="table align-middle">
                             <thead>
                                 <tr>
                                     <th>Sheet Code</th>
-                                    <th>Date</th>
+                                    <th>
+                                        <a href="?sort=date&dir=${param.dir=='asc'?'desc':'asc'}">
+                                            Date
+                                        </a>
+                                    </th>
                                     <th>Category</th>
                                     <th>Created By</th>
                                     <th>Status</th>
@@ -144,11 +180,71 @@
                                     </c:forEach>
                                 </tbody>
                             </table>
+                            <div class="pagination-wrapper">
+                                <div class="pagination-controls">
+
+                                    <a class="page-btn ${currentPage == 1 ? 'disabled' : ''}"
+                                       href="${pageContext.request.contextPath}/inventory-sheet-list
+                                       ?page=${currentPage - 1}
+                                       &year=${param.year}
+                                       &month=${param.month}
+                                       &createdBy=${param.createdBy}
+                                       &sort=${param.sort}
+                                       &dir=${param.dir}">
+                                        ‹
+                                    </a>
+
+                                    <span class="page-number">
+                                        Page ${currentPage} of ${totalPages}
+                                    </span>
+
+                                    <a class="page-btn ${currentPage == totalPages ? 'disabled' : ''}"
+                                       href="${pageContext.request.contextPath}/inventory-sheet-list
+                                       ?page=${currentPage + 1}
+                                       &year=${param.year}
+                                       &month=${param.month}
+                                       &createdBy=${param.createdBy}
+                                       &sort=${param.sort}
+                                       &dir=${param.dir}">
+                                        ›
+                                    </a>
+
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </body>
+        <script>
+            const input = document.getElementById("createdByInput");
+            const box = document.getElementById("suggestBox");
+
+            input.addEventListener("keyup", function () {
+                let val = this.value;
+                if (val.length === 0) {
+                    box.innerHTML = "";
+                    return;
+                }
+
+                fetch("${pageContext.request.contextPath}/search-user?q=" + val)
+                        .then(res => res.json())
+                        .then(data => {
+                            box.innerHTML = "";
+                            data.forEach(name => {
+                                let item = document.createElement("a");
+                                item.className = "list-group-item list-group-item-action";
+                                item.innerText = name;
+                                item.onclick = () => {
+                                    input.value = name;
+                                    box.innerHTML = "";
+                                };
+                                box.appendChild(item);
+                            });
+                        });
+            });
+        </script>
         <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>

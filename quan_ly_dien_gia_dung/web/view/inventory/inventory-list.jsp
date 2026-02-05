@@ -40,7 +40,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/admin/components/sidebarAdmin.jsp" />
+            <jsp:include page="/view/inventory/components/sidebarInventory.jsp"/>
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
                 <div class="container-fluid pt-4 px-4">
