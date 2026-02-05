@@ -12,17 +12,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
-import model.InventorySheet;
 
 /**
  *
  * @author hung
  */
-@WebServlet(name = "InventorySheetListController", urlPatterns = {"/inventory-sheet-list"})
-public class InventorySheetListController extends HttpServlet {
+@WebServlet(name = "SearchUserController", urlPatterns = {"/search-user"})
+public class SearchUserController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -41,10 +38,10 @@ public class InventorySheetListController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet InventorySheetListController</title>");
+            out.println("<title>Servlet SearchUserController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet InventorySheetListController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet SearchUserController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -64,41 +61,22 @@ public class InventorySheetListController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String yearParam = request.getParameter("year");
-        String monthParam = request.getParameter("month");
-        String createdBy = request.getParameter("createdBy");
-        String sort = request.getParameter("sort");
-        String dir = request.getParameter("dir");
-        String pageParam = request.getParameter("page");
-
-        Integer year = (yearParam == null || yearParam.isEmpty()) ? null : Integer.parseInt(yearParam);
-        Integer month = (monthParam == null || monthParam.isEmpty()) ? null : Integer.parseInt(monthParam);
-
-        if (createdBy != null && createdBy.trim().isEmpty()) createdBy = null;
-        if (sort == null) sort = "date";
-        if (dir == null) dir = "desc";
-
-        int page = 1;
-        int pageSize = 10;
-        if (pageParam != null) page = Integer.parseInt(pageParam);
-
-        int total = dao.countSheets(year, month, createdBy);
-        int totalPages = (int)Math.ceil(total * 1.0 / pageSize);
-        if (totalPages == 0) totalPages = 1;
-
-        List<InventorySheet> sheets =
-                dao.getSheetsPaging(year, month, createdBy, sort, dir, page, pageSize);
-
-        request.setAttribute("sheets", sheets);
-        request.setAttribute("currentPage", page);
-        request.setAttribute("totalPages", totalPages);
-       List<Integer> years = dao.getAvailableYears();
-        List<Integer> months = new ArrayList<>();
-        for(int m=1;m<=12;m++) months.add(m);
-
-        request.setAttribute("years", years);
-        request.setAttribute("months", months);
-        request.getRequestDispatcher("/view/inventory/sheet-list.jsp").forward(request, response);
+        String keyword = request.getParameter("q");
+        if (keyword == null) {
+            keyword = "";
+        }
+        List<String> users = dao.searchUserName(keyword);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+        out.print("[");
+        for (int i = 0; i < users.size(); i++) {
+            out.print("\"" + users.get(i) + "\"");
+            if (i < users.size() - 1) {
+                out.print(",");
+            }
+        }
+        out.print("]");
     }
 
     /**
