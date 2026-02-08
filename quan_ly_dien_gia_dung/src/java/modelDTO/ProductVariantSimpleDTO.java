@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DTO đơn giản cho variant sản phẩm
- * Chứa SKU, Barcode và danh sách giá trị thuộc tính (attribute values)
+
  * 
  * @author laptop368
  */
 public class ProductVariantSimpleDTO {
+   
+    private Integer variantId;
     private String sku;
     private String barcode;
     /** Giá trị thuộc tính theo thứ tự (tương ứng attributeNames trong ProductAddDTO) */
@@ -21,6 +22,14 @@ public class ProductVariantSimpleDTO {
     public ProductVariantSimpleDTO(String sku, String barcode) {
         this.sku = sku;
         this.barcode = barcode;
+    }
+
+    public Integer getVariantId() {
+        return variantId;
+    }
+
+    public void setVariantId(Integer variantId) {
+        this.variantId = variantId;
     }
 
     public String getSku() {

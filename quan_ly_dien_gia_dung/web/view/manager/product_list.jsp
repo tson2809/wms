@@ -274,9 +274,10 @@
                                                                 </td>
                                                                 --%>
                                                                 <td>
-                                                                    <img src="${pageContext.request.contextPath}/${product.picture}"
-                                                                        class="product-img"
-                                                                        onerror="this.src='https://via.placeholder.com/60x60?text=No+Image'">
+                                                                    <c:if test="${product.picture != null && !empty product.picture}">
+                                                                        <img src="${pageContext.request.contextPath}/${product.picture}"
+                                                                            class="product-img">
+                                                                    </c:if>
                                                                 </td>
                                                                 <td>
                                                                     <div class="product-name">${product.productName}
@@ -307,7 +308,7 @@
                                                                 </td>
                                                                 <td class="action-col">
                                                                     <div class="action-btn-group">
-                                                                        <a href="${pageContext.request.contextPath}/manager/product-detail?id=${product.productId}"
+                                                                        <a href="${pageContext.request.contextPath}/product-edit?id=${product.productId}"
                                                                             class="action-btn action-edit"
                                                                             title="Chỉnh sửa">
                                                                             <iconify-icon
