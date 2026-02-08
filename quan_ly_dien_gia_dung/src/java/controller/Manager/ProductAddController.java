@@ -7,9 +7,6 @@ import dal.UnitDAO;
 import dal.ProductDAO;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -177,25 +174,28 @@ public class ProductAddController extends HttpServlet {
         String picturePath = "";
         try {
             Part filePart = request.getPart("productImage");
-            if (filePart != null && filePart.getSize() > 0) {
+            if (filePart != null && filePart.getSubmittedFileName() != null && !filePart.getSubmittedFileName().isEmpty()) {
                 String fileName = filePart.getSubmittedFileName();
-                if (fileName != null && !fileName.isEmpty()) {
-                    String ext = "";
-                    int dot = fileName.lastIndexOf('.');
-                    if (dot > 0) {
-                        ext = fileName.substring(dot);
-                    }
-                    String saveName = System.currentTimeMillis() + "_" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
-                    String uploadPath = getServletContext().getRealPath("/img/product");
-                    File uploadDir = new File(uploadPath);
-                    if (!uploadDir.exists()) {
-                        uploadDir.mkdirs();
-                    }
-                    File saveFile = new File(uploadDir, saveName);
-                    try (InputStream is = filePart.getInputStream()) {
-                        Files.copy(is, saveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    }
+                String saveName = System.currentTimeMillis() + "_" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+
+                // Lấy đường dẫn thật của thư mục gốc project (không chứa /build)
+                String rootPath = getServletContext().getRealPath("/");
+                if (rootPath != null && rootPath.contains("build")) {
+                    rootPath = rootPath.substring(0, rootPath.indexOf("build"));
+                }
+
+                String uploadPath = rootPath + "web" + File.separator + "img" + File.separator + "products";
+
+                File uploadDir = new File(uploadPath);
+                if (!uploadDir.exists()) {
+                    uploadDir.mkdirs(); // tạo thư mục nếu chưa có
+                }
+
+                try {
+                    filePart.write(uploadPath + File.separator + saveName);
                     picturePath = "img/products/" + saveName;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         } catch (Exception e) {

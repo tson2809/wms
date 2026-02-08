@@ -4,13 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DTO để nhận dữ liệu từ form product_add.jsp
- * Đơn giản hóa: chỉ chứa thông tin cơ bản + danh sách variants (SKU + Barcode)
+
  * 
  * @author laptop368
  */
 public class ProductAddDTO {
-    // Thông tin cơ bản (PRODUCTS table)
+  
+    private Integer productId;
+
+    
     private String productName;
     private String baseSku;
     private String baseBarcode;
@@ -24,13 +26,24 @@ public class ProductAddDTO {
     // Danh sách variants đã chọn (SKU + Barcode + attribute values)
     private List<ProductVariantSimpleDTO> variants;
 
-    /** Tên các thuộc tính (VD: Màu sắc, Kích thước) - theo thứ tự tương ứng attributeValues trong mỗi variant */
+    /**
+     * Tên các thuộc tính (VD: Màu sắc, Kích thước) - theo thứ tự tương ứng
+     * attributeValues trong mỗi variant
+     */
     private List<String> attributeNames = new ArrayList<>();
 
     public ProductAddDTO() {
     }
 
     // Getters and Setters
+    public Integer getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Integer productId) {
+        this.productId = productId;
+    }
+
     public String getProductName() {
         return productName;
     }
