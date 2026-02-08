@@ -16,15 +16,14 @@ import modelDTO.ProductAddDTO;
 import modelDTO.ProductVariantSimpleDTO;
 import model.ProductVariant;
 
-
-
 /**
  *
  * @author hung
  */
 public class ProductDAO extends DBContext {
 
-   public List<ProductInventory> getProductInventory(String keyword, Integer categoryId, String status, int page, int pageSize, String sort, String dir) {
+    public List<ProductInventory> getProductInventory(String keyword, Integer categoryId, String status, int page,
+            int pageSize, String sort, String dir) {
         List<ProductInventory> list = new ArrayList<>();
         int offset = (page - 1) * pageSize;
         String orderBy = "p.product_id";
@@ -37,8 +36,7 @@ public class ProductDAO extends DBContext {
         if ("desc".equalsIgnoreCase(dir)) {
             direction = "DESC";
         }
-        String sql
-                = "SELECT p.product_id, p.product_name, c.category_name, "
+        String sql = "SELECT p.product_id, p.product_name, c.category_name, "
                 + "u.unit_name, COALESCE(SUM(pv.quantity),0) AS total_quantity "
                 + "FROM products p "
                 + "LEFT JOIN categories c ON p.category_id = c.category_id "
@@ -86,8 +84,7 @@ public class ProductDAO extends DBContext {
 
     public int countProductInventory(String keyword, Integer categoryId) {
 
-        String sql
-                = "SELECT COUNT(DISTINCT p.product_id) "
+        String sql = "SELECT COUNT(DISTINCT p.product_id) "
                 + "FROM products p "
                 + "LEFT JOIN product_variants pv ON p.product_id = pv.product_id "
                 + "WHERE p.status = 'active' "
@@ -121,14 +118,14 @@ public class ProductDAO extends DBContext {
 
         StringBuilder sql = new StringBuilder(
                 "SELECT p.product_id, p.product_name, c.category_name, u.unit_name, "
-                + "COALESCE(SUM(pv.quantity),0) AS total_quantity "
-                + "FROM products p "
-                + "LEFT JOIN categories c ON p.category_id = c.category_id "
-                + "LEFT JOIN units u ON p.unit_id = u.unit_id "
-                + "LEFT JOIN product_variants pv "
-                + " ON p.product_id = pv.product_id AND pv.status = 'active' "
-                + "WHERE p.status = 'active' "
-                + "GROUP BY p.product_id, p.product_name, c.category_name, u.unit_name ");
+                        + "COALESCE(SUM(pv.quantity),0) AS total_quantity "
+                        + "FROM products p "
+                        + "LEFT JOIN categories c ON p.category_id = c.category_id "
+                        + "LEFT JOIN units u ON p.unit_id = u.unit_id "
+                        + "LEFT JOIN product_variants pv "
+                        + " ON p.product_id = pv.product_id AND pv.status = 'active' "
+                        + "WHERE p.status = 'active' "
+                        + "GROUP BY p.product_id, p.product_name, c.category_name, u.unit_name ");
 
         if (minQty != null && maxQty != null) {
             sql.append("HAVING total_quantity < ? OR total_quantity > ? ");
@@ -184,12 +181,12 @@ public class ProductDAO extends DBContext {
 
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM ( "
-                + "SELECT p.product_id "
-                + "FROM products p "
-                + "LEFT JOIN product_variants pv "
-                + " ON p.product_id = pv.product_id AND pv.status = 'active' "
-                + "WHERE p.status = 'active' "
-                + "GROUP BY p.product_id ");
+                        + "SELECT p.product_id "
+                        + "FROM products p "
+                        + "LEFT JOIN product_variants pv "
+                        + " ON p.product_id = pv.product_id AND pv.status = 'active' "
+                        + "WHERE p.status = 'active' "
+                        + "GROUP BY p.product_id ");
 
         if (minQty != null && maxQty != null) {
             sql.append("HAVING SUM(pv.quantity) < ? OR SUM(pv.quantity) > ? ");
@@ -227,8 +224,7 @@ public class ProductDAO extends DBContext {
     public List<ProductInventory> getInventoryForCounting(int categoryId) {
         List<ProductInventory> list = new ArrayList<>();
 
-        String sql
-                = "SELECT pv.variant_id, p.product_name, pv.sku, "
+        String sql = "SELECT pv.variant_id, p.product_name, pv.sku, "
                 + "COALESCE(pv.quantity, 0) AS system_quantity "
                 + "FROM products p "
                 + "JOIN product_variants pv ON p.product_id = pv.product_id "
@@ -257,7 +253,7 @@ public class ProductDAO extends DBContext {
 
         return list;
     }
-    
+
     public int insertProductFromDTO(ProductAddDTO dto) {
         Connection conn = null;
         PreparedStatement psProduct = null;
@@ -297,8 +293,10 @@ public class ProductDAO extends DBContext {
                     for (ProductVariantSimpleDTO variantDTO : dto.getVariants()) {
                         int variantId = insertVariant(conn, productId, variantDTO);
                         if (variantId > 0 && dto.getAttributeNames() != null && !dto.getAttributeNames().isEmpty()
-                                && variantDTO.getAttributeValues() != null && !variantDTO.getAttributeValues().isEmpty()) {
-                            insertVariantAttributes(conn, variantId, dto.getAttributeNames(), variantDTO.getAttributeValues());
+                                && variantDTO.getAttributeValues() != null
+                                && !variantDTO.getAttributeValues().isEmpty()) {
+                            insertVariantAttributes(conn, variantId, dto.getAttributeNames(),
+                                    variantDTO.getAttributeValues());
                         }
                     }
                 } else {
@@ -458,4 +456,291 @@ public class ProductDAO extends DBContext {
 
         return false;
     }
+
+    /**
+     * Kiểm tra SKU đã tồn tại bởi sản phẩm khác (dùng khi edit, loại trừ product hiện tại).
+     */
+    public boolean isSkuExistsExcludingProduct(String sku, int productId) {
+        if (sku == null || sku.trim().isEmpty()) return false;
+        String sql = "SELECT COUNT(*) FROM product_variants WHERE sku = ? AND product_id != ?";
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setString(1, sku.trim());
+            ps.setInt(2, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Kiểm tra Barcode đã tồn tại bởi sản phẩm khác (dùng khi edit).
+     */
+    public boolean isBarcodeExistsExcludingProduct(String barcode, int productId) {
+        if (barcode == null || barcode.trim().isEmpty()) return false;
+        String sql = "SELECT COUNT(*) FROM product_variants WHERE barcode = ? AND product_id != ?";
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setString(1, barcode.trim());
+            ps.setInt(2, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Lấy thông tin sản phẩm đầy đủ để hiển thị form chỉnh sửa (product + variants + attributes).
+     */
+    public ProductAddDTO getProductAddDTOById(int productId) {
+        ProductAddDTO dto = new ProductAddDTO();
+        dto.setProductId(productId);
+
+        String sqlProduct = "SELECT product_name, category_id, brand_id, supplier_id, unit_id, picture, description "
+                + "FROM products WHERE product_id = ? AND status = 'active'";
+        try (Connection conn = getConnection();
+             PreparedStatement psProduct = conn.prepareStatement(sqlProduct)) {
+            psProduct.setInt(1, productId);
+            try (ResultSet rsProduct = psProduct.executeQuery()) {
+                if (!rsProduct.next()) return null;
+                dto.setProductName(rsProduct.getString("product_name"));
+                dto.setCategoryId(rsProduct.getInt("category_id"));
+                dto.setBrandId(rsProduct.getInt("brand_id"));
+                dto.setSupplierId(rsProduct.getInt("supplier_id"));
+                dto.setUnitId(rsProduct.getInt("unit_id"));
+                dto.setPicture(rsProduct.getString("picture"));
+                dto.setDescription(rsProduct.getString("description"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        String sqlVariants = "SELECT variant_id, sku, barcode FROM product_variants WHERE product_id = ? AND status = 'active' ORDER BY variant_id";
+        List<ProductVariantSimpleDTO> variantList = new ArrayList<>();
+        List<Integer> variantIds = new ArrayList<>();
+
+        try (Connection conn = getConnection();
+             PreparedStatement psVar = conn.prepareStatement(sqlVariants)) {
+            psVar.setInt(1, productId);
+            try (ResultSet rsVar = psVar.executeQuery()) {
+                while (rsVar.next()) {
+                    ProductVariantSimpleDTO v = new ProductVariantSimpleDTO();
+                    v.setVariantId(rsVar.getInt("variant_id"));
+                    v.setSku(rsVar.getString("sku"));
+                    v.setBarcode(rsVar.getString("barcode") != null ? rsVar.getString("barcode") : "");
+                    variantList.add(v);
+                    variantIds.add(rsVar.getInt("variant_id"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return dto;
+        }
+
+        if (variantList.isEmpty()) return dto;
+
+        String sqlAttr = "SELECT variant_id, attribute_name, attribute_value FROM product_variant_attributes WHERE variant_id = ?";
+        java.util.Map<Integer, java.util.Map<String, String>> variantAttrMap = new java.util.LinkedHashMap<>();
+        java.util.Set<String> allAttrNamesSet = new java.util.LinkedHashSet<>();
+
+        for (int vid : variantIds) {
+            java.util.Map<String, String> nameToValue = new java.util.LinkedHashMap<>();
+            try (PreparedStatement psAttr = getConnection().prepareStatement(sqlAttr)) {
+                psAttr.setInt(1, vid);
+                try (ResultSet rsAttr = psAttr.executeQuery()) {
+                    while (rsAttr.next()) {
+                        String n = rsAttr.getString("attribute_name");
+                        String val = rsAttr.getString("attribute_value");
+                        if (n != null && !n.trim().isEmpty()) {
+                            n = n.trim();
+                            nameToValue.put(n, val != null ? val.trim() : "");
+                            allAttrNamesSet.add(n);
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            variantAttrMap.put(vid, nameToValue);
+        }
+
+        List<String> attributeNamesOrdered = new ArrayList<>(allAttrNamesSet);
+        java.util.Collections.sort(attributeNamesOrdered);
+        dto.setAttributeNames(attributeNamesOrdered);
+
+        for (ProductVariantSimpleDTO v : variantList) {
+            java.util.Map<String, String> nameToValue = variantAttrMap.get(v.getVariantId());
+            List<String> values = new ArrayList<>();
+            if (nameToValue != null) {
+                for (String attrName : attributeNamesOrdered) {
+                    values.add(nameToValue.getOrDefault(attrName, ""));
+                }
+            }
+            v.setAttributeValues(values);
+        }
+
+        if (variantList.size() == 1 && attributeNamesOrdered.isEmpty()) {
+            ProductVariantSimpleDTO single = variantList.get(0);
+            dto.setBaseSku(single.getSku());
+            dto.setBaseBarcode(single.getBarcode() != null ? single.getBarcode() : "");
+            dto.setVariants(new ArrayList<>());
+            dto.setAttributeNames(new ArrayList<>());
+        } else {
+            dto.setVariants(variantList);
+        }
+
+        return dto;
+    }
+
+    /**
+     * Cập nhật sản phẩm và đồng bộ variants/attributes từ DTO (chỉnh sửa).
+     */
+    public boolean updateProductFromDTO(ProductAddDTO dto) {
+        if (dto == null || dto.getProductId() == null) return false;
+        int productId = dto.getProductId();
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            String sqlUpdateProduct = "UPDATE products SET product_name=?, category_id=?, brand_id=?, supplier_id=?, unit_id=?, picture=?, description=? WHERE product_id=?";
+            try (PreparedStatement ps = conn.prepareStatement(sqlUpdateProduct)) {
+                ps.setString(1, dto.getProductName());
+                ps.setInt(2, dto.getCategoryId());
+                ps.setInt(3, dto.getBrandId());
+                ps.setInt(4, dto.getSupplierId());
+                ps.setInt(5, dto.getUnitId());
+                ps.setString(6, dto.getPicture() != null ? dto.getPicture() : "");
+                ps.setString(7, dto.getDescription() != null ? dto.getDescription() : "");
+                ps.setInt(8, productId);
+                if (ps.executeUpdate() <= 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            List<ProductVariantSimpleDTO> variants = dto.getVariants() != null ? dto.getVariants() : new ArrayList<>();
+            List<String> attributeNames = dto.getAttributeNames() != null ? dto.getAttributeNames() : new ArrayList<>();
+
+            if (variants.isEmpty()) {
+                String baseSku = dto.getBaseSku() != null ? dto.getBaseSku().trim() : "";
+                String baseBarcode = dto.getBaseBarcode() != null ? dto.getBaseBarcode().trim() : "";
+                List<ProductVariantSimpleDTO> dbVariants = getVariantsByProductId(conn, productId);
+                if (dbVariants.size() == 1) {
+                    updateVariant(conn, dbVariants.get(0).getVariantId(), baseSku, baseBarcode);
+                    deleteVariantAttributes(conn, dbVariants.get(0).getVariantId());
+                } else if (dbVariants.isEmpty() && !baseSku.isEmpty()) {
+                    ProductVariantSimpleDTO def = new ProductVariantSimpleDTO(baseSku, baseBarcode);
+                    insertVariant(conn, productId, def);
+                } else if (dbVariants.size() > 1) {
+                    int keepId = dbVariants.get(0).getVariantId();
+                    updateVariant(conn, keepId, baseSku, baseBarcode);
+                    deleteVariantAttributes(conn, keepId);
+                    for (int i = 1; i < dbVariants.size(); i++) {
+                        deleteVariant(conn, dbVariants.get(i).getVariantId());
+                    }
+                }
+            } else {
+                java.util.Set<Integer> processedVariantIds = new java.util.HashSet<>();
+                for (ProductVariantSimpleDTO v : variants) {
+                    Integer vid = v.getVariantId();
+                    String sku = v.getSku() != null ? v.getSku().trim() : "";
+                    String barcode = v.getBarcode() != null ? v.getBarcode().trim() : "";
+                    if (vid != null && vid > 0) {
+                        updateVariant(conn, vid, sku, barcode);
+                        deleteVariantAttributes(conn, vid);
+                        if (attributeNames.size() > 0 && v.getAttributeValues() != null && !v.getAttributeValues().isEmpty()) {
+                            insertVariantAttributes(conn, vid, attributeNames, v.getAttributeValues());
+                        }
+                        processedVariantIds.add(vid);
+                    } else {
+                        int newId = insertVariant(conn, productId, v);
+                        if (newId > 0) {
+                            processedVariantIds.add(newId);
+                            if (attributeNames.size() > 0 && v.getAttributeValues() != null && !v.getAttributeValues().isEmpty()) {
+                                if (attributeNames.size() == v.getAttributeValues().size()) {
+                                    insertVariantAttributes(conn, newId, attributeNames, v.getAttributeValues());
+                                } else {
+                                    System.err.println("WARNING: attributeNames.size()=" + attributeNames.size() 
+                                        + " != attributeValues.size()=" + v.getAttributeValues().size() 
+                                        + " for variant SKU=" + v.getSku());
+                                }
+                            }
+                        }
+                    }
+                }
+                List<ProductVariantSimpleDTO> dbVariants = getVariantsByProductId(conn, productId);
+                for (ProductVariantSimpleDTO dbv : dbVariants) {
+                    if (!processedVariantIds.contains(dbv.getVariantId())) {
+                        deleteVariantAttributes(conn, dbv.getVariantId());
+                        deleteVariant(conn, dbv.getVariantId());
+                    }
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private List<ProductVariantSimpleDTO> getVariantsByProductId(Connection conn, int productId) throws SQLException {
+        List<ProductVariantSimpleDTO> list = new ArrayList<>();
+        String sql = "SELECT variant_id, sku, barcode FROM product_variants WHERE product_id = ? AND status = 'active'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ProductVariantSimpleDTO v = new ProductVariantSimpleDTO();
+                    v.setVariantId(rs.getInt("variant_id"));
+                    v.setSku(rs.getString("sku"));
+                    v.setBarcode(rs.getString("barcode"));
+                    list.add(v);
+                }
+            }
+        }
+        return list;
+    }
+
+    private void updateVariant(Connection conn, int variantId, String sku, String barcode) throws SQLException {
+        String sql = "UPDATE product_variants SET sku=?, barcode=? WHERE variant_id=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sku);
+            ps.setString(2, barcode == null || barcode.isEmpty() ? null : barcode);
+            ps.setInt(3, variantId);
+            ps.executeUpdate();
+        }
+    }
+
+    private void deleteVariantAttributes(Connection conn, int variantId) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM product_variant_attributes WHERE variant_id=?")) {
+            ps.setInt(1, variantId);
+            ps.executeUpdate();
+        }
+    }
+
+    private void deleteVariant(Connection conn, int variantId) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM product_variants WHERE variant_id=?")) {
+            ps.setInt(1, variantId);
+            ps.executeUpdate();
+        }
+    }
+
 }
