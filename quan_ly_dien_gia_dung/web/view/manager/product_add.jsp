@@ -20,212 +20,7 @@
                     rel="stylesheet">
                 <link href="${pageContext.request.contextPath}/css/bootstrap.min.css" rel="stylesheet">
                 <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
-
-                <style>
-                    .product-add-section {
-                        background: #f8f9fa;
-                        min-height: 100vh;
-                    }
-
-                    .form-card {
-                        background: white;
-                        border-radius: 12px;
-                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-                        padding: 24px;
-                        margin-bottom: 20px;
-                    }
-
-                    .form-card-header {
-                        font-size: 18px;
-                        font-weight: 600;
-                        color: #1f2937;
-                        margin-bottom: 20px;
-                        padding-bottom: 12px;
-                        border-bottom: 2px solid #e5e7eb;
-                    }
-
-                    .image-upload-box {
-                        width: 150px;
-                        height: 150px;
-                        border: 2px dashed #d1d5db;
-                        border-radius: 8px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        cursor: pointer;
-                        transition: all 0.3s;
-                        background: #f9fafb;
-                    }
-
-                    .image-upload-box:hover {
-                        border-color: #3b82f6;
-                        background: #eff6ff;
-                    }
-
-                    .image-upload-box i {
-                        font-size: 32px;
-                        color: #9ca3af;
-                    }
-
-                    /* Attribute Styles */
-                    .attribute-row {
-                        background: #f9fafb;
-                        border: 1px solid #e5e7eb;
-                        border-radius: 8px;
-                        padding: 16px;
-                        margin-bottom: 12px;
-                    }
-
-                    .tag-input-container {
-                        display: flex;
-                        flex-wrap: wrap;
-                        gap: 8px;
-                        align-items: center;
-                        border: 1px solid #d1d5db;
-                        border-radius: 6px;
-                        padding: 8px;
-                        min-height: 42px;
-                        background: white;
-                        cursor: text;
-                    }
-
-                    .tag {
-                        background: #3b82f6;
-                        color: white;
-                        padding: 4px 12px;
-                        border-radius: 16px;
-                        font-size: 14px;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 6px;
-                    }
-
-                    .tag .remove-tag {
-                        cursor: pointer;
-                        font-weight: bold;
-                        font-size: 16px;
-                    }
-
-                    .tag .remove-tag:hover {
-                        color: #fee;
-                    }
-
-                    .tag-input {
-                        border: none;
-                        outline: none;
-                        flex: 1;
-                        min-width: 150px;
-                        padding: 4px;
-                        font-size: 14px;
-                    }
-
-                    .btn-add-attribute {
-                        color: #3b82f6;
-                        background: none;
-                        border: none;
-                        padding: 8px 12px;
-                        cursor: pointer;
-                        font-size: 14px;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 6px;
-                    }
-
-                    .btn-add-attribute:hover {
-                        color: #2563eb;
-                    }
-
-                    .btn-delete-attribute {
-                        background: none;
-                        border: none;
-                        color: #ef4444;
-                        cursor: pointer;
-                        padding: 8px;
-                    }
-
-                    .btn-delete-attribute:hover {
-                        color: #dc2626;
-                    }
-
-                    /* Variant Styles */
-                    .variant-item {
-                        display: flex;
-                        align-items: center;
-                        gap: 12px;
-                        padding: 12px;
-                        background: #f9fafb;
-                        border: 1px solid #e5e7eb;
-                        border-radius: 8px;
-                        margin-bottom: 8px;
-                    }
-
-                    .variant-item input[type="checkbox"] {
-                        width: 18px;
-                        height: 18px;
-                        cursor: pointer;
-                    }
-
-                    .variant-combination {
-                        font-weight: 500;
-                        color: #374151;
-                        min-width: 150px;
-                    }
-
-                    .variant-item input[type="text"] {
-                        border: 1px solid #d1d5db;
-                        border-radius: 6px;
-                        padding: 6px 12px;
-                        font-size: 14px;
-                    }
-
-                    .btn-delete-selected-variants {
-                        background: #ef4444;
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        padding: 6px 16px;
-                        cursor: pointer;
-                        transition: all 0.3s;
-                        font-size: 14px;
-                    }
-
-                    .btn-delete-selected-variants:hover {
-                        background: #dc2626;
-                    }
-
-                    .btn-delete-selected-variants:disabled {
-                        opacity: 0.5;
-                        cursor: not-allowed;
-                    }
-
-                    .btn-save,
-                    .btn-cancel {
-                        padding: 10px 24px;
-                        border-radius: 8px;
-                        font-weight: 500;
-                        border: none;
-                        cursor: pointer;
-                        transition: all 0.3s;
-                    }
-
-                    .btn-save {
-                        background: #3b82f6;
-                        color: white;
-                    }
-
-                    .btn-save:hover {
-                        background: #2563eb;
-                    }
-
-                    .btn-cancel {
-                        background: #e5e7eb;
-                        color: #374151;
-                    }
-
-                    .btn-cancel:hover {
-                        background: #d1d5db;
-                    }
-                </style>
+                <link href="${pageContext.request.contextPath}/css/product-form.css" rel="stylesheet">
             </head>
 
             <body>
@@ -256,8 +51,8 @@
                                         <div class="alert alert-danger">${errorVariant}</div>
                                     </c:if>
 
-                                    <form id="productAddForm" action="${pageContext.request.contextPath}/product-add" method="post"
-                                        enctype="multipart/form-data">
+                                    <form id="productAddForm" action="${pageContext.request.contextPath}/product-add"
+                                        method="post" enctype="multipart/form-data">
 
                                         <!-- Basic Info Card -->
                                         <div class="form-card">
@@ -282,8 +77,11 @@
                                                             <label class="form-label">Tên sản phẩm <span
                                                                     class="text-danger">*</span></label>
                                                             <input type="text" class="form-control" name="productName"
-                                                                placeholder="Nhập tên sản phẩm" value="${productName}" required>
-                                                            <c:if test="${not empty errorProductName}"><small class="text-danger">${errorProductName}</small></c:if>
+                                                                placeholder="Nhập tên sản phẩm" value="${productName}"
+                                                                required>
+                                                            <c:if test="${not empty errorProductName}"><small
+                                                                    class="text-danger">${errorProductName}</small>
+                                                            </c:if>
                                                         </div>
 
                                                         <!-- Category, Brand, Supplier -->
@@ -293,10 +91,14 @@
                                                             <select class="form-select" name="categoryId" required>
                                                                 <option value="">Chọn danh mục</option>
                                                                 <c:forEach var="c" items="${categories}">
-                                                                    <option value="${c.categoryId}" ${categoryId != null && categoryId == c.categoryId ? 'selected' : ''}>${c.categoryName}</option>
+                                                                    <option value="${c.categoryId}" ${categoryId !=null
+                                                                        && categoryId==c.categoryId ? 'selected' : '' }>
+                                                                        ${c.categoryName}</option>
                                                                 </c:forEach>
                                                             </select>
-                                                            <c:if test="${not empty errorCategoryId}"><small class="text-danger">${errorCategoryId}</small></c:if>
+                                                            <c:if test="${not empty errorCategoryId}"><small
+                                                                    class="text-danger">${errorCategoryId}</small>
+                                                            </c:if>
                                                         </div>
 
                                                         <div class="col-md-4 mb-3">
@@ -305,10 +107,13 @@
                                                             <select class="form-select" name="brandId" required>
                                                                 <option value="">Chọn thương hiệu</option>
                                                                 <c:forEach var="b" items="${brands}">
-                                                                    <option value="${b.brandId}" ${brandId != null && brandId == b.brandId ? 'selected' : ''}>${b.brandName}</option>
+                                                                    <option value="${b.brandId}" ${brandId !=null &&
+                                                                        brandId==b.brandId ? 'selected' : '' }>
+                                                                        ${b.brandName}</option>
                                                                 </c:forEach>
                                                             </select>
-                                                            <c:if test="${not empty errorBrandId}"><small class="text-danger">${errorBrandId}</small></c:if>
+                                                            <c:if test="${not empty errorBrandId}"><small
+                                                                    class="text-danger">${errorBrandId}</small></c:if>
                                                         </div>
 
                                                         <div class="col-md-4 mb-3">
@@ -317,10 +122,14 @@
                                                             <select class="form-select" name="supplierId" required>
                                                                 <option value="">Chọn nhà cung cấp</option>
                                                                 <c:forEach var="s" items="${suppliers}">
-                                                                    <option value="${s.supplierId}" ${supplierId != null && supplierId == s.supplierId ? 'selected' : ''}>${s.supplierName}</option>
+                                                                    <option value="${s.supplierId}" ${supplierId !=null
+                                                                        && supplierId==s.supplierId ? 'selected' : '' }>
+                                                                        ${s.supplierName}</option>
                                                                 </c:forEach>
                                                             </select>
-                                                            <c:if test="${not empty errorSupplierId}"><small class="text-danger">${errorSupplierId}</small></c:if>
+                                                            <c:if test="${not empty errorSupplierId}"><small
+                                                                    class="text-danger">${errorSupplierId}</small>
+                                                            </c:if>
                                                         </div>
 
                                                         <!-- Unit -->
@@ -330,10 +139,13 @@
                                                             <select class="form-select" name="unitId" required>
                                                                 <option value="">Chọn đơn vị</option>
                                                                 <c:forEach var="u" items="${units}">
-                                                                    <option value="${u.unitId}" ${unitId != null && unitId == u.unitId ? 'selected' : ''}>${u.unitName}</option>
+                                                                    <option value="${u.unitId}" ${unitId !=null &&
+                                                                        unitId==u.unitId ? 'selected' : '' }>
+                                                                        ${u.unitName}</option>
                                                                 </c:forEach>
                                                             </select>
-                                                            <c:if test="${not empty errorUnitId}"><small class="text-danger">${errorUnitId}</small></c:if>
+                                                            <c:if test="${not empty errorUnitId}"><small
+                                                                    class="text-danger">${errorUnitId}</small></c:if>
                                                         </div>
 
                                                         <!-- Base SKU & Barcode (Hidden when variants exist) -->
@@ -341,14 +153,18 @@
                                                             <label class="form-label">Mã SKU</label>
                                                             <input type="text" class="form-control" name="baseSku"
                                                                 id="baseSku" placeholder="Mã SKU" value="${baseSku}">
-                                                            <c:if test="${not empty errorBaseSku}"><small class="text-danger">${errorBaseSku}</small></c:if>
+                                                            <c:if test="${not empty errorBaseSku}"><small
+                                                                    class="text-danger">${errorBaseSku}</small></c:if>
                                                         </div>
 
                                                         <div class="col-md-4 mb-3" id="baseBarcodeField">
                                                             <label class="form-label">Barcode</label>
                                                             <input type="text" class="form-control" name="baseBarcode"
-                                                                id="baseBarcode" placeholder="Barcode" value="${baseBarcode}">
-                                                            <c:if test="${not empty errorBaseBarcode}"><small class="text-danger">${errorBaseBarcode}</small></c:if>
+                                                                id="baseBarcode" placeholder="Barcode"
+                                                                value="${baseBarcode}">
+                                                            <c:if test="${not empty errorBaseBarcode}"><small
+                                                                    class="text-danger">${errorBaseBarcode}</small>
+                                                            </c:if>
                                                         </div>
 
                                                         <!-- Description -->
