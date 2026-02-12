@@ -12,9 +12,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>WMS_HA - Hệ Thống Quản Lý Kho</title>
-        <!-- Use standard JSP context path for CSS -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/homepage.css">
-        <!-- Font Awesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </head>
 
@@ -68,8 +66,6 @@
                     <div
                         style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="font-size: 1.25rem;">Tổng Quan Kho</h3>
-                        <span
-                            style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">Live</span>
                     </div>
 
                     <div class="stats-row">
@@ -114,7 +110,7 @@
                     <div
                         style="margin-top: 1.5rem; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
                         <div
-                            style="width: 65%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary));">
+                            style="width: 92%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary));">
                         </div>
                     </div>
                     <p style="text-align: right; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Hiệu
@@ -140,7 +136,7 @@
     <footer
         style="padding: 4rem 0; border-top: 1px solid var(--glass-border); text-align: center; color: var(--text-muted);">
         <div class="container">
-            <p>&copy; 2026 WMS Pro. All rights reserved.</p>
+            <p>&copy; 2026 WMS_HA. All rights reserved.</p>
         </div>
     </footer>
 
