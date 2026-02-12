@@ -25,7 +25,7 @@ public class SupplierDAO extends DBContext {
         List<Supplier> list = new ArrayList<>();
         String sql = "SELECT * FROM suppliers WHERE status = 'active' ORDER BY supplier_name";
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql);
-             ResultSet rs = pre.executeQuery()) {
+            ResultSet rs = pre.executeQuery()) {
             while (rs.next()) {
                 list.add(new Supplier(
                         rs.getInt("supplier_id"),
