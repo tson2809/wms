@@ -186,9 +186,9 @@
                                         <tr>
                                             <td>${s.supplierId}</td>
                                             <td>${s.supplierName}</td>
-                                            <td>${s.contactPerson != null ? s.contactPerson : '-'}</td>
-                                            <td>${s.email != null ? s.email : '-'}</td>
-                                            <td>${s.phone != null ? s.phone : '-'}</td>
+                                            <td>${s.contactPerson}</td>
+                                            <td>${s.email}</td>
+                                            <td>${s.phone}</td>
                                             <td>
                                                 <span class="status-dot ${s.status == 'active' ? 'status-active' : 'status-inactive'}"></span>
                                                 ${s.status == 'active' ? 'Active' : 'Inactive'}
