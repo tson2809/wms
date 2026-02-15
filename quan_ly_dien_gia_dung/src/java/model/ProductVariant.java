@@ -4,9 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
- * Model cho bảng PRODUCT_VARIANTS
- * Lưu thông tin CỤ THỂ của từng biến thể sản phẩm
- * 
+ *
  * @author laptop368
  */
 public class ProductVariant {
@@ -18,7 +16,7 @@ public class ProductVariant {
     private BigDecimal salePrice;
     private BigDecimal costPrice;
     private int quantity;
-    private String status; // 'active', 'inactive'
+    private String status; 
     private Timestamp createdAt;
 
     public ProductVariant() {
