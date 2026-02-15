@@ -7,7 +7,9 @@ package dal;
 import model.ProductInventory;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -247,5 +249,130 @@ public class ProductDAO extends DBContext {
         }
 
         return list;
+    }
+
+    public List<ProductInventory> getInventoryList(String keyword, Integer categoryId,
+            String status, int page, int pageSize, String sort, String dir) {
+
+        List<ProductInventory> list = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+
+        String orderBy = "p.product_name";
+        if ("quantity".equals(sort)) {
+            orderBy = "v.quantity";
+        }
+
+        String direction = "ASC";
+        if ("desc".equalsIgnoreCase(dir)) {
+            direction = "DESC";
+        }
+
+        String sql
+                = "SELECT v.variant_id, v.sku, v.quantity, v.cost_price, v.sale_price, "
+                + "v.variant_picture, "
+                + "p.product_name, "
+                + "c.category_name, "
+                + "b.brand_name, "
+                + "GROUP_CONCAT(a.attribute_value ORDER BY a.attribute_name SEPARATOR ', ') AS variant_name "
+                + "FROM product_variants v "
+                + "JOIN products p ON v.product_id = p.product_id "
+                + "LEFT JOIN categories c ON p.category_id = c.category_id "
+                + "LEFT JOIN brands b ON p.brand_id = b.brand_id "
+                + "LEFT JOIN product_variant_attributes a ON v.variant_id = a.variant_id "
+                + "WHERE p.status = 'active' AND v.status = 'active' "
+                + "AND (? IS NULL OR p.product_name LIKE ?) "
+                + "GROUP BY v.variant_id, v.sku, v.quantity, v.cost_price, v.sale_price, "
+                + "v.variant_picture, p.product_name, c.category_name, b.brand_name "
+                + "ORDER BY " + orderBy + " " + direction + " "
+                + "LIMIT ? OFFSET ?";
+
+        try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setObject(1, keyword);
+            ps.setString(2, keyword == null ? null : "%" + keyword + "%");
+            ps.setInt(3, pageSize);
+            ps.setInt(4, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ProductInventory p = new ProductInventory();
+                    p.setVariantId(rs.getInt("variant_id"));
+                    p.setSku(rs.getString("sku"));
+                    p.setProductName(rs.getString("product_name"));
+                    p.setCategoryName(rs.getString("category_name"));
+                    p.setBrandName(rs.getString("brand_name"));
+                    p.setVariantName(rs.getString("variant_name"));
+                    p.setImage(rs.getString("variant_picture"));
+                    p.setCostPrice(rs.getDouble("cost_price"));
+                    p.setSalePrice(rs.getDouble("sale_price"));
+                    p.setTotalQuantity(rs.getInt("quantity"));
+
+                    int q = rs.getInt("quantity");
+                    if (q == 0) {
+                        p.setStatus("Out of Stock");
+                    } else if (q < 5) {
+                        p.setStatus("Low");
+                    } else {
+                        p.setStatus("In Stock");
+                    }
+
+                    if (status != null && !status.isEmpty()
+                            && !p.getStatus().equals(status)) {
+                        continue;
+                    }
+
+                    list.add(p);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public int countInventory(String keyword, Integer categoryId) {
+        int total = 0;
+        String sql = "SELECT COUNT(*) " + "FROM product_variants v " + "JOIN products p ON v.product_id = p.product_id " + "WHERE p.status='active' AND v.status='active' " + "AND (? IS NULL OR p.product_name LIKE ?) " + "AND (? IS NULL OR p.category_id = ?)";
+        try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setObject(1, keyword);
+            ps.setString(2, keyword == null ? null : "%" + keyword + "%");
+            ps.setObject(3, categoryId);
+            ps.setObject(4, categoryId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    total = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return total;
+    }
+
+    public Map<String, Integer> getInventorySummary() {
+
+        Map<String, Integer> map = new HashMap<>();
+
+        String sql
+                = "SELECT COUNT(*) totalSku, "
+                + "SUM(quantity) totalQty, "
+                + "SUM(CASE WHEN quantity<5 AND quantity>0 THEN 1 ELSE 0 END) lowStock, "
+                + "SUM(CASE WHEN quantity=0 THEN 1 ELSE 0 END) outStock "
+                + "FROM product_variants WHERE status='active'";
+
+        try (Connection c = getConnection(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                map.put("totalSku", rs.getInt("totalSku"));
+                map.put("totalQty", rs.getInt("totalQty"));
+                map.put("lowStock", rs.getInt("lowStock"));
+                map.put("outStock", rs.getInt("outStock"));
+            }
+
+        } catch (Exception e) {
+        }
+
+        return map;
     }
 }

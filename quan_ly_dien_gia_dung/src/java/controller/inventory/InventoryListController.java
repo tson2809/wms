@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 import model.ProductInventory;
 
 /**
@@ -60,45 +61,45 @@ public class InventoryListController extends HttpServlet {
      */
     CategoryDAO categoryDAO = new CategoryDAO();
     ProductDAO productDAO = new ProductDAO();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String keyword = request.getParameter("keyword");
-    String categoryParam = request.getParameter("categoryId");
-    String status = request.getParameter("status");
-    String sort = request.getParameter("sort");
-    String dir = request.getParameter("dir");
-    int page = 1;
-    int pageSize = 5;
-    try {
-        page = Integer.parseInt(request.getParameter("page"));
-    } catch (Exception ignored) {}
+        String categoryParam = request.getParameter("categoryId");
+        String status = request.getParameter("status");
+        String sort = request.getParameter("sort");
+        String dir = request.getParameter("dir");
 
-    Integer categoryId = null;
-    try {
-        if (categoryParam != null && !categoryParam.isEmpty()) {
-            categoryId = Integer.parseInt(categoryParam);
+        int page = 1;
+        int pageSize = 10;
+
+        try {
+            page = Integer.parseInt(request.getParameter("page"));
+        } catch (Exception ignored) {
         }
-    } catch (Exception ignored) {}
 
-    ProductDAO productDAO = new ProductDAO();
-    CategoryDAO categoryDAO = new CategoryDAO();
+        Integer categoryId = null;
+        try {
+            if (categoryParam != null && !categoryParam.isEmpty()) {
+                categoryId = Integer.parseInt(categoryParam);
+            }
+        } catch (Exception ignored) {
+        }
 
-    List<ProductInventory> list =
-        productDAO.getProductInventory(
-            keyword, categoryId, status, page, pageSize, sort, dir
-        );
+        List<ProductInventory> list
+                = productDAO.getInventoryList(keyword, categoryId, status,
+                        page, pageSize, sort, dir);
 
-    int totalRecords = productDAO.countProductInventory(keyword, categoryId);
-    int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
-
-    request.setAttribute("list", list);
-    request.setAttribute("categories", categoryDAO.getAllCategories());
-    request.setAttribute("currentPage", page);
-    request.setAttribute("totalPages", totalPages);
-
-    request.getRequestDispatcher("/view/inventory/inventory-list.jsp")
-           .forward(request, response);
+        Map<String, Integer> sum = productDAO.getInventorySummary();
+        int totalRecords = productDAO.countInventory(keyword, categoryId);
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+        request.setAttribute("list", list);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("sum", sum);
+        request.setAttribute("categories", categoryDAO.getAllCategories());
+        request.getRequestDispatcher("/view/inventory/inventory-list.jsp").forward(request, response);
     }
 
     /**

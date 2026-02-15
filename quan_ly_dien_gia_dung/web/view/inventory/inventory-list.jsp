@@ -51,83 +51,150 @@
                                 <div class="d-flex justify-content-between align-items-center mb-3 inventory-header">
                                     <h5 class="mb-0">Product Inventory</h5>
                                 </div>
-                                <form method="get" action="${pageContext.request.contextPath}/inventory-list">
-                                    Product Name:
-                                    <input type="text" name="keyword" value="${param.keyword}" />
-
-                                    Category:
-                                    <select name="categoryId">
-                                        <option value="">All</option>
-                                        <c:forEach items="${categories}" var="c">
-                                            <option value="${c.categoryId}"
-                                                    <c:if test="${param.categoryId == c.categoryId.toString()}">
-                                                        selected
-                                                    </c:if>
-                                                    >
-                                                ${c.categoryName}
-                                            </option>
-                                        </c:forEach>
-                                    </select>
-
-                                    Status:
-                                    <select name="status">
-                                        <option value="">All</option>
-                                        <option value="In Stock" ${param.status == 'In Stock' ? 'selected' : ''}>
-                                            In Stock
-                                        </option>
-                                        <option value="Out of Stock" ${param.status == 'Out of Stock' ? 'selected' : ''}>
-                                            Out of Stock
-                                        </option>
-                                    </select>
-
-
-                                    <button type="submit" class="btn btn-primary">
-                                        Search
-                                    </button>
-
-                                    <a href="${pageContext.request.contextPath}/inventory-list"
-                                       class="btn btn-success">
-                                        Clear
+                                <div class="inventory-toolbar">
+                                    <a href="#" class="btn btn-primary btn-sm">
+                                        + Import
                                     </a>
+                                    <a href="#" class="btn btn-warning btn-sm">
+                                        + Export
+                                    </a>
+                                    <a href="${pageContext.request.contextPath}/inventory-sheet-list" class="btn btn-secondary btn-sm">
+                                        Inventory Check
+                                    </a>
+                                    <a href="#" class="btn btn-success btn-sm">
+                                        Export Excel
+                                    </a>
+                                </div>
+                                <form class="filter-bar" method="get"
+                                      action="${pageContext.request.contextPath}/inventory-list">
+
+                                    <div class="row g-3 align-items-end">
+
+                                        <div class="col-md-3">
+                                            <label>Search</label>
+                                            <input class="form-control"
+                                                   name="keyword"
+                                                   placeholder="SKU / Product name"
+                                                   value="${param.keyword}">
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label>Category</label>
+                                            <select class="form-select" name="categoryId">
+                                                <option value="">All</option>
+                                                <c:forEach items="${categories}" var="c">
+                                                    <option value="${c.categoryId}"
+                                                            ${param.categoryId==c.categoryId.toString()?'selected':''}>
+                                                        ${c.categoryName}
+                                                    </option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label>Stock Status</label>
+                                            <select class="form-select" name="status">
+                                                <option value="">All</option>
+                                                <option value="In Stock" ${param.status=='In Stock'?'selected':''}>In stock</option>
+                                                <option value="Low" ${param.status=='Low'?'selected':''}>Low stock</option>
+                                                <option value="Out of Stock" ${param.status=='Out of Stock'?'selected':''}>Out of stock</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <button class="btn btn-primary">Filter</button>
+                                            <a class="btn btn-outline-secondary"
+                                               href="${pageContext.request.contextPath}/inventory-list">
+                                                Reset
+                                            </a>
+                                        </div>
+                                    </div>
                                 </form>
 
-                                <table border="1" width="100%" cellpadding="8" cellspacing="0">
-                                    <tr style="background-color:#f0f0f0;">
-                                        <th>ID</th>
-                                        <th>
-                                            <a href="${pageContext.request.contextPath}/inventory-list?sort=name&dir=${param.sort == 'name' && param.dir == 'asc' ? 'desc' : 'asc'}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}">
-                                                Product Name
-                                                <c:if test="${param.sort == 'name'}">
-                                                    ${param.dir == 'asc' ? '▲' : '▼'}
-                                                </c:if>
-                                            </a>
-                                        </th>
-                                        <th>Category</th>
-                                        <th>
-                                            <a href="${pageContext.request.contextPath}/inventory-list?sort=quantity&dir=${param.sort == 'quantity' && param.dir == 'asc' ? 'desc' : 'asc'}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}">
-                                                Quantity
-                                                <c:if test="${param.sort == 'quantity'}">
-                                                    ${param.dir == 'asc' ? '▲' : '▼'}
-                                                </c:if>
-                                            </a>
-                                        </th>
+                                <!-- SUMMARY -->
+                                <div class="summary-cards">
+                                    <div class="summary-card">
+                                        <div class="title">Total SKU</div>
+                                        <div class="value">${sum.totalSku}</div>
+                                    </div>
 
-                                        <th>Status</th>
-                                    </tr>
+                                    <div class="summary-card">
+                                        <div class="title">Total Quantity</div>
+                                        <div class="value">${sum.totalQty}</div>
+                                    </div>
 
-                                    <c:forEach items="${list}" var="p">
+                                    <div class="summary-card">
+                                        <div class="title">Low Stock</div>
+                                        <div class="value">${sum.lowStock}</div>
+                                    </div>
+
+                                    <div class="summary-card">
+                                        <div class="title">Out of Stock</div>
+                                        <div class="value">${sum.outStock}</div>
+                                    </div>
+                                </div>
+
+                                <!-- INVENTORY TABLE -->
+                                <table class="table table-bordered inventory-table">
+                                    <thead>
                                         <tr>
-                                            <td>${p.productId}</td>
-                                            <td>${p.productName}</td>
-                                            <td>${p.categoryName}</td>
-                                            <td>${p.totalQuantity} 
-                                                <c:if test="${not empty p.unitName}">
-                                                    ${p.unitName}
-                                                </c:if></td>
-                                            <td>${p.status}</td>
+                                            <th>Image</th>
+                                            <th>SKU</th>
+                                            <th>Product</th>
+                                            <th>Variant</th>
+                                            <th>Category</th>
+                                            <th>Brand</th>
+                                            <th>Cost</th>
+                                            <th>Price</th>
+                                            <th>Qty</th>
+                                            <th>Status</th>
                                         </tr>
-                                    </c:forEach>
+                                    </thead>
+
+                                    <tbody>
+                                        <c:forEach items="${list}" var="p">
+                                            <tr>
+
+                                                <!-- IMAGE -->
+                                                <td>
+                                                    <img width="40"
+                                                         src="${empty p.image ? pageContext.request.contextPath.concat('/img/no-image.png') : p.image}">
+                                                </td>
+
+                                                <!-- BASIC INFO -->
+                                                <td>${p.sku}</td>
+                                                <td>${p.productName}</td>
+                                                <td>${p.variantName}</td>
+                                                <td>${p.categoryName}</td>
+                                                <td>${p.brandName}</td>
+
+                                                <!-- PRICE -->
+                                                <td>${p.costPrice}</td>
+                                                <td>${p.salePrice}</td>
+
+                                                <!-- QTY -->
+                                                <td>${p.totalQuantity}</td>
+
+                                                <!-- STATUS -->
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${p.status == 'Out of Stock'}">
+                                                            <span class="badge bg-danger">Out</span>
+                                                        </c:when>
+                                                        <c:when test="${p.status == 'Low'}">
+                                                            <span class="badge bg-warning text-dark">Low</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="badge bg-success">In</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+
+                                            </tr>
+                                        </c:forEach>
+                                    </tbody>
                                 </table>
+
                                 <div class="pagination-wrapper">
                                     <div class="pagination-controls">
 
