@@ -5,25 +5,21 @@
 package model;
 
 /**
- * Model để hiển thị danh sách sản phẩm trên product_list.jsp
- * Chứa thông tin tổng hợp từ nhiều bảng
- * 
+ *
  * @author laptop368
  */
 public class ProductView {
-    // ID (cần cho filter, edit, delete)
+    
     private int productId;
-    private Integer categoryId; // Integer vì có thể null (ON DELETE SET NULL)
-    private Integer brandId; // Integer vì có thể null (ON DELETE SET NULL)
-
-    // Thông tin hiển thị
+    private Integer categoryId; 
+    private Integer brandId; 
     private String productName;
     private String categoryName;
     private String brandName;
     private String picture;
     private String status;
 
-    // Số biến thể (tính từ SQL COUNT)
+    
     private int variantCount;
 
     public ProductView() {

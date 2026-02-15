@@ -1,16 +1,14 @@
 package model;
 
 /**
- * Model cho bảng PRODUCT_VARIANT_ATTRIBUTES
- * Lưu các thuộc tính phân biệt giữa các variants (màu sắc, kích thước, v.v.)
- * 
+ *
  * @author laptop368
  */
 public class ProductVariantAttribute {
     private int attributeId;
     private int variantId;
-    private String attributeName; // VD: "Màu sắc", "Kích thước"
-    private String attributeValue; // VD: "Bạc", "20m"
+    private String attributeName; 
+    private String attributeValue; 
 
     public ProductVariantAttribute() {
     }
