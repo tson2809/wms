@@ -169,3 +169,91 @@ body {
     padding-left: 8px;
     padding-right: 8px;
 }
+
+.inventory-header {
+    font-weight: 600;
+    font-size: 20px;
+}
+
+.inventory-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.inventory-toolbar .btn {
+    font-size: 14px;
+}
+
+.filter-bar {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.filter-bar label {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.filter-bar input,
+.filter-bar select {
+    font-size: 13px;
+    height: 36px;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 6px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+}
+
+.summary-card .title {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.summary-card .value {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.inventory-table th {
+    background: #f1f3f5;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.inventory-table td {
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.inventory-table img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.badge-ok {
+    background: #198754;
+}
+
+.badge-low {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge-out {
+    background: #dc3545;
+}

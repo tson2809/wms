@@ -21,6 +21,51 @@ public class ProductInventory {
     private int systemQuantity;
     private Integer countedQuantity;
     private int detailId;
+    private String brandName;
+    private String variantName;
+    private String image;
+    private double costPrice;
+    private double salePrice;
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
+    public String getVariantName() {
+        return variantName;
+    }
+
+    public void setVariantName(String variantName) {
+        this.variantName = variantName;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public double getCostPrice() {
+        return costPrice;
+    }
+
+    public void setCostPrice(double costPrice) {
+        this.costPrice = costPrice;
+    }
+
+    public double getSalePrice() {
+        return salePrice;
+    }
+
+    public void setSalePrice(double salePrice) {
+        this.salePrice = salePrice;
+    }
 
     public int getDetailId() {
         return detailId;
@@ -29,6 +74,7 @@ public class ProductInventory {
     public void setDetailId(int detailId) {
         this.detailId = detailId;
     }
+
     public int getVariantId() {
         return variantId;
     }
