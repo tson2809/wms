@@ -5,6 +5,7 @@
            String indexActive=currentURI.contains("/indexManager") ? "active" : "" ; 
            String supplierActive=(currentURI.contains("/supplier-list") || currentURI.contains("/supplier-add") || currentURI.contains("/supplier-detail")) ? "active" : "" ;
            String goodsReceiptActive=(currentURI.contains("/goods-receipt-list") || currentURI.contains("/goods-receipt-detail") || currentURI.contains("/goods-receipt-add")) ? "active" : "" ;
+           String returnActive=(currentURI.contains("/return-list") || currentURI.contains("/return-add") || currentURI.contains("/return-view")) ? "active" : "" ;
         %>
             <!-- Sidebar Start -->
             <div class="sidebar pe-6 pb-5">
@@ -21,6 +22,7 @@
                             cấp</a>
                         <a href="${pageContext.request.contextPath}/goods-receipt-list"
                             class="nav-item nav-link <%= goodsReceiptActive %>"><i class="fa fa-file-import me-2"></i>Phiếu nhập kho</a>
+                        <a href="${pageContext.request.contextPath}/return-order-list" class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả hàng</a>
                         <a href="/quan_ly_dien_gia_dung/product-list" class="nav-item nav-link"><i class="fa fa-box me-2"></i>Sản phẩm</a>
                     </div>
                 </nav>
