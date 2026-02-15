@@ -92,7 +92,7 @@ public class InventoryListController extends HttpServlet {
                         page, pageSize, sort, dir);
 
         Map<String, Integer> sum = productDAO.getInventorySummary();
-        int totalRecords = productDAO.countInventory(keyword, categoryId);
+        int totalRecords = productDAO.countInventory(keyword, categoryId,status);
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
         request.setAttribute("list", list);
         request.setAttribute("currentPage", page);

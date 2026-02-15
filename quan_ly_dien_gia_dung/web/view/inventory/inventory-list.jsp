@@ -61,9 +61,12 @@
                                     <a href="${pageContext.request.contextPath}/inventory-sheet-list" class="btn btn-secondary btn-sm">
                                         Inventory Check
                                     </a>
-                                    <a href="#" class="btn btn-success btn-sm">
+                                    <a href="${pageContext.request.contextPath}/export-inventory?keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}"
+                                       class="btn btn-success btn-sm">
                                         Export Excel
                                     </a>
+
+
                                 </div>
                                 <form class="filter-bar" method="get"
                                       action="${pageContext.request.contextPath}/inventory-list">
@@ -84,7 +87,7 @@
                                                 <option value="">All</option>
                                                 <c:forEach items="${categories}" var="c">
                                                     <option value="${c.categoryId}"
-                                                            ${param.categoryId==c.categoryId.toString()?'selected':''}>
+                                                            ${param.categoryId eq c.categoryId ? 'selected' : ''}>
                                                         ${c.categoryName}
                                                     </option>
                                                 </c:forEach>
@@ -154,28 +157,18 @@
                                     <tbody>
                                         <c:forEach items="${list}" var="p">
                                             <tr>
-
-                                                <!-- IMAGE -->
                                                 <td>
                                                     <img width="40"
                                                          src="${empty p.image ? pageContext.request.contextPath.concat('/img/no-image.png') : p.image}">
                                                 </td>
-
-                                                <!-- BASIC INFO -->
                                                 <td>${p.sku}</td>
                                                 <td>${p.productName}</td>
                                                 <td>${p.variantName}</td>
                                                 <td>${p.categoryName}</td>
                                                 <td>${p.brandName}</td>
-
-                                                <!-- PRICE -->
                                                 <td>${p.costPrice}</td>
                                                 <td>${p.salePrice}</td>
-
-                                                <!-- QTY -->
                                                 <td>${p.totalQuantity}</td>
-
-                                                <!-- STATUS -->
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${p.status == 'Out of Stock'}">
