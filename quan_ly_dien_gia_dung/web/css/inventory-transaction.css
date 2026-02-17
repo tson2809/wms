@@ -1,0 +1,139 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : Feb 17, 2026, 9:55:47 PM
+    Author     : GIAKHANHPC
+*/
+
+.inventory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.inventory-header h5 {
+    font-weight: 600;
+    color: #222;
+}
+
+.inventory-filter-form {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid #eee;
+}
+
+.inventory-filter-form label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+}
+
+.inventory-filter-form .form-control,
+.inventory-filter-form .form-select {
+    height: 38px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+.inventory-filter-form .btn {
+    height: 38px;
+    font-size: 14px;
+}
+
+.inventory-table {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.inventory-table table {
+    margin-bottom: 0;
+}
+
+.inventory-table thead {
+    background: #f7f8fa;
+}
+
+.inventory-table th {
+    font-weight: 600;
+    font-size: 14px;
+    color: #444;
+    border-bottom: 1px solid #eee;
+}
+
+.inventory-table td {
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.inventory-table tbody tr:hover {
+    background: #f9fbff;
+}
+
+.qty-positive {
+    color: #0d9f4f;
+    font-weight: 600;
+}
+
+.qty-negative {
+    color: #d11a2a;
+    font-weight: 600;
+}
+
+.badge-type {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.type-import {
+    background: #e8f7ee;
+    color: #0d9f4f;
+}
+
+.type-export {
+    background: #fdeaea;
+    color: #d11a2a;
+}
+
+.type-adjustment {
+    background: #fff4e5;
+    color: #d48806;
+}
+
+.type-inventory_check {
+    background: #e7f1ff;
+    color: #1d5ed8;
+}
+
+.action-btn-group {
+    display: flex;
+    gap: 6px;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.action-view {
+    background: #eef2ff;
+    color: #4f46e5;
+}
+
+.action-view:hover {
+    background: #4f46e5;
+    color: #fff;
+}
+
