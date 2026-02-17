@@ -85,6 +85,7 @@ public class InventoryAlertController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("selectedStatus", status);
+        request.setAttribute("alertCount", dao.countInventoryAlerts(minQty, maxQty));
         request.getRequestDispatcher("/view/inventory/inventory-alert.jsp").forward(request, response);
     }
 
