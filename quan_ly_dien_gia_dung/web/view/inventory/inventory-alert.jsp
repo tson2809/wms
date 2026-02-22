@@ -49,19 +49,36 @@
                                 <h5 class="mb-0">Low Inventory Alert</h5>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <form method="get"
-                                      action="${pageContext.request.contextPath}/inventory-alert">
-                                    <select name="status"
-                                            class="form-select w-auto"
-                                            onchange="this.form.submit()">
-                                        <option value="">Status</option>
-                                        <option value="low"  ${selectedStatus == 'low' ? 'selected' : ''}>
-                                            Low Stock
-                                        </option>
-                                        <option value="high" ${selectedStatus == 'high' ? 'selected' : ''}>
-                                            High Stock
-                                        </option>
-                                    </select>
+                                <form method="get" action="inventory-alert"
+                                      class="row g-3 align-items-end mb-3">
+                                    <input type="hidden" name="page" value="1">
+                                    <div class="col-md-4">
+                                        <input type="text"
+                                               name="keyword"
+                                               value="${keyword}"
+                                               class="form-control"
+                                               placeholder="Search product ">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="status" class="form-select">
+                                            <option value="">All</option>
+                                            <option value="low" ${selectedStatus == 'low' ? 'selected' : ''}>Low</option>
+                                            <option value="out" ${selectedStatus == 'out' ? 'selected' : ''}>Out</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select name="sort" class="form-select">
+                                            <option value="">Sort</option>
+                                            <option value="qty_asc" ${sort == 'qty_asc' ? 'selected' : ''}>Qty ↑</option>
+                                            <option value="qty_desc" ${sort == 'qty_desc' ? 'selected' : ''}>Qty ↓</option>
+                                            <option value="name" ${sort == 'name' ? 'selected' : ''}>Name</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 d-flex gap-2">
+                                        <button class="btn btn-primary">Search</button>
+                                        <a href="inventory-alert" class="btn btn-outline-secondary">Reset</a>
+                                    </div>
+
                                 </form>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input"
@@ -75,7 +92,8 @@
                                 </div>
                                 <script>
                                     function toggleAlert(el) {
-                                        el.nextElementSibling.innerText = el.checked ? "ON" : "OFF";
+                                        const enabled = el.checked;
+                                        window.location.href = "inventory-alert?toggleAlert=" + enabled;
                                     }
                                 </script>
                             </div>
@@ -92,7 +110,7 @@
                                 <tbody>
                                     <c:forEach items="${list}" var="p">
                                         <tr>
-                                            <td>${p.productId}</td>
+                                            <td>${p.variantId}</td>
                                             <td>${p.productName}</td>
                                             <td>
                                                 ${p.totalQuantity}
@@ -107,9 +125,8 @@
                             </table>
                             <div class="pagination-wrapper">
                                 <div class="pagination-controls">
-
                                     <a class="page-btn ${currentPage == 1 ? 'disabled' : ''}"
-                                       href="inventory-alert?page=${currentPage - 1}&status=${selectedStatus}">
+                                       href="inventory-alert?page=${currentPage - 1}&status=${selectedStatus}&keyword=${keyword}&sort=${sort}">
                                         ‹
                                     </a>
 
@@ -117,6 +134,8 @@
                                         Page
                                         <form action="inventory-alert" method="get" class="page-jump-form">
                                             <input type="hidden" name="status" value="${selectedStatus}">
+                                            <input type="hidden" name="keyword" value="${keyword}">
+                                            <input type="hidden" name="sort" value="${sort}">
                                             <input type="number"
                                                    name="page"
                                                    min="1"
@@ -128,7 +147,7 @@
                                     </span>
 
                                     <a class="page-btn ${currentPage == totalPages ? 'disabled' : ''}"
-                                       href="inventory-alert?page=${currentPage + 1}&status=${selectedStatus}">
+                                       href="inventory-alert?page=${currentPage + 1}&status=${selectedStatus}&keyword=${keyword}&sort=${sort}">
                                         ›
                                     </a>
                                 </div>
