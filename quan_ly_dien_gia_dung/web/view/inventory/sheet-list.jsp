@@ -104,11 +104,11 @@
                             <div class="col-auto">
                                 <button class="btn btn-primary">Search</button>
                                 <a href="${pageContext.request.contextPath}/inventory-sheet-list"
-                               class="btn btn-success">
-                                Clear
-                            </a>
+                                   class="btn btn-success">
+                                    Clear
+                                </a>
                             </div>
-                            
+
                         </form>
 
                         <table class="table align-middle">
@@ -136,7 +136,9 @@
                                         <td>
                                             <span class="badge
                                                   ${s.status == 'draft' ? 'bg-secondary' :
-                                                    s.status == 'submitted' ? 'bg-warning' : 'bg-success'}">
+                                                    s.status == 'submitted' ? 'bg-warning' :
+                                                    s.status == 'approved' ? 'bg-success' :
+                                                    'bg-danger'}">
                                                       ${s.status}
                                                   </span>
                                             </td>
@@ -147,19 +149,20 @@
                                                         View
                                                     </a>
                                                 </c:if>
-                                                <c:if test="${s.status == 'draft'}">
-                                                    <a href="inventory-sheet-edit?id=${s.sheetId}"
+                                                <c:if test="${s.status == 'draft' && currentUser.userId == s.createdBy}">
+                                                    <a href="${pageContext.request.contextPath}/inventory-sheet-edit?id=${s.sheetId}"
                                                        class="btn btn-sm btn-outline-warning">
                                                         Edit
                                                     </a>
                                                 </c:if>
-                                                <c:if test="${s.status == 'submitted'}">
+                                                <c:if test="${s.status == 'submitted' && currentUser.roleId == 2}">
                                                     <form method="post"
                                                           action="${pageContext.request.contextPath}/inventory-sheet-approve"
                                                           style="display:inline;">
                                                         <input type="hidden" name="id" value="${s.sheetId}">
                                                         <input type="hidden" name="action" value="approve">
-                                                        <button class="btn btn-sm btn-outline-success"
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-outline-success"
                                                                 onclick="return confirm('Approve this sheet?')">
                                                             Approve
                                                         </button>
@@ -169,7 +172,8 @@
                                                           style="display:inline;">
                                                         <input type="hidden" name="id" value="${s.sheetId}">
                                                         <input type="hidden" name="action" value="reject">
-                                                        <button class="btn btn-sm btn-outline-danger"
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-outline-danger"
                                                                 onclick="return confirm('Reject this sheet?')">
                                                             Reject
                                                         </button>

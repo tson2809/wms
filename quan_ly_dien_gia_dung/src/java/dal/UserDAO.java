@@ -57,6 +57,8 @@ public class UserDAO extends DBContext {
                 user.setAvatar(rs.getString("avatar"));
                 user.setIsActive(rs.getBoolean("is_active"));
                 user.setCreateAt(rs.getTimestamp("created_at"));
+                user.setRoleId(rs.getInt("role_id"));
+                user.setRoleName(rs.getString("role_name"));
 
                 Role role = new Role();
                 role.setRoleId(rs.getInt("role_id"));
@@ -293,7 +295,7 @@ public class UserDAO extends DBContext {
         return 0;
     }
 
-    public List<User> getUsersByPage(int page,int pageSize,String keyword,String role,Boolean active,String sort,String dir) {
+    public List<User> getUsersByPage(int page, int pageSize, String keyword, String role, Boolean active, String sort, String dir) {
         List<User> list = new ArrayList<>();
         int offset = (page - 1) * pageSize;
         StringBuilder sql = new StringBuilder(

@@ -80,7 +80,7 @@ public class InventoryTransactionListController extends HttpServlet {
         Integer trxId = null;
         Integer refId = null;
         Integer variantId = null;
-        Integer createdBy = null;
+        String createdBy = null;
         if (keyword != null && keyword.trim().isEmpty()) {
             keyword = null;
         }
@@ -103,19 +103,12 @@ public class InventoryTransactionListController extends HttpServlet {
             if (request.getParameter("trxId") != null && !request.getParameter("trxId").isEmpty()) {
                 trxId = Integer.parseInt(request.getParameter("trxId"));
             }
-
             if (request.getParameter("refId") != null && !request.getParameter("refId").isEmpty()) {
                 refId = Integer.parseInt(request.getParameter("refId"));
             }
-
             if (request.getParameter("variantId") != null && !request.getParameter("variantId").isEmpty()) {
                 variantId = Integer.parseInt(request.getParameter("variantId"));
             }
-
-            if (request.getParameter("createdBy") != null && !request.getParameter("createdBy").isEmpty()) {
-                createdBy = Integer.parseInt(request.getParameter("createdBy"));
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
