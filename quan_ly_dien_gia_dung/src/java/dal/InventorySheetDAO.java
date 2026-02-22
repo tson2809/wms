@@ -17,13 +17,21 @@ import model.ProductInventory;
 public class InventorySheetDAO extends DBContext {
 
     public InventorySheet getSheetById(int sheetId) {
-        String sql
-                = "SELECT s.sheet_id, s.sheet_code, s.inventory_date, s.status, s.notes, "
-                + "c.category_name, u.full_name AS created_by, s.created_at "
-                + "FROM inventory_sheets s "
-                + "LEFT JOIN categories c ON s.category_id = c.category_id "
-                + "LEFT JOIN users u ON s.created_by = u.user_id "
-                + "WHERE s.sheet_id = ?";
+        String sql = """
+        SELECT s.sheet_id,
+               s.sheet_code,
+               s.inventory_date,
+               s.status,
+               s.notes,
+               s.created_by,
+               c.category_name,
+               u.full_name AS created_by_name,
+               s.created_at
+        FROM inventory_sheets s
+        LEFT JOIN categories c ON s.category_id = c.category_id
+        LEFT JOIN users u ON s.created_by = u.user_id
+        WHERE s.sheet_id = ?
+    """;
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -38,7 +46,8 @@ public class InventorySheetDAO extends DBContext {
                 s.setStatus(rs.getString("status"));
                 s.setNotes(rs.getString("notes"));
                 s.setCategoryName(rs.getString("category_name"));
-                s.setCreatedByName(rs.getString("created_by"));
+                s.setCreatedBy(rs.getInt("created_by"));
+                s.setCreatedByName(rs.getString("created_by_name"));
                 s.setCreatedAt(rs.getTimestamp("created_at"));
                 return s;
             }
@@ -253,7 +262,7 @@ public class InventorySheetDAO extends DBContext {
             sort = "date";
         }
         if (dir == null) {
-            dir = "desc";
+            dir = "asc";
         }
 
         String order = "s.inventory_date";
@@ -262,8 +271,9 @@ public class InventorySheetDAO extends DBContext {
         }
 
         StringBuilder sql = new StringBuilder("""
-        SELECT s.sheet_id, s.sheet_code, s.inventory_date, s.status,
-               c.category_name, u.full_name
+       SELECT s.sheet_id, s.sheet_code, s.inventory_date, s.status,
+                      s.created_by,
+                      c.category_name, u.full_name
         FROM inventory_sheets s
         LEFT JOIN categories c ON s.category_id = c.category_id
         LEFT JOIN users u ON s.created_by = u.user_id
@@ -310,6 +320,7 @@ public class InventorySheetDAO extends DBContext {
                 s.setStatus(rs.getString("status"));
                 s.setCategoryName(rs.getString("category_name"));
                 s.setCreatedByName(rs.getString("full_name"));
+                s.setCreatedBy(rs.getInt("created_by"));
                 list.add(s);
             }
 

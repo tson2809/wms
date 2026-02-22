@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import model.InventorySheet;
+import model.User;
 
 /**
  *
@@ -64,6 +65,8 @@ public class InventorySheetListController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        User user = (User) request.getSession().getAttribute("user");
+        request.setAttribute("currentUser", user);
         String yearParam = request.getParameter("year");
         String monthParam = request.getParameter("month");
         String createdBy = request.getParameter("createdBy");

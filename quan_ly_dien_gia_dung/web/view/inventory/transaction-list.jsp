@@ -103,30 +103,21 @@
                                     </select>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-3 position-relative">
                                     <label>Created By</label>
-                                    <select name="createdBy" class="form-select">
-                                        <option value="">All Users</option>
-                                        <c:forEach items="${userList}" var="u">
-                                            <option value="${u.userId}" ${param.createdBy==u.userId?'selected':''}>
-                                                ${u.fullName}
-                                            </option>
-                                        </c:forEach>
-                                    </select>
-                                </div>
 
-                                <div class="col-md-3">
-                                    <label>Product</label>
-                                    <select name="variantId" class="form-select">
-                                        <option value="">All Products</option>
-                                        <c:forEach items="${variantList}" var="v">
-                                            <option value="${v.variantId}" ${param.variantId==v.variantId?'selected':''}>
-                                                ${v.sku}
-                                            </option>
-                                        </c:forEach>
-                                    </select>
-                                </div>
+                                    <input type="text"
+                                           name="createdBy"
+                                           id="createdByInput"
+                                           value="${param.createdBy}"
+                                           class="form-control"
+                                           placeholder="Created by...">
 
+                                    <div id="suggestBox"
+                                         class="list-group position-absolute w-100"
+                                         style="z-index:1000;"></div>
+                                </div>
+                                           
                                 <div class="col-md-3">
                                     <label>Date From</label>
                                     <input type="date" name="dateFrom" value="${param.dateFrom}" class="form-control">
@@ -183,12 +174,13 @@
                                             <td>${t.createdBy}</td>                                          
                                             <td>${t.notes}</td>
                                             <td>
-                                                <fmt:formatDate value="${t.transactionDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                                <fmt:formatDate value="${t.transactionDate}" pattern="dd/MM/yyyy"/>
                                             </td>
-                                            <td>
-                                                <a class="btn btn-sm btn-info"
-                                                   href="transaction-detail?id=${t.transactionId}">
-                                                    View
+                                            <td class="text-center">
+                                                <a href="transaction-detail?id=${t.transactionId}"
+                                                   class="action-btn action-view"
+                                                   title="View">
+                                                    <iconify-icon icon="majesticons:eye-line"></iconify-icon>
                                                 </a>
                                             </td>
                                         </tr>
@@ -262,6 +254,36 @@
             </div>
         </div>
     </body>
+    <script>
+        const input = document.getElementById("createdByInput");
+        const box = document.getElementById("suggestBox");
+
+        if (input) {
+            input.addEventListener("keyup", function () {
+                let val = this.value;
+                if (val.length === 0) {
+                    box.innerHTML = "";
+                    return;
+                }
+
+                fetch("${pageContext.request.contextPath}/search-user?q=" + val)
+                        .then(res => res.json())
+                        .then(data => {
+                            box.innerHTML = "";
+                            data.forEach(name => {
+                                let item = document.createElement("a");
+                                item.className = "list-group-item list-group-item-action";
+                                item.innerText = name;
+                                item.onclick = () => {
+                                    input.value = name;
+                                    box.innerHTML = "";
+                                };
+                                box.appendChild(item);
+                            });
+                        });
+            });
+        }
+    </script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
