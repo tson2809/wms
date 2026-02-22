@@ -69,7 +69,6 @@ public class ProductDAO extends DBContext {
                     list.add(p);
                 }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -78,7 +77,6 @@ public class ProductDAO extends DBContext {
     }
 
     public int countProductInventory(String keyword, Integer categoryId) {
-
         String sql
                 = "SELECT COUNT(DISTINCT p.product_id) "
                 + "FROM products p "
@@ -86,9 +84,7 @@ public class ProductDAO extends DBContext {
                 + "WHERE p.status = 'active' "
                 + "AND (? IS NULL OR p.product_name LIKE ?) "
                 + "AND (? IS NULL OR p.category_id = ?)";
-
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
-
             ps.setObject(1, keyword);
             ps.setString(2, keyword == null ? null : "%" + keyword + "%");
             ps.setObject(3, categoryId);
@@ -99,122 +95,98 @@ public class ProductDAO extends DBContext {
                     return rs.getInt(1);
                 }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return 0;
     }
 
-    public List<ProductInventory> getInventoryAlerts(
-            Integer minQty, Integer maxQty, int page, int pageSize) {
-
+    public List<ProductInventory> getInventoryAlerts(int page, int pageSize, String status, String keyword, String sort) {
         List<ProductInventory> list = new ArrayList<>();
-
-        StringBuilder sql = new StringBuilder(
-                "SELECT p.product_id, p.product_name, c.category_name, u.unit_name, "
-                + "COALESCE(SUM(pv.quantity),0) AS total_quantity "
-                + "FROM products p "
-                + "LEFT JOIN categories c ON p.category_id = c.category_id "
-                + "LEFT JOIN units u ON p.unit_id = u.unit_id "
-                + "LEFT JOIN product_variants pv "
-                + " ON p.product_id = pv.product_id AND pv.status = 'active' "
-                + "WHERE p.status = 'active' "
-                + "GROUP BY p.product_id, p.product_name, c.category_name, u.unit_name ");
-
-        if (minQty != null && maxQty != null) {
-            sql.append("HAVING total_quantity < ? OR total_quantity > ? ");
-        } else if (minQty != null) {
-            sql.append("HAVING total_quantity < ? ");
-        } else if (maxQty != null) {
-            sql.append("HAVING total_quantity > ? ");
+        String orderBy = "v.quantity ASC";
+        if ("qty_desc".equals(sort)) {
+            orderBy = "v.quantity DESC";
         }
-
-        sql.append("ORDER BY total_quantity ASC LIMIT ? OFFSET ?");
-
-        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
-
-            int i = 1;
-            if (minQty != null && maxQty != null) {
-                ps.setInt(i++, minQty);
-                ps.setInt(i++, maxQty);
-            } else if (minQty != null) {
-                ps.setInt(i++, minQty);
-            } else if (maxQty != null) {
-                ps.setInt(i++, maxQty);
-            }
-
-            ps.setInt(i++, pageSize);
-            ps.setInt(i++, (page - 1) * pageSize);
-
+        if ("name".equals(sort)) {
+            orderBy = "p.product_name ASC";
+        }
+        String sql
+                = "SELECT v.variant_id, p.product_name, v.sku, v.quantity, v.reorder_level "
+                + "FROM product_variants v "
+                + "JOIN products p ON v.product_id = p.product_id "
+                + "WHERE v.status='active' AND p.status='active' "
+                + "AND ( "
+                + "     (? IS NULL AND v.quantity <= v.reorder_level) "
+                + "     OR (?='low' AND v.quantity <= v.reorder_level AND v.quantity > 0) "
+                + "     OR (?='out' AND v.quantity = 0) "
+                + ") "
+                + "AND ( ? IS NULL OR p.product_name LIKE ? OR v.sku LIKE ? ) "
+                + "ORDER BY "
+                + "CASE WHEN v.quantity = 0 THEN 0 ELSE 1 END, "
+                + orderBy + " "
+                + "LIMIT ? OFFSET ?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, status);
+            ps.setString(2, status);
+            ps.setString(3, status);
+            ps.setObject(4, keyword);
+            ps.setString(5, keyword == null ? null : "%" + keyword + "%");
+            ps.setString(6, keyword == null ? null : "%" + keyword + "%");
+            ps.setInt(7, pageSize);
+            ps.setInt(8, (page - 1) * pageSize);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 ProductInventory p = new ProductInventory();
-                p.setProductId(rs.getInt("product_id"));
-                p.setProductName(rs.getString("product_name"));
-                p.setCategoryName(rs.getString("category_name"));
-                p.setUnitName(rs.getString("unit_name"));
 
-                int qty = rs.getInt("total_quantity");
+                int qty = rs.getInt("quantity");
+                int reorder = rs.getInt("reorder_level");
+                p.setVariantId(rs.getInt("variant_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setSku(rs.getString("sku"));
                 p.setTotalQuantity(qty);
 
-                if (minQty != null && qty < minQty) {
-                    p.setStatus("Low Stock");
+                if (qty == 0) {
+                    p.setStatus("Out of Stock");
                 } else {
-                    p.setStatus("High Stock");
+                    p.setStatus("Low");
                 }
                 list.add(p);
             }
-
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
         return list;
     }
 
-    public int countInventoryAlerts(Integer minQty, Integer maxQty) {
-
-        StringBuilder sql = new StringBuilder(
-                "SELECT COUNT(*) FROM ( "
-                + "SELECT p.product_id "
-                + "FROM products p "
-                + "LEFT JOIN product_variants pv "
-                + " ON p.product_id = pv.product_id AND pv.status = 'active' "
-                + "WHERE p.status = 'active' "
-                + "GROUP BY p.product_id ");
-
-        if (minQty != null && maxQty != null) {
-            sql.append("HAVING SUM(pv.quantity) < ? OR SUM(pv.quantity) > ? ");
-        } else if (minQty != null) {
-            sql.append("HAVING SUM(pv.quantity) < ? ");
-        } else if (maxQty != null) {
-            sql.append("HAVING SUM(pv.quantity) > ? ");
-        }
-
-        sql.append(") t");
-
-        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
-
-            int i = 1;
-            if (minQty != null && maxQty != null) {
-                ps.setInt(i++, minQty);
-                ps.setInt(i++, maxQty);
-            } else if (minQty != null) {
-                ps.setInt(i++, minQty);
-            } else if (maxQty != null) {
-                ps.setInt(i++, maxQty);
-            }
-
+    public int countInventoryAlerts(String status, String keyword) {
+        int total = 0;
+        String sql
+                = "SELECT COUNT(*) "
+                + "FROM product_variants v "
+                + "JOIN products p ON v.product_id = p.product_id "
+                + "WHERE v.status='active' AND p.status='active' "
+                + "AND ( "
+                + "     (? IS NULL AND v.quantity <= v.reorder_level) "
+                + "     OR (?='low' AND v.quantity <= v.reorder_level AND v.quantity > 0) "
+                + "     OR (?='out' AND v.quantity = 0) "
+                + ") "
+                + "AND ( ? IS NULL OR p.product_name LIKE ? OR v.sku LIKE ? )";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, status);
+            ps.setString(2, status);
+            ps.setString(3, status);
+            ps.setObject(4, keyword);
+            ps.setString(5, keyword == null ? null : "%" + keyword + "%");
+            ps.setString(6, keyword == null ? null : "%" + keyword + "%");
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return rs.getInt(1);
+                total = rs.getInt(1);
             }
-
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return 0;
+        return total;
     }
 
     public List<ProductInventory> getInventoryForCounting(int categoryId) {
@@ -253,22 +225,18 @@ public class ProductDAO extends DBContext {
 
     public List<ProductInventory> getInventoryList(String keyword, Integer categoryId,
             String status, int page, int pageSize, String sort, String dir) {
-
         List<ProductInventory> list = new ArrayList<>();
         int offset = (page - 1) * pageSize;
-
         String orderBy = "p.product_name";
         if ("quantity".equals(sort)) {
             orderBy = "v.quantity";
         }
-
         String direction = "ASC";
         if ("desc".equalsIgnoreCase(dir)) {
             direction = "DESC";
         }
-
         String sql
-                = "SELECT v.variant_id, v.sku, v.quantity, v.cost_price, v.sale_price, "
+                = "SELECT v.variant_id, v.sku, v.quantity, v.reorder_level, v.cost_price, v.sale_price, "
                 + "v.variant_picture, p.product_name, c.category_name, b.brand_name, "
                 + "GROUP_CONCAT(a.attribute_value ORDER BY a.attribute_name SEPARATOR ', ') AS variant_name "
                 + "FROM product_variants v "
@@ -280,35 +248,28 @@ public class ProductDAO extends DBContext {
                 + "AND ( ? IS NULL OR ? = '' OR p.product_name LIKE ? ) "
                 + "AND ( ? IS NULL OR p.category_id = ? ) "
                 + "AND ( ? IS NULL OR ? = '' "
-                + "      OR (?='In Stock' AND v.quantity>=5) "
-                + "      OR (?='Low' AND v.quantity<5 AND v.quantity>0) "
+                + "      OR (?='In Stock' AND v.quantity > v.reorder_level) "
+                + "      OR (?='Low' AND v.quantity <= v.reorder_level AND v.quantity > 0) "
                 + "      OR (?='Out of Stock' AND v.quantity=0) ) "
-                + "GROUP BY v.variant_id, v.sku, v.quantity, v.cost_price, v.sale_price, "
+                + "GROUP BY v.variant_id, v.sku, v.quantity, v.reorder_level, v.cost_price, v.sale_price, "
                 + "v.variant_picture, p.product_name, c.category_name, b.brand_name "
                 + "ORDER BY " + orderBy + " " + direction + " "
                 + "LIMIT ? OFFSET ?";
-
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
-
             String kw = (keyword == null || keyword.isBlank()) ? null : keyword;
             String st = (status == null || status.isBlank()) ? null : status;
-
             ps.setObject(1, kw);
             ps.setString(2, kw);
             ps.setString(3, kw == null ? null : "%" + kw + "%");
-
             ps.setObject(4, categoryId);
             ps.setObject(5, categoryId);
-
             ps.setObject(6, st);
             ps.setString(7, st);
             ps.setString(8, st);
             ps.setString(9, st);
             ps.setString(10, st);
-
             ps.setInt(11, pageSize);
             ps.setInt(12, offset);
-
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     ProductInventory p = new ProductInventory();
@@ -324,21 +285,21 @@ public class ProductDAO extends DBContext {
                     p.setTotalQuantity(rs.getInt("quantity"));
 
                     int q = rs.getInt("quantity");
+                    int reorder = rs.getInt("reorder_level");
+
                     if (q == 0) {
                         p.setStatus("Out of Stock");
-                    } else if (q < 5) {
+                    } else if (q <= reorder) {
                         p.setStatus("Low");
                     } else {
                         p.setStatus("In Stock");
                     }
-
                     list.add(p);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return list;
     }
 
@@ -358,8 +319,8 @@ public class ProductDAO extends DBContext {
                 + "AND (? IS NULL OR p.product_name LIKE ?) "
                 + "AND (? IS NULL OR p.category_id = ?) "
                 + "AND ( ? IS NULL "
-                + "      OR (?='In Stock' AND v.quantity>=5) "
-                + "      OR (?='Low' AND v.quantity<5 AND v.quantity>0) "
+                + "      OR (?='In Stock' AND v.quantity > v.reorder_level) "
+                + "      OR (?='Low' AND v.quantity <= v.reorder_level AND v.quantity > 0) "
                 + "      OR (?='Out of Stock' AND v.quantity=0) )";
         try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setObject(1, keyword);
@@ -385,9 +346,10 @@ public class ProductDAO extends DBContext {
         String sql
                 = "SELECT COUNT(*) totalSku, "
                 + "SUM(quantity) totalQty, "
-                + "SUM(CASE WHEN quantity<5 AND quantity>0 THEN 1 ELSE 0 END) lowStock, "
+                + "SUM(CASE WHEN quantity <= reorder_level AND quantity > 0 THEN 1 ELSE 0 END) lowStock, "
                 + "SUM(CASE WHEN quantity=0 THEN 1 ELSE 0 END) outStock "
-                + "FROM product_variants WHERE status='active'";
+                + "FROM product_variants "
+                + "WHERE status='active'";
         try (Connection c = getConnection(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 map.put("totalSku", rs.getInt("totalSku"));
@@ -427,5 +389,20 @@ public class ProductDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public int countReorderAlerts() {
+        String sql
+                = "SELECT COUNT(*) "
+                + "FROM product_variants "
+                + "WHERE status='active' AND quantity <= reorder_level";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

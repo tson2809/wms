@@ -77,7 +77,7 @@
                                             <label>Search</label>
                                             <input class="form-control"
                                                    name="keyword"
-                                                   placeholder="SKU / Product name"
+                                                   placeholder="Product name"
                                                    value="${param.keyword}">
                                         </div>
 
@@ -105,7 +105,7 @@
                                         </div>
 
                                         <div class="col-md-3">
-                                            <button class="btn btn-primary">Filter</button>
+                                            <button class="btn btn-primary">Search</button>
                                             <a class="btn btn-outline-secondary"
                                                href="${pageContext.request.contextPath}/inventory-list">
                                                 Reset
@@ -114,7 +114,6 @@
                                     </div>
                                 </form>
 
-                                <!-- SUMMARY -->
                                 <div class="summary-cards">
                                     <div class="summary-card">
                                         <div class="title">Total SKU</div>
@@ -137,7 +136,6 @@
                                     </div>
                                 </div>
 
-                                <!-- INVENTORY TABLE -->
                                 <table class="table table-bordered inventory-table">
                                     <thead>
                                         <tr>

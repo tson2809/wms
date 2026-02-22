@@ -30,7 +30,7 @@
                class="nav-item nav-link ${activePage == 'alert' ? 'active' : ''}">
                 <i class="fa fa-exclamation-triangle me-2"></i>
                 Alerts
-                <c:if test="${alertCount > 0}">
+                <c:if test="${alertEnabled and alertCount > 0}">
                     <span class="badge bg-danger ms-2">${alertCount}</span>
                 </c:if>
             </a>

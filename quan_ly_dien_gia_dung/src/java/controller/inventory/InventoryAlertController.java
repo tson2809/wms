@@ -13,6 +13,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.ProductInventory;
 
@@ -63,29 +64,48 @@ public class InventoryAlertController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int PAGE_SIZE = 5;
+        HttpSession session = request.getSession();
+        String toggle = request.getParameter("toggleAlert");
+        if (toggle != null) {
+            boolean enabled = toggle.equals("true");
+            session.setAttribute("alertEnabled", enabled);
+        }
+        boolean alertEnabled = true;
+        if (session.getAttribute("alertEnabled") != null) {
+            alertEnabled = (boolean) session.getAttribute("alertEnabled");
+        }
         String status = request.getParameter("status");
+        String keyword = request.getParameter("keyword");
+        String sort = request.getParameter("sort");
+        if (status != null && status.isBlank()) {
+            status = null;
+        }
+        if (keyword != null && keyword.isBlank()) {
+            keyword = null;
+        }
+        if (sort != null && sort.isBlank()) {
+            sort = null;
+        }
+        int PAGE_SIZE = 10;
         int page = 1;
-
-        if (request.getParameter("page") != null) {
+        try {
             page = Integer.parseInt(request.getParameter("page"));
+        } catch (Exception ignored) {
         }
-        Integer minQty = 5;
-        Integer maxQty = 10;
-        if ("low".equals(status)) {
-            maxQty = null;
-        } else if ("high".equals(status)) {
-            minQty = null;
-        }
-        int totalRecords = dao.countInventoryAlerts(minQty, maxQty);
+        int totalRecords = dao.countInventoryAlerts(status, keyword);
         int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
+
         List<ProductInventory> list
-                = dao.getInventoryAlerts(minQty, maxQty, page, PAGE_SIZE);
+                = dao.getInventoryAlerts(page, PAGE_SIZE, status, keyword, sort);
         request.setAttribute("list", list);
+        request.setAttribute("alertCount", totalRecords);
+        request.setAttribute("alertEnabled", alertEnabled);
+        request.setAttribute("selectedStatus", status);
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("sort", sort);
+        request.setAttribute("activePage", "alert");
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-        request.setAttribute("selectedStatus", status);
-        request.setAttribute("alertCount", dao.countInventoryAlerts(minQty, maxQty));
         request.getRequestDispatcher("/view/inventory/inventory-alert.jsp").forward(request, response);
     }
 
