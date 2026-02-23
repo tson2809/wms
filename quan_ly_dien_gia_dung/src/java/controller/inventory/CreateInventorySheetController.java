@@ -79,7 +79,7 @@ public class CreateInventorySheetController extends HttpServlet {
 
             request.setAttribute("inventory", inventory);
         }
-        request.getRequestDispatcher("/view/inventory/sheet-create.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/common/sheet-create.jsp").forward(request, response);
     }
 
     /**

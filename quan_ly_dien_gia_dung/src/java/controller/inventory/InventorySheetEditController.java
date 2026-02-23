@@ -80,7 +80,7 @@ public class InventorySheetEditController extends HttpServlet {
         List<ProductInventory> details = dao.getSheetDetails(sheetId);
         request.setAttribute("sheet", sheet);
         request.setAttribute("details", details);
-        request.getRequestDispatcher("/view/inventory/sheet-edit.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/common/sheet-edit.jsp").forward(request, response);
     }
 
     /**

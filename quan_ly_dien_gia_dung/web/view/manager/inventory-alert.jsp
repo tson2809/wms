@@ -38,7 +38,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/inventory/components/sidebarInventory.jsp"/>
+             <jsp:include page="/view/manager/components/sidebarManager.jsp"/>
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
 

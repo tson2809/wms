@@ -130,7 +130,8 @@ public class InventoryTransactionListController extends HttpServlet {
         request.setAttribute("transactions", list);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-        request.getRequestDispatcher("/view/inventory/transaction-list.jsp").forward(request, response);
+        request.setAttribute("activePage", "inventoryTransaction");
+        request.getRequestDispatcher("/view/manager/transaction-list.jsp").forward(request, response);
     }
 
     /**

@@ -65,7 +65,7 @@ public class InventorySheetViewController extends HttpServlet {
         List<ProductInventory> details = dao.getSheetDetails(sheetId);
         request.setAttribute("sheet", sheet);
         request.setAttribute("details", details);
-        request.getRequestDispatcher("/view/inventory/sheet-view.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/common/sheet-view.jsp").forward(request, response);
     } 
 
     /** 

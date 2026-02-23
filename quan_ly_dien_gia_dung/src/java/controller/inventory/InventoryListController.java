@@ -99,7 +99,8 @@ public class InventoryListController extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("sum", sum);
         request.setAttribute("categories", categoryDAO.getAllCategories());
-        request.getRequestDispatcher("/view/inventory/inventory-list.jsp").forward(request, response);
+        request.setAttribute("activePage", "inventoryList");
+        request.getRequestDispatcher("/view/common/inventory-list.jsp").forward(request, response);
     }
 
     /**
