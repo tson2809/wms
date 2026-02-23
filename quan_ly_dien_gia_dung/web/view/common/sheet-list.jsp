@@ -39,7 +39,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/common/components/CommonSideBar.jsp"/>
+           <jsp:include page="/view/common/components/RoleSideBar.jsp" />
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
 

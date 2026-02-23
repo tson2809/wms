@@ -59,45 +59,48 @@
                                 </a>
                                 <h3>Đăng nhập</h3>
                             </div>
-                            
-                            <% 
-                                String rememberedUsername = "";
-                                boolean isRemembered = false;
-                                Cookie[] cookies = request.getCookies();
-                                if (cookies != null) {
-                                    for (Cookie cookie : cookies) {
-                                        if ("rememberedUser".equals(cookie.getName())) {
-                                            rememberedUsername = cookie.getValue();
-                                            isRemembered = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            %>
-                            
-                            <% if (request.getAttribute("error") != null) { %>
-                                <div class="alert alert-danger" role="alert">
-                                    <%= request.getAttribute("error") %>
-                                </div>
+
+                            <% String rememberedUsername="" ; boolean isRemembered=false; Cookie[]
+                                cookies=request.getCookies(); if (cookies !=null) { for (Cookie cookie : cookies) {
+                                if ("rememberedUser".equals(cookie.getName())) {
+                                rememberedUsername=cookie.getValue(); isRemembered=true; break; } } } %>
+
+                            <% if (request.getAttribute("error") !=null) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= request.getAttribute("error") %>
+                            </div>
                             <% } %>
-                            
+
                             <form action="${pageContext.request.contextPath}/login" method="post">
                                 <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="floatingInput" name="username" placeholder="username" value="<%= rememberedUsername %>" required>
+                                    <input type="text" class="form-control" id="floatingInput"
+                                           name="username" placeholder="username"
+                                           value="<%= rememberedUsername %>">
                                     <label for="floatingInput">Tên đăng nhập</label>
                                 </div>
-                                <div class="form-floating mb-4">
-                                    <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
+                                <div class="form-floating mb-4 position-relative">
+                                    <input type="password" class="form-control" id="floatingPassword"
+                                           name="password" placeholder="Password"
+                                           style="padding-right: 40px;">
                                     <label for="floatingPassword">Mật khẩu</label>
+                                    <span class="position-absolute top-50 end-0 translate-middle-y me-3"
+                                          style="cursor: pointer; z-index: 10;"
+                                          onclick="togglePassword()">
+                                        <i class="fa fa-eye" id="togglePasswordIcon"></i>
+                                    </span>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between mb-4">
                                     <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe" <%= isRemembered ? "checked" : "" %>>
-                                        <label class="form-check-label" for="rememberMe">Ghi nhớ đăng nhập</label>
+                                        <input type="checkbox" class="form-check-input" id="rememberMe"
+                                               name="rememberMe" <%=isRemembered ? "checked" : "" %>>
+                                        <label class="form-check-label" for="rememberMe">Ghi nhớ đăng
+                                            nhập</label>
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/forgot-password">Quên mật khẩu?</a>
+                                    <a href="${pageContext.request.contextPath}/forgot-password">Quên
+                                        mật khẩu?</a>
                                 </div>
-                                <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Đăng nhập</button>
+                                <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Đăng
+                                    nhập</button>
                             </form>
                         </div>
                     </div>
@@ -119,6 +122,23 @@
 
         <!-- Template Javascript -->
         <script src="${pageContext.request.contextPath}/js/main.js"></script>
+
+        <script>
+                                              function togglePassword() {
+                                                  const passwordInput = document.getElementById('floatingPassword');
+                                                  const toggleIcon = document.getElementById('togglePasswordIcon');
+
+                                                  if (passwordInput.type === 'password') {
+                                                      passwordInput.type = 'text';
+                                                      toggleIcon.classList.remove('fa-eye');
+                                                      toggleIcon.classList.add('fa-eye-slash');
+                                                  } else {
+                                                      passwordInput.type = 'password';
+                                                      toggleIcon.classList.remove('fa-eye-slash');
+                                                      toggleIcon.classList.add('fa-eye');
+                                                  }
+                                              }
+        </script>
     </body>
 
 </html>
