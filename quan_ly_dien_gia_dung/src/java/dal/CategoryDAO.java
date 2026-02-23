@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package dal;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,6 +17,7 @@ import model.Category;
  */
 public class CategoryDAO extends DBContext {
 
+    // Lấy tất cả danh mục
     public List<Category> getAllCategories() {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM categories ORDER BY category_id";
@@ -39,6 +41,7 @@ public class CategoryDAO extends DBContext {
         return categories;
     }
 
+    // Lấy danh mục đang active
     public List<Category> getActiveCategories() {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM categories WHERE status = 'active' ORDER BY category_name";
@@ -62,6 +65,7 @@ public class CategoryDAO extends DBContext {
         return categories;
     }
 
+    // Lấy danh mục theo ID
     public Category getCategoryById(int id) {
         String sql = "SELECT * FROM categories WHERE category_id = ?";
         
@@ -85,6 +89,7 @@ public class CategoryDAO extends DBContext {
         return null;
     }
 
+    // Tìm kiếm danh mục theo tên
     public List<Category> searchCategoriesByName(String keyword) {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM categories WHERE category_name LIKE ? ORDER BY category_name";
@@ -109,6 +114,7 @@ public class CategoryDAO extends DBContext {
         return categories;
     }
 
+    // Tìm kiếm danh mục nâng cao (tên và mô tả)
     public List<Category> searchCategories(String keyword, String status) {
         List<Category> categories = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM categories WHERE 1=1");
@@ -166,6 +172,7 @@ public class CategoryDAO extends DBContext {
         }
     }
 
+    // Cập nhật danh mục
     public boolean updateCategory(Category category) {
         String sql = "UPDATE categories SET category_name = ?, description = ?, status = ? WHERE category_id = ?";
         
@@ -182,6 +189,7 @@ public class CategoryDAO extends DBContext {
         }
     }
 
+    // Xóa danh mục (soft delete - đổi status thành inactive)
     public boolean deleteCategory(int id) {
         String sql = "UPDATE categories SET status = 'inactive' WHERE category_id = ?";
         
@@ -194,6 +202,7 @@ public class CategoryDAO extends DBContext {
         }
     }
 
+    // Xóa vĩnh viễn danh mục
     public boolean hardDeleteCategory(int id) {
         String sql = "DELETE FROM categories WHERE category_id = ?";
         
@@ -206,6 +215,7 @@ public class CategoryDAO extends DBContext {
         }
     }
 
+    // Kiểm tra tên danh mục đã tồn tại chưa
     public boolean isCategoryNameExists(String categoryName) {
         String sql = "SELECT COUNT(*) FROM categories WHERE category_name = ?";
         
@@ -223,6 +233,7 @@ public class CategoryDAO extends DBContext {
         return false;
     }
 
+    // Kiểm tra tên danh mục đã tồn tại chưa (trừ khi là chính nó)
     public boolean isCategoryNameExists(String categoryName, int excludeId) {
         String sql = "SELECT COUNT(*) FROM categories WHERE category_name = ? AND category_id != ?";
         
@@ -313,5 +324,87 @@ public class CategoryDAO extends DBContext {
             return false;
         }
     }
-}
 
+
+
+    public boolean updateCategoryStatus(int id, String status) {
+        String sql = "UPDATE categories SET status = ? WHERE category_id = ?";
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public int countCategories(String keyword, String status) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM categories WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append(" AND category_name LIKE ? ");
+            params.add("%" + keyword.trim() + "%");
+        }
+        if (status != null && !status.isBlank() && !"all".equalsIgnoreCase(status)) {
+            sql.append(" AND status = ? ");
+            params.add(status);
+        }
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<Category> getCategoriesByPage(int page, int pageSize, String keyword, String status) {
+        List<Category> categories = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM categories WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append(" AND category_name LIKE ? ");
+            params.add("%" + keyword.trim() + "%");
+        }
+        if (status != null && !status.isBlank() && !"all".equalsIgnoreCase(status)) {
+            sql.append(" AND status = ? ");
+            params.add(status);
+        }
+
+        sql.append(" ORDER BY category_id ");
+        sql.append(" LIMIT ? OFFSET ? ");
+        params.add(pageSize);
+        params.add(offset);
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Category category = new Category();
+                category.setCategoryId(rs.getInt("category_id"));
+                category.setCategoryName(rs.getString("category_name"));
+                category.setDescription(rs.getString("description"));
+                category.setStatus(rs.getString("status"));
+                category.setCreatedAt(rs.getTimestamp("created_at"));
+                categories.add(category);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return categories;
+    }
+}
