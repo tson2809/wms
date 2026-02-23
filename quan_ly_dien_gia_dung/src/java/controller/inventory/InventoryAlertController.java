@@ -106,7 +106,7 @@ public class InventoryAlertController extends HttpServlet {
         request.setAttribute("activePage", "alert");
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-        request.getRequestDispatcher("/view/inventory/inventory-alert.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/manager/inventory-alert.jsp").forward(request, response);
     }
 
     /**

@@ -98,10 +98,10 @@ public class InventorySheetListController extends HttpServlet {
        List<Integer> years = dao.getAvailableYears();
         List<Integer> months = new ArrayList<>();
         for(int m=1;m<=12;m++) months.add(m);
-
         request.setAttribute("years", years);
         request.setAttribute("months", months);
-        request.getRequestDispatcher("/view/inventory/sheet-list.jsp").forward(request, response);
+        request.setAttribute("activePage", "sheetList");
+        request.getRequestDispatcher("/view/common/sheet-list.jsp").forward(request, response);
     }
 
     /**
