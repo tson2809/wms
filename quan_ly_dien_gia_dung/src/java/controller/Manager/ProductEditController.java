@@ -119,8 +119,6 @@ public class ProductEditController extends HttpServlet {
         }
 
         String productName = getParam(request, "productName");
-        String baseSku = getParam(request, "baseSku");
-        String baseBarcode = getParam(request, "baseBarcode");
         String categoryId = getParam(request, "categoryId");
         String brandId = getParam(request, "brandId");
         String supplierId = getParam(request, "supplierId");
@@ -181,24 +179,15 @@ public class ProductEditController extends HttpServlet {
                 }
             }
         } else {
-            if (baseSku == null || baseSku.isBlank()) {
-                request.setAttribute("errorBaseSku", "Mã SKU không được để trống.");
-                hasError = true;
-            } else if (productDAO.isSkuExistsExcludingProduct(baseSku.trim(), productId)) {
-                request.setAttribute("errorBaseSku", "Mã SKU \"" + baseSku.trim() + "\" đã tồn tại (sản phẩm khác).");
-                hasError = true;
-            } else if (baseBarcode != null && !baseBarcode.isBlank() && productDAO.isBarcodeExistsExcludingProduct(baseBarcode.trim(), productId)) {
-                request.setAttribute("errorBaseBarcode", "Barcode \"" + baseBarcode.trim() + "\" đã tồn tại (sản phẩm khác).");
-                hasError = true;
-            }
+            // Không có SKU nào từ variant → không cho phép cập nhật
+            request.setAttribute("errorVariant", "Phải có ít nhất 1 phiên bản (SKU).");
+            hasError = true;
         }
 
         if (hasError) {
             request.setAttribute("productId", productId);
             request.setAttribute("productEdit", existingDto);
             request.setAttribute("productName", productName);
-            request.setAttribute("baseSku", baseSku);
-            request.setAttribute("baseBarcode", baseBarcode);
             request.setAttribute("categoryId", categoryId);
             request.setAttribute("brandId", brandId);
             request.setAttribute("supplierId", supplierId);
@@ -275,8 +264,6 @@ public class ProductEditController extends HttpServlet {
         ProductAddDTO dto = new ProductAddDTO();
         dto.setProductId(productId);
         dto.setProductName(productName.trim());
-        dto.setBaseSku(baseSku != null ? baseSku.trim() : "");
-        dto.setBaseBarcode(baseBarcode != null ? baseBarcode.trim() : "");
         dto.setCategoryId(Integer.parseInt(categoryId));
         dto.setBrandId(Integer.parseInt(brandId));
         dto.setSupplierId(Integer.parseInt(supplierId));
@@ -294,8 +281,6 @@ public class ProductEditController extends HttpServlet {
             request.setAttribute("productId", productId);
             request.setAttribute("productEdit", existingDto);
             request.setAttribute("productName", productName);
-            request.setAttribute("baseSku", baseSku);
-            request.setAttribute("baseBarcode", baseBarcode);
             request.setAttribute("categoryId", categoryId);
             request.setAttribute("brandId", brandId);
             request.setAttribute("supplierId", supplierId);

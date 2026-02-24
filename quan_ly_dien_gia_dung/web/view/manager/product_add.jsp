@@ -148,24 +148,7 @@
                                                                     class="text-danger">${errorUnitId}</small></c:if>
                                                         </div>
 
-                                                        <!-- Base SKU & Barcode (Hidden when variants exist) -->
-                                                        <div class="col-md-4 mb-3" id="baseSkuField">
-                                                            <label class="form-label">Mã SKU</label>
-                                                            <input type="text" class="form-control" name="baseSku"
-                                                                id="baseSku" placeholder="Mã SKU" value="${baseSku}">
-                                                            <c:if test="${not empty errorBaseSku}"><small
-                                                                    class="text-danger">${errorBaseSku}</small></c:if>
-                                                        </div>
-
-                                                        <div class="col-md-4 mb-3" id="baseBarcodeField">
-                                                            <label class="form-label">Barcode</label>
-                                                            <input type="text" class="form-control" name="baseBarcode"
-                                                                id="baseBarcode" placeholder="Barcode"
-                                                                value="${baseBarcode}">
-                                                            <c:if test="${not empty errorBaseBarcode}"><small
-                                                                    class="text-danger">${errorBaseBarcode}</small>
-                                                            </c:if>
-                                                        </div>
+                                                        <!-- Không còn base SKU/Barcode: tất cả SKU nằm ở variants -->
 
                                                         <!-- Description -->
                                                         <div class="col-md-12 mb-3">
@@ -251,8 +234,13 @@
                         addAttributeRow();
                         updateAddAttributeButton();
 
-                        // Trước khi submit: thêm hidden fields cho attributeNames và variantAttrValues
+                        // Trước khi submit: kiểm tra phải có ít nhất 1 variant, rồi thêm hidden fields cho attributeNames và variantAttrValues
                         document.getElementById('productAddForm').addEventListener('submit', function (e) {
+                            if (variants.length === 0) {
+                                e.preventDefault();
+                                alert('Phải có ít nhất 1 phiên bản (SKU).');
+                                return false;
+                            }
                             document.querySelectorAll('input[name="attributeNames"]').forEach(el => el.remove());
                             document.querySelectorAll('input[name="variantAttrValues"]').forEach(el => el.remove());
 
@@ -425,17 +413,11 @@
                         const validAttrs = attributes.filter(attr => attr.name && attr.values.length > 0);
 
                         if (validAttrs.length === 0) {
-                            // No attributes → Hide variants card, show base SKU/Barcode
+                            // Chưa có thuộc tính/giá trị → chưa sinh được variant
                             document.getElementById('variantsCard').style.display = 'none';
-                            document.getElementById('baseSkuField').style.display = 'block';
-                            document.getElementById('baseBarcodeField').style.display = 'block';
                             variants = [];
                             return;
                         }
-
-                        // Hide base SKU/Barcode
-                        document.getElementById('baseSkuField').style.display = 'none';
-                        document.getElementById('baseBarcodeField').style.display = 'none';
 
                         // Generate cartesian product
                         variants = cartesianProduct(validAttrs.map(attr => attr.values));
@@ -549,8 +531,6 @@
                         // Hide variants card if no variants left
                         if (variants.length === 0) {
                             document.getElementById('variantsCard').style.display = 'none';
-                            document.getElementById('baseSkuField').style.display = 'block';
-                            document.getElementById('baseBarcodeField').style.display = 'block';
                         }
                     }
 

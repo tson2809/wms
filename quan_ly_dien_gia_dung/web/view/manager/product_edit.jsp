@@ -111,18 +111,7 @@
                                                     </select>
                                                     <c:if test="${not empty errorUnitId}"><small class="text-danger">${errorUnitId}</small></c:if>
                                                     </div>
-                                                    <div class="col-md-4 mb-3" id="baseSkuField">
-                                                        <label class="form-label">Mã SKU</label>
-                                                        <input type="text" class="form-control" name="baseSku" id="baseSku" placeholder="Mã SKU"
-                                                               value="${not empty baseSku ? baseSku : (productEdit != null ? productEdit.baseSku : '')}">
-                                                    <c:if test="${not empty errorBaseSku}"><small class="text-danger">${errorBaseSku}</small></c:if>
-                                                    </div>
-                                                    <div class="col-md-4 mb-3" id="baseBarcodeField">
-                                                        <label class="form-label">Barcode</label>
-                                                        <input type="text" class="form-control" name="baseBarcode" id="baseBarcode" placeholder="Barcode"
-                                                               value="${not empty baseBarcode ? baseBarcode : (productEdit != null ? productEdit.baseBarcode : '')}">
-                                                    <c:if test="${not empty errorBaseBarcode}"><small class="text-danger">${errorBaseBarcode}</small></c:if>
-                                                    </div>
+                                                    <!-- Không còn base SKU/Barcode: tất cả SKU nằm ở variants -->
                                                     <div class="col-md-12 mb-3">
                                                         <label class="form-label">Mô tả</label>
                                                         <textarea class="form-control" name="description" rows="3" placeholder="Nhập mô tả sản phẩm">${not empty description ? description : (productEdit != null ? productEdit.description : '')}</textarea>
@@ -192,13 +181,11 @@
                                                                 };
                                                             });
                                                             renderAttributes();
-                                                            if (editData.variants && editData.variants.length > 0) {
+                                                        if (editData.variants && editData.variants.length > 0) {
                                                                 variants = editData.variants.map(function (v) {
                                                                     return (v.attributeValues || []).slice();
                                                                 });
                                                                 document.getElementById('variantsCard').style.display = 'block';
-                                                                document.getElementById('baseSkuField').style.display = 'none';
-                                                                document.getElementById('baseBarcodeField').style.display = 'none';
                                                                 document.getElementById('variantCount').textContent = variants.length + ' phiên bản';
                                                                 var container = document.getElementById('variantsContainer');
                                                                 container.innerHTML = '';
@@ -229,8 +216,13 @@
 
                                                 syncHiddenVariantData();
 
-                                                // Đảm bảo sync lại hidden data trước khi submit
+                                                // Đảm bảo sync lại hidden data và validate phải có ít nhất 1 variant trước khi submit
                                                 document.getElementById('productEditForm').addEventListener('submit', function (e) {
+                                                    if (variants.length === 0) {
+                                                        e.preventDefault();
+                                                        alert('Phải có ít nhất 1 phiên bản (SKU).');
+                                                        return false;
+                                                    }
                                                     syncHiddenVariantData();
                                                 });
                                             });
@@ -389,15 +381,10 @@
 
                                                 if (validAttrs.length === 0) {
                                                     document.getElementById('variantsCard').style.display = 'none';
-                                                    document.getElementById('baseSkuField').style.display = 'block';
-                                                    document.getElementById('baseBarcodeField').style.display = 'block';
                                                     variants = [];
                                                     syncHiddenVariantData();
                                                     return;
                                                 }
-
-                                                document.getElementById('baseSkuField').style.display = 'none';
-                                                document.getElementById('baseBarcodeField').style.display = 'none';
 
                                                 //  map variant cũ
                                                 var oldVariantMap = {};
@@ -511,8 +498,6 @@
                                                 });
                                                 if (variants.length === 0) {
                                                     document.getElementById('variantsCard').style.display = 'none';
-                                                    document.getElementById('baseSkuField').style.display = 'block';
-                                                    document.getElementById('baseBarcodeField').style.display = 'block';
                                                 }
                                                 syncHiddenVariantData();
                                             }
