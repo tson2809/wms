@@ -11,11 +11,7 @@ import java.util.List;
 public class ProductAddDTO {
   
     private Integer productId;
-
-    
     private String productName;
-    private String baseSku;
-    private String baseBarcode;
     private Integer categoryId;
     private Integer brandId;
     private Integer supplierId;
@@ -50,22 +46,6 @@ public class ProductAddDTO {
 
     public void setProductName(String productName) {
         this.productName = productName;
-    }
-
-    public String getBaseSku() {
-        return baseSku;
-    }
-
-    public void setBaseSku(String baseSku) {
-        this.baseSku = baseSku;
-    }
-
-    public String getBaseBarcode() {
-        return baseBarcode;
-    }
-
-    public void setBaseBarcode(String baseBarcode) {
-        this.baseBarcode = baseBarcode;
     }
 
     public Integer getCategoryId() {
@@ -136,7 +116,6 @@ public class ProductAddDTO {
     public String toString() {
         return "ProductAddDTO{" +
                 "productName='" + productName + '\'' +
-                ", baseSku='" + baseSku + '\'' +
                 ", categoryId=" + categoryId +
                 ", brandId=" + brandId +
                 ", supplierId=" + supplierId +

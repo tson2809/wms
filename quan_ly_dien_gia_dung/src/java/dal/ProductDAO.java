@@ -423,6 +423,12 @@ public class ProductDAO extends DBContext {
             conn = this.getConnection();
             conn.setAutoCommit(false); // Bắt đầu transaction
 
+            // Bắt buộc phải có ít nhất 1 variant
+            List<ProductVariantSimpleDTO> variantList = dto.getVariants();
+            if (variantList == null || variantList.isEmpty()) {
+                throw new SQLException("Product must have at least one variant.");
+            }
+
             // 1. INSERT vào bảng PRODUCTS
             String sqlProduct = "INSERT INTO products (product_name, category_id, brand_id, " +
                     "supplier_id, unit_id, picture, description, status, created_at) " +
@@ -439,7 +445,7 @@ public class ProductDAO extends DBContext {
 
             int rowsAffected = psProduct.executeUpdate();
 
-            if (rowsAffected > 0) {
+                if (rowsAffected > 0) {
                 // Lấy productId vừa insert
                 rs = psProduct.getGeneratedKeys();
                 if (rs.next()) {
@@ -447,21 +453,14 @@ public class ProductDAO extends DBContext {
                 }
 
                 // 2. INSERT vào bảng PRODUCT_VARIANTS và PRODUCT_VARIANT_ATTRIBUTES
-                if (dto.getVariants() != null && !dto.getVariants().isEmpty()) {
-                    for (ProductVariantSimpleDTO variantDTO : dto.getVariants()) {
-                        int variantId = insertVariant(conn, productId, variantDTO);
-                        if (variantId > 0 && dto.getAttributeNames() != null && !dto.getAttributeNames().isEmpty()
-                                && variantDTO.getAttributeValues() != null
-                                && !variantDTO.getAttributeValues().isEmpty()) {
-                            insertVariantAttributes(conn, variantId, dto.getAttributeNames(),
-                                    variantDTO.getAttributeValues());
-                        }
+                for (ProductVariantSimpleDTO variantDTO : variantList) {
+                    int variantId = insertVariant(conn, productId, variantDTO);
+                    if (variantId > 0 && dto.getAttributeNames() != null && !dto.getAttributeNames().isEmpty()
+                            && variantDTO.getAttributeValues() != null
+                            && !variantDTO.getAttributeValues().isEmpty()) {
+                        insertVariantAttributes(conn, variantId, dto.getAttributeNames(),
+                                variantDTO.getAttributeValues());
                     }
-                } else {
-                    ProductVariantSimpleDTO defaultVariant = new ProductVariantSimpleDTO();
-                    defaultVariant.setSku(dto.getBaseSku());
-                    defaultVariant.setBarcode(dto.getBaseBarcode());
-                    insertVariant(conn, productId, defaultVariant);
                 }
 
                 conn.commit(); // Commit transaction
@@ -615,10 +614,7 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
-    /**
-     * Kiểm tra SKU đã tồn tại bởi sản phẩm khác (dùng khi edit, loại trừ product
-     * hiện tại).
-     */
+    
     public boolean isSkuExistsExcludingProduct(String sku, int productId) {
         if (sku == null || sku.trim().isEmpty())
             return false;
@@ -636,9 +632,7 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
-    /**
-     * Kiểm tra Barcode đã tồn tại bởi sản phẩm khác (dùng khi edit).
-     */
+    
     public boolean isBarcodeExistsExcludingProduct(String barcode, int productId) {
         if (barcode == null || barcode.trim().isEmpty())
             return false;
@@ -656,10 +650,7 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
-    /**
-     * Lấy thông tin sản phẩm đầy đủ để hiển thị form chỉnh sửa (product + variants
-     * + attributes).
-     */
+    
     public ProductAddDTO getProductAddDTOById(int productId) {
         ProductAddDTO dto = new ProductAddDTO();
         dto.setProductId(productId);
@@ -750,16 +741,7 @@ public class ProductDAO extends DBContext {
             v.setAttributeValues(values);
         }
 
-        if (variantList.size() == 1 && attributeNamesOrdered.isEmpty()) {
-            ProductVariantSimpleDTO single = variantList.get(0);
-            dto.setBaseSku(single.getSku());
-            dto.setBaseBarcode(single.getBarcode() != null ? single.getBarcode() : "");
-            dto.setVariants(new ArrayList<>());
-            dto.setAttributeNames(new ArrayList<>());
-        } else {
-            dto.setVariants(variantList);
-        }
-
+        dto.setVariants(variantList);
         return dto;
     }
 
@@ -794,24 +776,10 @@ public class ProductDAO extends DBContext {
             List<ProductVariantSimpleDTO> variants = dto.getVariants() != null ? dto.getVariants() : new ArrayList<>();
             List<String> attributeNames = dto.getAttributeNames() != null ? dto.getAttributeNames() : new ArrayList<>();
 
-            if (variants.isEmpty()) {
-                String baseSku = dto.getBaseSku() != null ? dto.getBaseSku().trim() : "";
-                String baseBarcode = dto.getBaseBarcode() != null ? dto.getBaseBarcode().trim() : "";
-                List<ProductVariantSimpleDTO> dbVariants = getVariantsByProductId(conn, productId);
-                if (dbVariants.size() == 1) {
-                    updateVariant(conn, dbVariants.get(0).getVariantId(), baseSku, baseBarcode);
-                    deleteVariantAttributes(conn, dbVariants.get(0).getVariantId());
-                } else if (dbVariants.isEmpty() && !baseSku.isEmpty()) {
-                    ProductVariantSimpleDTO def = new ProductVariantSimpleDTO(baseSku, baseBarcode);
-                    insertVariant(conn, productId, def);
-                } else if (dbVariants.size() > 1) {
-                    int keepId = dbVariants.get(0).getVariantId();
-                    updateVariant(conn, keepId, baseSku, baseBarcode);
-                    deleteVariantAttributes(conn, keepId);
-                    for (int i = 1; i < dbVariants.size(); i++) {
-                        deleteVariant(conn, dbVariants.get(i).getVariantId());
-                    }
-                }
+            // Bắt buộc phải có ít nhất 1 variant khi cập nhật
+            if (variants == null || variants.isEmpty()) {
+                conn.rollback();
+                return false;
             } else {
                 java.util.Set<Integer> processedVariantIds = new java.util.HashSet<>();
                 for (ProductVariantSimpleDTO v : variants) {

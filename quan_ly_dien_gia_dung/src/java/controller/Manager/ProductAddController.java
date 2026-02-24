@@ -82,8 +82,6 @@ public class ProductAddController extends HttpServlet {
         loadDropdownData(request);
 
         String productName = getParam(request, "productName");
-        String baseSku = getParam(request, "baseSku");
-        String baseBarcode = getParam(request, "baseBarcode");
         String categoryId = getParam(request, "categoryId");
         String brandId = getParam(request, "brandId");
         String supplierId = getParam(request, "supplierId");
@@ -146,22 +144,13 @@ public class ProductAddController extends HttpServlet {
                 }
             }
         } else {
-            if (baseSku == null || baseSku.isBlank()) {
-                request.setAttribute("errorBaseSku", "Mã SKU không được để trống.");
-                hasError = true;
-            } else if (productDAO.isSkuExists(baseSku.trim())) {
-                request.setAttribute("errorBaseSku", "Mã SKU \"" + baseSku.trim() + "\" đã tồn tại trong hệ thống.");
-                hasError = true;
-            } else if (baseBarcode != null && !baseBarcode.isBlank() && productDAO.isBarcodeExists(baseBarcode.trim())) {
-                request.setAttribute("errorBaseBarcode", "Barcode \"" + baseBarcode.trim() + "\" đã tồn tại trong hệ thống.");
-                hasError = true;
-            }
+            // Không có SKU nào từ variant → không cho phép thêm sản phẩm
+            request.setAttribute("errorVariant", "Phải có ít nhất 1 phiên bản (SKU).");
+            hasError = true;
         }
 
         if (hasError) {
             request.setAttribute("productName", productName);
-            request.setAttribute("baseSku", baseSku);
-            request.setAttribute("baseBarcode", baseBarcode);
             request.setAttribute("categoryId", categoryId);
             request.setAttribute("brandId", brandId);
             request.setAttribute("supplierId", supplierId);
@@ -204,8 +193,6 @@ public class ProductAddController extends HttpServlet {
 
         ProductAddDTO dto = new ProductAddDTO();
         dto.setProductName(productName.trim());
-        dto.setBaseSku(baseSku != null ? baseSku.trim() : "");
-        dto.setBaseBarcode(baseBarcode != null ? baseBarcode.trim() : "");
         dto.setCategoryId(Integer.parseInt(categoryId));
         dto.setBrandId(Integer.parseInt(brandId));
         dto.setSupplierId(Integer.parseInt(supplierId));
@@ -255,8 +242,6 @@ public class ProductAddController extends HttpServlet {
         } else {
             request.setAttribute("errorProductName", "Không thể thêm sản phẩm. Vui lòng thử lại.");
             request.setAttribute("productName", productName);
-            request.setAttribute("baseSku", baseSku);
-            request.setAttribute("baseBarcode", baseBarcode);
             request.setAttribute("categoryId", categoryId);
             request.setAttribute("brandId", brandId);
             request.setAttribute("supplierId", supplierId);
