@@ -40,7 +40,17 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/common/components/RoleSideBar.jsp" />
+            <c:choose>
+                <c:when test="${sessionScope.user.role.roleId == 2}">
+                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+                </c:when>
+                <c:when test="${sessionScope.user.role.roleId == 3}">
+                    <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
+                </c:when>
+                <c:otherwise>
+                    <jsp:include page="/view/common/components/RoleSideBar.jsp" />
+                </c:otherwise>
+            </c:choose>
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
                 <div class="container-fluid pt-4 px-4">

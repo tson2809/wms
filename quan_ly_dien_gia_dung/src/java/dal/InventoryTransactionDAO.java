@@ -223,4 +223,38 @@ public class InventoryTransactionDAO extends DBContext {
 
         return 0;
     }
+
+    public InventoryTransaction getTransactionById(int id) {
+        String sql
+                = "SELECT it.transaction_id, pv.sku, it.transaction_type, "
+                + "it.quantity_change, it.quantity_before, it.quantity_after, "
+                + "it.reference_type, it.reference_id, "
+                + "u.full_name, it.transaction_date, it.notes "
+                + "FROM inventory_transactions it "
+                + "JOIN product_variants pv ON it.variant_id = pv.variant_id "
+                + "LEFT JOIN users u ON it.created_by = u.user_id "
+                + "WHERE it.transaction_id = ?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                InventoryTransaction t = new InventoryTransaction();
+                t.setTransactionId(rs.getInt("transaction_id"));
+                t.setSku(rs.getString("sku"));
+                t.setTransactionType(rs.getString("transaction_type"));
+                t.setQuantityChange(rs.getInt("quantity_change"));
+                t.setQuantityBefore(rs.getInt("quantity_before"));
+                t.setQuantityAfter(rs.getInt("quantity_after"));
+                t.setReferenceType(rs.getString("reference_type"));
+                t.setReferenceId((Integer) rs.getObject("reference_id"));
+                t.setCreatedBy(rs.getString("full_name"));
+                t.setTransactionDate(rs.getTimestamp("transaction_date"));
+                t.setNotes(rs.getString("notes"));
+                return t;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
