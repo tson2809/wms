@@ -21,7 +21,26 @@ public class InventoryTransaction {
     private String createdBy;
     private Timestamp transactionDate;
     private String notes;
+    private int quantityBefore;
+    private int quantityAfter;
 
+    public int getQuantityBefore() {
+        return quantityBefore;
+    }
+
+    public void setQuantityBefore(int quantityBefore) {
+        this.quantityBefore = quantityBefore;
+    }
+
+    public int getQuantityAfter() {
+        return quantityAfter;
+    }
+
+    public void setQuantityAfter(int quantityAfter) {
+        this.quantityAfter = quantityAfter;
+    }
+
+    
     public int getTransactionId() {
         return transactionId;
     }
