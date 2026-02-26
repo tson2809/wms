@@ -59,21 +59,21 @@
                             <div class="inventory-card p-4">
 
                                 <div class="d-flex justify-content-between align-items-center mb-3 inventory-header">
-                                    <h5 class="mb-0">Product Inventory</h5>
+                                    <h5 class="mb-0">Tồn kho</h5>
                                 </div>
                                 <div class="inventory-toolbar">
                                     <a href="#" class="btn btn-primary btn-sm">
-                                        + Import
+                                        + Nhập kho
                                     </a>
                                     <a href="#" class="btn btn-warning btn-sm">
-                                        + Export
+                                        + Xuất kho
                                     </a>
                                     <a href="${pageContext.request.contextPath}/inventory-sheet-list" class="btn btn-secondary btn-sm">
-                                        Inventory Check
+                                        Kiểm tra kho
                                     </a>
                                     <a href="${pageContext.request.contextPath}/export-inventory?keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}"
                                        class="btn btn-success btn-sm">
-                                        Export Excel
+                                        Xuất Excel
                                     </a>
 
 
@@ -84,15 +84,15 @@
                                     <div class="row g-3 align-items-end">
 
                                         <div class="col-md-3">
-                                            <label>Search</label>
+                                            <label>Tên sản phẩm</label>
                                             <input class="form-control"
                                                    name="keyword"
-                                                   placeholder="Product name"
+                                                   placeholder="Tên sản phẩm"
                                                    value="${param.keyword}">
                                         </div>
 
                                         <div class="col-md-2">
-                                            <label>Category</label>
+                                            <label>Thể loại</label>
                                             <select class="form-select" name="categoryId">
                                                 <option value="">All</option>
                                                 <c:forEach items="${categories}" var="c">
@@ -105,7 +105,7 @@
                                         </div>
 
                                         <div class="col-md-2">
-                                            <label>Stock Status</label>
+                                            <label>Trạng thái</label>
                                             <select class="form-select" name="status">
                                                 <option value="">All</option>
                                                 <option value="In Stock" ${param.status=='In Stock'?'selected':''}>In stock</option>
@@ -115,7 +115,7 @@
                                         </div>
 
                                         <div class="col-md-3">
-                                            <button class="btn btn-primary">Search</button>
+                                            <button class="btn btn-primary">Tìm</button>
                                             <a class="btn btn-outline-secondary"
                                                href="${pageContext.request.contextPath}/inventory-list">
                                                 Reset
@@ -131,7 +131,7 @@
                                     </div>
 
                                     <div class="summary-card">
-                                        <div class="title">Total Quantity</div>
+                                        <div class="title">Tổng số lượng</div>
                                         <div class="value">${sum.totalQty}</div>
                                     </div>
 
@@ -149,16 +149,16 @@
                                 <table class="table table-bordered inventory-table">
                                     <thead>
                                         <tr>
-                                            <th>Image</th>
+                                            <th>Ảnh</th>
                                             <th>SKU</th>
-                                            <th>Product</th>
-                                            <th>Variant</th>
-                                            <th>Category</th>
-                                            <th>Brand</th>
-                                            <th>Cost</th>
-                                            <th>Price</th>
-                                            <th>Qty</th>
-                                            <th>Status</th>
+                                            <th>Sản phẩm</th>
+                                            <th>Biến thể</th>
+                                            <th>Thể loại</th>
+                                            <th>Hãng</th>
+                                            <th>Chi phí</th>
+                                            <th>Giá</th>
+                                            <th>Số lượng</th>
+                                            <th>Trạng thái</th>
                                         </tr>
                                     </thead>
 
