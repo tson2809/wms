@@ -45,7 +45,7 @@
                 <div class="container-fluid pt-4 px-4">
                     <div class="inventory-card p-4">
 
-                        <h5>Edit Inventory Sheet</h5>
+                        <h5>Sửa Sheet</h5>
 
                         <form method="post"
                               action="${pageContext.request.contextPath}/inventory-sheet-edit">
@@ -53,12 +53,12 @@
                             <input type="hidden" name="sheetId" value="${sheet.sheetId}">
 
                             <table class="table align-middle">
-                                <thead>
+                                <thead>                                 
                                     <tr>
-                                        <th>Product</th>
+                                        <th>Sản phẩm</th>
                                         <th>SKU</th>
-                                        <th>System Qty</th>
-                                        <th>Counted Qty</th>
+                                        <th>Số lượng hệ thống</th>
+                                        <th>Số lượng thực tế</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -83,12 +83,12 @@
                             </table>
 
                             <button class="btn btn-primary">
-                                Save Changes
+                                Lưu thay đổi
                             </button>
 
                             <a href="${pageContext.request.contextPath}/inventory-sheet-list"
                                class="btn btn-secondary">
-                                Cancel
+                                Hủy
                             </a>
 
                         </form>

@@ -57,7 +57,7 @@
                                                name="keyword"
                                                value="${keyword}"
                                                class="form-control"
-                                               placeholder="Search product ">
+                                               placeholder="Tìm sản phẩm ">
                                     </div>
                                     <div class="col-md-2">
                                         <select name="status" class="form-select">
@@ -75,8 +75,8 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4 d-flex gap-2">
-                                        <button class="btn btn-primary">Search</button>
-                                        <a href="inventory-alert" class="btn btn-outline-secondary">Reset</a>
+                                        <button class="btn btn-primary">Tìm</button>
+                                        <a href="inventory-alert" class="btn btn-outline-secondary">Clear</a>
                                     </div>
 
                                 </form>
@@ -102,9 +102,9 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>ID</th>
-                                        <th>name</th>
-                                        <th>quantity</th>
-                                        <th>status</th>
+                                        <th>Tên sản phẩm</th>
+                                        <th>Số lượng</th>
+                                        <th>Trạng thái</th>
                                     </tr>
                                 </thead>
                                 <tbody>

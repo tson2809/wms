@@ -69,12 +69,12 @@
                                 </div>
 
                                 <div class="col-md-3">
-                                    <label>Search SKU</label>
+                                    <label>Tìm SKU</label>
                                     <input type="text" name="keyword" value="${param.keyword}" class="form-control">
                                 </div>
 
                                 <div class="col-md-3">
-                                    <label>Transaction Type</label>
+                                    <label>Loại biến động</label>
                                     <select name="type" class="form-select">
                                         <option value="">All</option>
                                         <option value="import" ${param.type=='import'?'selected':''}>Import</option>
@@ -85,7 +85,7 @@
                                 </div>
 
                                 <div class="col-md-3">
-                                    <label>Quantity Type</label>
+                                    <label>Loại số lượng</label>
                                     <select name="qtyType" class="form-select">
                                         <option value="">All</option>
                                         <option value="increase" ${param.qtyType=='increase'?'selected':''}>Increase</option>
@@ -104,7 +104,7 @@
                                 </div>
 
                                 <div class="col-md-3 position-relative">
-                                    <label>Created By</label>
+                                    <label>Tạo ra bởi</label>
 
                                     <input type="text"
                                            name="createdBy"
@@ -119,21 +119,21 @@
                                 </div>
                                            
                                 <div class="col-md-3">
-                                    <label>Date From</label>
+                                    <label>Từ ngày</label>
                                     <input type="date" name="dateFrom" value="${param.dateFrom}" class="form-control">
                                 </div>
 
                                 <div class="col-md-3">
-                                    <label>Date To</label>
+                                    <label>Đến ngày</label>
                                     <input type="date" name="dateTo" value="${param.dateTo}" class="form-control">
                                 </div>
 
                                 <div class="col-md-2 d-flex align-items-end">
-                                    <button class="btn btn-primary w-100">Search</button>
+                                    <button class="btn btn-primary w-100">Tìm</button>
                                 </div>
 
                                 <div class="col-md-2 d-flex align-items-end">
-                                    <a href="inventory-transactions" class="btn btn-secondary w-100">Reset</a>
+                                    <a href="inventory-transactions" class="btn btn-secondary w-100">Clear</a>
                                 </div>
 
                             </div>
@@ -146,13 +146,13 @@
                                         <th>No</th>
                                         <th>TRX ID</th>
                                         <th>SKU</th>
-                                        <th>Type</th>
-                                        <th>Qty</th>
+                                        <th>Loại</th>
+                                        <th>Số lượng</th>
                                         <th>Reference</th>
-                                        <th>Created By</th>     
-                                        <th>Transactions Date</th> 
-                                        <th>Note</th>
-                                        <th>Action</th>
+                                        <th>Tạo ra bởi</th>     
+                                        <th>Ngày tạo</th> 
+                                        <th>Ghi chú</th>
+                                        <th>Hành động</th>
                                     </tr>
                                 </thead>
 

@@ -39,7 +39,7 @@
                                     <button type="button"
                                             class="btn btn-outline-primary btn-sm"
                                             onclick="selectAvatar()">
-                                        Change Avatar
+                                        Thay Avatar
                                     </button>
                                 </form>
                                 <h5 class="mt-3 mb-0">${user.username}</h5>
@@ -58,7 +58,7 @@
                                                readonly>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Full Name</label>
+                                        <label class="form-label">Họ và tên</label>
                                         <input class="form-control"
                                                value="${user.fullName}"
                                                readonly>
@@ -71,14 +71,14 @@
                                                readonly>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Phone</label>
+                                        <label class="form-label">SĐt</label>
                                         <input class="form-control editable"
                                                name="phone"
                                                value="${user.phone}"
                                                readonly>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Address</label>
+                                        <label class="form-label">Địa chỉ</label>
                                         <input class="form-control editable"
                                                name="address"
                                                value="${user.address}"
@@ -88,12 +88,12 @@
                                             id="editBtn"
                                             class="btn btn-primary"
                                             onclick="enableEdit()">
-                                        Edit
+                                        Sửa hồ sơ
                                     </button>
                                     <button type="submit"
                                             id="saveBtn"
                                             class="btn btn-success d-none">
-                                        Save Changes
+                                        Lưu
                                     </button>
                                 </form>
                             </div>

@@ -23,12 +23,12 @@
             <a href="${pageContext.request.contextPath}/inventory-list"
                class="nav-item nav-link ${activePage == 'inventoryList' ? 'active' : ''}">
                 <i class="fa fa-boxes me-2"></i>
-                Inventory List
+                Tồn kho
             </a>
             <a href="${pageContext.request.contextPath}/inventory-sheet-list"
                class="nav-item nav-link ${activePage == 'sheetList' ? 'active' : ''}">
                 <i class="fa fa-clipboard-list me-2"></i>
-                Manage Sheets
+                Quản lý sheet
             </a>       
         </div>        
     </nav>

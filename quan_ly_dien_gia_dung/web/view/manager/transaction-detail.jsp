@@ -50,7 +50,7 @@
                                 <div class="d-flex justify-content-between mb-3">
                                     <h5 class="mb-0">Transaction Detail</h5>
                                     <a href="inventory-transactions" class="btn btn-secondary btn-sm">
-                                        ← Back
+                                        ← Quay lại
                                     </a>
                                 </div>
                                 <table class="table table-bordered align-middle">
@@ -59,11 +59,11 @@
                                         <td>TRX${t.transactionId}</td>
                                     </tr>
                                     <tr>
-                                        <th>Product (SKU)</th>
+                                        <th>Sản phẩm (SKU)</th>
                                         <td>${t.sku}</td>
                                     </tr>
                                     <tr>
-                                        <th>Type</th>
+                                        <th>Loại</th>
                                         <td>
                                             <span class="badge
                                                   ${t.transactionType == 'import' ? 'bg-success' :
@@ -74,17 +74,17 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Quantity Change</th>
+                                            <th>SL thay đổi</th>
                                             <td class="${t.quantityChange > 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}">
                                                 ${t.quantityChange}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Stock Before</th>
+                                            <th>Số lượng trước</th>
                                             <td>${t.quantityBefore}</td>
                                         </tr>
                                         <tr>
-                                            <th>Stock After</th>
+                                            <th>Số lượng sau</th>
                                             <td>${t.quantityAfter}</td>
                                         </tr>
                                         <tr>
@@ -92,17 +92,17 @@
                                             <td>${t.referenceType} - ${t.referenceId}</td>
                                         </tr>
                                         <tr>
-                                            <th>Created By</th>
+                                            <th>Tạo ra bởi</th>
                                             <td>${t.createdBy}</td>
                                         </tr>
                                         <tr>
-                                            <th>Date</th>
+                                            <th>Ngày tạo</th>
                                             <td>
                                                 <fmt:formatDate value="${t.transactionDate}" pattern="dd/MM/yyyy HH:mm"/>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Note</th>
+                                            <th>Ghi chú</th>
                                             <td>${t.notes}</td>
                                         </tr>
                                     </table>

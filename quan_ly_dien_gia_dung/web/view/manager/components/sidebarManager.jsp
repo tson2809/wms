@@ -37,7 +37,7 @@
                                     <a href="${pageContext.request.contextPath}/inventory-alert"
                                         class="nav-item nav-link ${activePage == 'alert' ? 'active' : ''}">
                                         <i class="fa fa-exclamation-triangle me-2"></i>
-                                        Alerts
+                                        Cảnh Báo 
                                         <c:if test="${alertEnabled and alertCount > 0}">
                                             <span class="badge bg-danger ms-2">${alertCount}</span>
                                         </c:if>
@@ -45,7 +45,7 @@
                                     <a href="${pageContext.request.contextPath}/inventory-transactions"
                                         class="nav-item nav-link ${activePage == 'inventoryTransaction' ? 'active' : ''}">
                                         <i class="fa fa-clipboard-list me-2"></i>
-                                        Inventory Transactions
+                                        Lịch sử biến động kho
                                     </a>
                                 </div>
                             </nav>
