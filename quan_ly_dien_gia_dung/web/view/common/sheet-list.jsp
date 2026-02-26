@@ -59,7 +59,7 @@
                             <h5>Inventory Sheets </h5>
                             <a href="${pageContext.request.contextPath}/inventory-sheet-create"
                                class="btn btn-success">
-                                + Create New Sheet
+                                + Tạo sheet mới
                             </a>
                         </div>
                         <form method="get" action="${pageContext.request.contextPath}/inventory-sheet-list" 
@@ -112,7 +112,7 @@
                             </div>
 
                             <div class="col-auto">
-                                <button class="btn btn-primary">Search</button>
+                                <button class="btn btn-primary">Tìm</button>
                                 <a href="${pageContext.request.contextPath}/inventory-sheet-list"
                                    class="btn btn-success">
                                     Clear
@@ -124,16 +124,16 @@
                         <table class="table align-middle">
                             <thead>
                                 <tr>
-                                    <th>Sheet Code</th>
+                                    <th>Code</th>
                                     <th>
                                         <a href="?sort=date&dir=${param.dir=='asc'?'desc':'asc'}">
-                                            Date
+                                            Ngày tạo
                                         </a>
                                     </th>
-                                    <th>Category</th>
-                                    <th>Created By</th>
-                                    <th>Status</th>
-                                    <th class="text-center">Action</th>
+                                    <th>Thể loại</th>
+                                    <th>Tạo ra bởi</th>
+                                    <th>Trạng Thái</th>
+                                    <th class="text-center">Hánh động</th>
                                 </tr>
                             </thead>
                             <tbody>
