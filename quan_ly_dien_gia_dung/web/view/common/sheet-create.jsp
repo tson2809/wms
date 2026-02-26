@@ -45,7 +45,7 @@
             <div class="container-fluid pt-4 px-4">
                 <div class="inventory-card p-4">
 
-                    <h5>Create Inventory Sheet</h5>
+                    <h5>Tạo Sheet</h5>
                     <form method="get" action="${pageContext.request.contextPath}/inventory-sheet-create">
                         <select name="categoryId"
                                 class="form-select w-auto"
@@ -70,10 +70,10 @@
                             <table class="table align-middle mt-3">
                                 <thead>
                                     <tr>
-                                        <th>Product</th>
+                                        <th>Sản phẩm</th>
                                         <th>SKU</th>
-                                        <th>System Qty</th>
-                                        <th>Counted Qty</th>
+                                        <th>Số lượng hệ thống</th>
+                                        <th>Số lượng thực tế</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -96,17 +96,15 @@
 
                             <button name="action" value="save"
                                     class="btn btn-secondary">
-                                Save Draft
+                                Lưu bản nháp
                             </button>
 
                             <button name="action" value="submit"
                                     class="btn btn-primary">
-                                Submit Sheet
+                                Nộp 
                             </button>
-
                         </form>
                     </c:if>
-
                 </div>
             </div>
         </div>

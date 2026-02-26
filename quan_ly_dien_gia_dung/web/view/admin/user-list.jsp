@@ -49,7 +49,7 @@
                                 <h5 class="mb-0">Members List</h5>
                                 <button class="btn add-member-btn">
                                     <a  href="${pageContext.request.contextPath}/user-add">
-                                        Add new member
+                                        Thêm người dùng
                                     </a>
                                 </button>
                             </div>
@@ -69,8 +69,7 @@
                                             <option value="">All roles</option>
                                             <option value="Admin" ${param.role == 'Admin' ? 'selected' : ''}>Admin</option>
                                             <option value="Manager" ${param.role == 'Manager' ? 'selected' : ''}>Manager</option>
-                                            <option value="Staff" ${param.role == 'Staff' ? 'selected' : ''}>Staff</option>
-                                            <option value="Staff" ${param.role == 'Sale' ? 'selected' : ''}>Sale</option>
+                                            <option value="Staff" ${param.role == 'Staff' ? 'selected' : ''}>Staff</option>                                          
                                         </select>
                                     </div>
 
@@ -84,10 +83,10 @@
                                     </div>
                                     <div class="col-md-2 d-flex gap-2">
                                         <button type="submit" class="btn btn-primary w-100">
-                                            Search
+                                            Tìm 
                                         </button>
                                         <button type="reset" class="btn btn-secondary w-100" onclick="window.location.href = 'user-list'">
-                                            Clear Filter
+                                            Clear
                                         </button>
                                     </div>
                                 </div>
@@ -97,17 +96,17 @@
                                     <tr>
                                         <th>
                                             <a href="user-list?sort=full_name&dir=${param.sort == 'full_name' && param.dir == 'asc' ? 'desc' : 'asc'}">
-                                                Full name
+                                                Tên
                                                 <c:if test="${param.sort == 'full_name'}">
                                                     ${param.dir == 'asc' ? '▲' : '▼'}
                                                 </c:if>
                                             </a>
                                         </th>
                                         <th>Email</th>
-                                        <th>Phone</th>
+                                        <th>SĐT</th>
                                         <th>
                                             <a href="user-list?sort=role&dir=${param.sort == 'role' && param.dir == 'asc' ? 'desc' : 'asc'}">
-                                                Role
+                                                Vai trò
                                                 <c:if test="${param.sort == 'role'}">
                                                     ${param.dir == 'asc' ? '▲' : '▼'}
                                                 </c:if>
@@ -115,13 +114,13 @@
                                         </th>
                                         <th>
                                             <a href="user-list?sort=status&dir=${param.sort == 'status' && param.dir == 'asc' ? 'desc' : 'asc'}">
-                                                Status
+                                                Trạng Thái
                                                 <c:if test="${param.sort == 'status'}">
                                                     ${param.dir == 'asc' ? '▲' : '▼'}
                                                 </c:if>
                                             </a>
                                         </th>
-                                        <th class="action-col">Action</th>
+                                        <th class="action-col">Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>

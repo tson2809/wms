@@ -35,29 +35,29 @@
                         <table class="table align-middle">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
+                                    <th>Sản phẩm</th>
                                     <th>SKU</th>
-                                    <th>System Qty</th>
-                                    <th>Counted Qty</th>
-                                    <th>Difference</th>
+                                    <th>Số lượng hệ thống</th>
+                                    <th>Số lượng thực tế</th>
+                                    <th>SL khác biệt</th>
                                 </tr>
                             </thead>
                             <tbody>
-                            <c:forEach items="${details}" var="d">
-                                <tr>
-                                    <td>${d.productName}</td>
-                                    <td>${d.sku}</td>
-                                    <td>${d.systemQuantity}</td>
-                                    <td>${d.countedQuantity}</td>
-                                    <td>${d.countedQuantity - d.systemQuantity}</td>
-                                </tr>
-                            </c:forEach>
+                                <c:forEach items="${details}" var="d">
+                                    <tr>
+                                        <td>${d.productName}</td>
+                                        <td>${d.sku}</td>
+                                        <td>${d.systemQuantity}</td>
+                                        <td>${d.countedQuantity}</td>
+                                        <td>${d.countedQuantity - d.systemQuantity}</td>
+                                    </tr>
+                                </c:forEach>
                             </tbody>
                         </table>
 
                         <a href="${pageContext.request.contextPath}/inventory-sheet-list"
                            class="btn btn-secondary">
-                            Back
+                            Quay Lại
                         </a>
 
                     </div>
