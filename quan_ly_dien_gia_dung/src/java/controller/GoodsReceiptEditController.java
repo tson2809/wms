@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controller.common;
+package controller;
 
 import dal.SupplierDAO;
 import dal.GoodsReceiptDAO;
@@ -55,11 +55,8 @@ public class GoodsReceiptEditController extends HttpServlet {
                 return;
             }
             
-            if (!"draft".equals(receipt.getStatus())) {
-                request.setAttribute("error", "Chỉ có thể sửa phiếu nhập ở trạng thái nháp");
-                response.sendRedirect(request.getContextPath() + "/goods-receipt-list");
-                return;
-            }
+            boolean readOnly = "completed".equals(receipt.getStatus()) || "cancelled".equals(receipt.getStatus());
+            request.setAttribute("readOnly", readOnly);
             
             List<GoodsReceiptDetail> details = goodsReceiptDAO.getGoodsReceiptDetails(receiptId);
             
@@ -105,6 +102,11 @@ public class GoodsReceiptEditController extends HttpServlet {
         }
         
         int receiptId = Integer.parseInt(receiptIdParam);
+        GoodsReceipt receipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+        if (receipt != null && ("completed".equals(receipt.getStatus()) || "cancelled".equals(receipt.getStatus()))) {
+            response.sendRedirect(request.getContextPath() + "/goods-receipt-edit?id=" + receiptId);
+            return;
+        }
         
         User currentUser = (User) request.getSession().getAttribute("user");
         if (currentUser == null) {
@@ -118,8 +120,9 @@ public class GoodsReceiptEditController extends HttpServlet {
             String status = request.getParameter("status");
             if (status == null || status.trim().isEmpty()) {
                 request.setAttribute("error", "Vui lòng chọn trạng thái");
-                GoodsReceipt receipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
-                request.setAttribute("receipt", receipt);
+                GoodsReceipt r = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+                request.setAttribute("receipt", r);
+                request.setAttribute("readOnly", r != null && ("completed".equals(r.getStatus()) || "cancelled".equals(r.getStatus())));
                 List<GoodsReceiptDetail> details = goodsReceiptDAO.getGoodsReceiptDetails(receiptId);
                 String productsJson = convertDetailsToJson(details);
                 request.setAttribute("productsJson", productsJson);
@@ -130,13 +133,15 @@ public class GoodsReceiptEditController extends HttpServlet {
                 return;
             }
             
-            boolean success = goodsReceiptDAO.updateGoodsReceiptStatus(receiptId, status);
+            Integer approvedBy = "completed".equals(status) ? currentUser.getUserId() : null;
+            boolean success = goodsReceiptDAO.updateGoodsReceiptStatus(receiptId, status, approvedBy);
             if (success) {
                 response.sendRedirect(request.getContextPath() + "/goods-receipt-list");
             } else {
                 request.setAttribute("error", "Có lỗi xảy ra khi cập nhật trạng thái");
-                GoodsReceipt receipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
-                request.setAttribute("receipt", receipt);
+                GoodsReceipt r = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+                request.setAttribute("receipt", r);
+                request.setAttribute("readOnly", r != null && ("completed".equals(r.getStatus()) || "cancelled".equals(r.getStatus())));
                 List<GoodsReceiptDetail> details = goodsReceiptDAO.getGoodsReceiptDetails(receiptId);
                 String productsJson = convertDetailsToJson(details);
                 request.setAttribute("productsJson", productsJson);
@@ -188,8 +193,9 @@ public class GoodsReceiptEditController extends HttpServlet {
             request.setAttribute("receiptId", receiptId);
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             request.setAttribute("suppliers", suppliers);
-            GoodsReceipt receipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
-            request.setAttribute("receipt", receipt);
+            GoodsReceipt r = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+            request.setAttribute("receipt", r);
+            request.setAttribute("readOnly", r != null && ("completed".equals(r.getStatus()) || "cancelled".equals(r.getStatus())));
             request.setAttribute("isEdit", true);
             request.getRequestDispatcher("/view/common/goods-receipt-edit.jsp").forward(request, response);
             return;
@@ -211,8 +217,9 @@ public class GoodsReceiptEditController extends HttpServlet {
                 request.setAttribute("receiptId", receiptId);
                 List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
                 request.setAttribute("suppliers", suppliers);
-                GoodsReceipt receipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
-                request.setAttribute("receipt", receipt);
+                GoodsReceipt r = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+                request.setAttribute("receipt", r);
+                request.setAttribute("readOnly", r != null && ("completed".equals(r.getStatus()) || "cancelled".equals(r.getStatus())));
                 request.setAttribute("isEdit", true);
                 request.getRequestDispatcher("/view/common/goods-receipt-edit.jsp").forward(request, response);
             }
@@ -227,8 +234,9 @@ public class GoodsReceiptEditController extends HttpServlet {
             request.setAttribute("receiptId", receiptId);
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             request.setAttribute("suppliers", suppliers);
-            GoodsReceipt receipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
-            request.setAttribute("receipt", receipt);
+            GoodsReceipt r = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+            request.setAttribute("receipt", r);
+            request.setAttribute("readOnly", r != null && ("completed".equals(r.getStatus()) || "cancelled".equals(r.getStatus())));
             request.setAttribute("isEdit", true);
             request.getRequestDispatcher("/view/common/goods-receipt-edit.jsp").forward(request, response);
         }

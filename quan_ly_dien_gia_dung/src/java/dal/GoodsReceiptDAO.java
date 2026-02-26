@@ -158,16 +158,94 @@ public class GoodsReceiptDAO extends DBContext {
         return gr;
     }
 
-    public boolean updateGoodsReceiptStatus(int receiptId, String status) {
-        String sql = "UPDATE goods_receipts SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE receipt_id = ?";
-        try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
-            pre.setString(1, status);
-            pre.setInt(2, receiptId);
-            return pre.executeUpdate() > 0;
+    /**
+     * Cập nhật trạng thái phiếu nhập. Khi status = 'completed' thì mới tăng số lượng tồn kho và ghi inventory_transactions.
+     * @param approvedBy User duyệt (dùng khi status = 'completed'), có thể null khi hủy.
+     */
+    public boolean updateGoodsReceiptStatus(int receiptId, String status, Integer approvedBy) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            GoodsReceipt receipt = getGoodsReceiptById(receiptId);
+            if (receipt == null) {
+                return false;
+            }
+
+            if ("completed".equals(status)) {
+                if ("completed".equals(receipt.getStatus())) {
+                    conn.rollback();
+                    return true; // Đã duyệt rồi, không áp dụng lại
+                }
+                applyReceiptToInventory(conn, receiptId, approvedBy != null ? approvedBy : 0);
+            }
+
+            String sql = "UPDATE goods_receipts SET status = ?, approved_by = ?, updated_at = CURRENT_TIMESTAMP WHERE receipt_id = ?";
+            try (PreparedStatement pre = conn.prepareStatement(sql)) {
+                pre.setString(1, status);
+                pre.setObject(2, "completed".equals(status) ? approvedBy : null);
+                pre.setInt(3, receiptId);
+                pre.executeUpdate();
+            }
+            conn.commit();
+            return true;
         } catch (SQLException ex) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException e) {
+                    Logger.getLogger(GoodsReceiptDAO.class.getName()).log(Level.SEVERE, null, e);
+                }
+            }
             Logger.getLogger(GoodsReceiptDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ex) {
+                    Logger.getLogger(GoodsReceiptDAO.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
-        return false;
+    }
+
+    /** Tăng tồn kho theo chi tiết phiếu nhập và ghi inventory_transactions. Gọi khi duyệt phiếu (completed). */
+    private void applyReceiptToInventory(Connection conn, int receiptId, int createdBy) throws SQLException {
+        List<model.GoodsReceiptDetail> details = getGoodsReceiptDetails(receiptId);
+        String sqlQty = "SELECT quantity FROM product_variants WHERE variant_id = ?";
+        String sqlUpdateQty = "UPDATE product_variants SET quantity = quantity + ? WHERE variant_id = ?";
+        String sqlTrx = """
+            INSERT INTO inventory_transactions
+            (variant_id, transaction_type, reference_type, reference_id, quantity_change, quantity_before, quantity_after, created_by)
+            VALUES (?, 'import', 'goods_receipt', ?, ?, ?, ?, ?)
+            """;
+        try (PreparedStatement psQty = conn.prepareStatement(sqlQty);
+             PreparedStatement psUpdate = conn.prepareStatement(sqlUpdateQty);
+             PreparedStatement psTrx = conn.prepareStatement(sqlTrx)) {
+            for (model.GoodsReceiptDetail d : details) {
+                int qtyChange = d.getQuantity();
+                int qtyBefore = 0;
+                psQty.setInt(1, d.getVariantId());
+                try (ResultSet rs = psQty.executeQuery()) {
+                    if (rs.next()) {
+                        qtyBefore = rs.getInt("quantity");
+                    }
+                }
+                psUpdate.setInt(1, qtyChange);
+                psUpdate.setInt(2, d.getVariantId());
+                psUpdate.executeUpdate();
+                int qtyAfter = qtyBefore + qtyChange;
+                psTrx.setInt(1, d.getVariantId());
+                psTrx.setInt(2, receiptId);
+                psTrx.setInt(3, qtyChange);
+                psTrx.setInt(4, qtyBefore);
+                psTrx.setInt(5, qtyAfter);
+                psTrx.setInt(6, createdBy);
+                psTrx.executeUpdate();
+            }
+        }
     }
     
     public boolean receiptCodeExists(String receiptCode) {
@@ -256,15 +334,9 @@ public class GoodsReceiptDAO extends DBContext {
                               (variant_id, receipt_detail_id, serial_number, status)
                               VALUES (?, ?, ?, 'in_stock')
                               """;
-            String sqlUpdateQty = """
-                                 UPDATE product_variants 
-                                 SET quantity = quantity + ? 
-                                 WHERE variant_id = ?
-                                 """;
+            // Số lượng chỉ tăng khi phiếu được duyệt (completed), không tăng lúc tạo draft
             
-            try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail, PreparedStatement.RETURN_GENERATED_KEYS);
-                 PreparedStatement psUpdateQty = conn.prepareStatement(sqlUpdateQty)) {
-                
+            try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 for (model.GoodsReceiptDetail detail : details) {
                     psDetail.setInt(1, receiptId);
                     psDetail.setInt(2, detail.getVariantId());
@@ -292,10 +364,6 @@ public class GoodsReceiptDAO extends DBContext {
                             }
                         }
                     }
-                    
-                    psUpdateQty.setInt(1, detail.getQuantity());
-                    psUpdateQty.setInt(2, detail.getVariantId());
-                    psUpdateQty.executeUpdate();
                 }
             }
             
