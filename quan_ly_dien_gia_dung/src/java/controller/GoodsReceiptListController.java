@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controller.common;
+package controller;
 
 import dal.GoodsReceiptDAO;
 import java.io.IOException;
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import model.GoodsReceipt;
+import model.User;
 
 /**
  *
@@ -37,7 +38,9 @@ public class GoodsReceiptListController extends HttpServlet {
         String statusParam = request.getParameter("status");
         if (idParam != null && statusParam != null) {
             try {
-                goodsReceiptDAO.updateGoodsReceiptStatus(Integer.parseInt(idParam), statusParam);
+                User user = (User) request.getSession().getAttribute("user");
+                Integer approvedBy = "completed".equals(statusParam) && user != null ? user.getUserId() : null;
+                goodsReceiptDAO.updateGoodsReceiptStatus(Integer.parseInt(idParam), statusParam, approvedBy);
             } catch (NumberFormatException e) {
             }
             response.sendRedirect(request.getContextPath() + "/goods-receipt-list");

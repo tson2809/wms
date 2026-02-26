@@ -199,10 +199,9 @@
             <div
                 class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
                 <a href="${pageContext.request.contextPath}/profile"
-                   class="dropdown-item">My Profile</a>
-                <a href="#" class="dropdown-item">Settings</a>
+                   class="dropdown-item">Hồ sơ</a>
                 <a href="${pageContext.request.contextPath}/logout"
-                   class="dropdown-item">Log Out</a>
+                   class="dropdown-item">Đăng xuất</a>
             </div>
         </div>
     </div>

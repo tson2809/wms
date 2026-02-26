@@ -234,6 +234,10 @@
                                                                 </a>
                                                             </c:when>
                                                             <c:when test="${gr.status == 'completed' || gr.status == 'cancelled'}">
+                                                                <a href="${pageContext.request.contextPath}/goods-receipt-edit?id=${gr.receiptId}"
+                                                                   class="action-btn action-view" title="Xem chi tiết">
+                                                                    <iconify-icon icon="lucide:eye"></iconify-icon>
+                                                                </a>
                                                             </c:when>
                                                         </c:choose>
                                                     </div>
