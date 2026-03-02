@@ -614,8 +614,6 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
-<<<<<<< HEAD
-    
     public boolean isSkuExistsExcludingProduct(String sku, int productId) {
         if (sku == null || sku.trim().isEmpty())
             return false;
@@ -626,14 +624,20 @@ public class ProductDAO extends DBContext {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next())
                     return rs.getInt(1) > 0;
-=======
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public List<ProductVariant> getAllActiveProductVariants() {
         List<ProductVariant> list = new ArrayList<>();
-        String sql = "SELECT pv.*, p.product_name FROM product_variants pv " +
-                    "INNER JOIN products p ON pv.product_id = p.product_id " +
-                    "WHERE pv.status = 'active' AND p.status = 'active' " +
-                    "ORDER BY p.product_name, pv.sku";
-        
+        String sql = "SELECT pv.*, p.product_name FROM product_variants pv "
+                + "INNER JOIN products p ON pv.product_id = p.product_id "
+                + "WHERE pv.status = 'active' AND p.status = 'active' "
+                + "ORDER BY p.product_name, pv.sku";
+
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql);
              ResultSet rs = pre.executeQuery()) {
             while (rs.next()) {
@@ -649,13 +653,12 @@ public class ProductDAO extends DBContext {
                 pv.setStatus(rs.getString("status"));
                 pv.setCreatedAt(rs.getTimestamp("created_at"));
                 list.add(pv);
->>>>>>> add-purchase-order
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-<<<<<<< HEAD
-        return false;
+
+        return list;
     }
 
     
@@ -913,8 +916,3 @@ public class ProductDAO extends DBContext {
     }
 
 }
-=======
-        return list;
-    }
-}
->>>>>>> add-purchase-order

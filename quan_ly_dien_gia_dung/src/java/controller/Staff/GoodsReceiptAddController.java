@@ -4,6 +4,8 @@
  */
 package controller.Staff;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import dal.SupplierDAO;
 import dal.GoodsReceiptDAO;
 import java.io.IOException;
@@ -12,12 +14,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import model.GoodsReceiptDetail;
 import model.Supplier;
 import model.User;
+import modelDTO.GoodsReceiptProductDTO;
 
 /**
  *
@@ -27,6 +31,7 @@ import model.User;
 public class GoodsReceiptAddController extends HttpServlet {
     private SupplierDAO supplierDAO = new SupplierDAO();
     private GoodsReceiptDAO goodsReceiptDAO = new GoodsReceiptDAO();
+    private static final Gson gson = new Gson();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -138,81 +143,35 @@ public class GoodsReceiptAddController extends HttpServlet {
     
     private List<GoodsReceiptDetail> parseProductsJson(String json) {
         List<GoodsReceiptDetail> details = new ArrayList<>();
-        
-        // Remove [ ] brackets
-        json = json.trim();
-        if (json.startsWith("[")) json = json.substring(1);
-        if (json.endsWith("]")) json = json.substring(0, json.length() - 1);
-        
-        // Split by },{ pattern
-        String[] products = json.split("\\},\\{");
-        
-        for (String productStr : products) {
-            productStr = productStr.replace("{", "").replace("}", "");
-            
+        if (json == null || json.trim().isEmpty()) {
+            return details;
+        }
+
+        Type listType = new TypeToken<List<GoodsReceiptProductDTO>>() {}.getType();
+        List<GoodsReceiptProductDTO> items = gson.fromJson(json, listType);
+        if (items == null) {
+            return details;
+        }
+
+        for (GoodsReceiptProductDTO item : items) {
+            if (item == null) continue;
+            if (item.getVariantId() <= 0 || item.getQuantity() <= 0 || item.getPrice() == null) continue;
+
             GoodsReceiptDetail detail = new GoodsReceiptDetail();
-            List<String> serials = new ArrayList<>();
-            
-            // FIRST: Extract serials array separately (to avoid split issues)
-            int serialsStartIdx = productStr.indexOf("\"serials\":");
-            if (serialsStartIdx != -1) {
-                int arrayStartIdx = productStr.indexOf("[", serialsStartIdx);
-                int arrayEndIdx = productStr.indexOf("]", arrayStartIdx);
-                
-                if (arrayStartIdx != -1 && arrayEndIdx != -1) {
-                    String serialsArrayStr = productStr.substring(arrayStartIdx + 1, arrayEndIdx);
-                    
-                    if (!serialsArrayStr.trim().isEmpty()) {
-                        String[] serialArray = serialsArrayStr.split(",");
-                        
-                        for (String serial : serialArray) {
-                            serial = serial.trim().replace("\"", "");
-                            if (!serial.isEmpty()) {
-                                serials.add(serial);
-                            }
-                        }
-                    }
-                    
-                    // Remove serials array from productStr to avoid parsing issues
-                    productStr = productStr.substring(0, serialsStartIdx) + productStr.substring(arrayEndIdx + 1);
-                }
+            detail.setVariantId(item.getVariantId());
+            detail.setQuantity(item.getQuantity());
+            detail.setUnitPrice(item.getPrice());
+
+            BigDecimal subtotal = item.getPrice().multiply(new BigDecimal(item.getQuantity()));
+            detail.setTotalAmount(subtotal);
+
+            if (item.getSerials() != null && !item.getSerials().isEmpty()) {
+                detail.setSerials(new ArrayList<>(item.getSerials()));
             }
-            
-            // SECOND: Parse other fields
-            String[] fields = productStr.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-            
-            for (String field : fields) {
-                String[] keyValue = field.split(":", 2);
-                if (keyValue.length == 2) {
-                    String key = keyValue[0].trim().replace("\"", "");
-                    String value = keyValue[1].trim();
-                    
-                    switch (key) {
-                        case "variantId":
-                            detail.setVariantId(Integer.parseInt(value));
-                            break;
-                        case "quantity":
-                            detail.setQuantity(Integer.parseInt(value));
-                            break;
-                        case "price":
-                            detail.setUnitPrice(new BigDecimal(value));
-                            break;
-                    }
-                }
-            }
-            
-            // SECOND PASS: Calculate totalAmount after all fields are set
-            if (detail.getUnitPrice() != null && detail.getQuantity() > 0) {
-                BigDecimal subtotal = detail.getUnitPrice().multiply(new BigDecimal(detail.getQuantity()));
-                detail.setTotalAmount(subtotal);
-            } else {
-                detail.setTotalAmount(BigDecimal.ZERO);
-            }
-            
-            detail.setSerials(serials);
+
             details.add(detail);
         }
-        
+
         return details;
     }
     

@@ -200,7 +200,7 @@
 
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="${pageContext.request.contextPath}/js/main.js"></script>
+        <script src="${pageContext.request.contextPath}/js/main.js?v=1"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
         <script>
             window.GOODS_RECEIPT_ADD = {
@@ -211,7 +211,7 @@
         <c:if test="${not empty productsJson}">
             <div id="goods-receipt-add-products-json" style="display:none"><c:out value="${fn:replace(productsJson, '</', '&lt;/')}" escapeXml="false"/></div>
         </c:if>
-        <script src="${pageContext.request.contextPath}/js/goods-receipt-add.js"></script>
+        <script src="${pageContext.request.contextPath}/js/goods-receipt-add.js?v=2"></script>
         
         <!-- Modal for Serial Numbers -->
         <div class="modal fade" id="serialModal" tabindex="-1">
