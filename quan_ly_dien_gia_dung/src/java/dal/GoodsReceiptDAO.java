@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.GoodsReceipt;
-import model.Product;
 import model.Supplier;
 import model.User;
 
@@ -100,7 +99,7 @@ public class GoodsReceiptDAO extends DBContext {
         return null;
     }
     
-    private GoodsReceipt extractGoodsReceipt(ResultSet rs) throws SQLException {
+        private GoodsReceipt extractGoodsReceipt(ResultSet rs) throws SQLException {
         GoodsReceipt gr = new GoodsReceipt();
         gr.setReceiptId(rs.getInt("receipt_id"));
         gr.setReceiptCode(rs.getString("receipt_code"));

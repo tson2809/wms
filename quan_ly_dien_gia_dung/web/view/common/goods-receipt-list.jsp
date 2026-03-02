@@ -195,6 +195,7 @@
                                             <th style="width: 140px;" class="text-end">Tổng tiền</th>
                                             <th style="width: 120px;">Trạng thái</th>
                                             <th style="width: 150px;">Người tạo</th>
+                                            <th style="width: 150px;">Người Duyệt</th>
                                             <th class="action-col">Thao tác</th>
                                         </tr>
                                     </thead>
@@ -224,6 +225,7 @@
                                                     </c:choose>
                                                 </td>
                                                 <td>${gr.createdByUser != null ? gr.createdByUser.fullName : '-'}</td>
+                                                <td>${gr.approvedByUser != null ? gr.approvedByUser.fullName : '-'}</td>
                                                 <td class="action-col">
                                                     <div class="action-btn-group">
                                                         <c:choose>
