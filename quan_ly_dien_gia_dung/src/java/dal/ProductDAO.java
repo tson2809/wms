@@ -774,6 +774,26 @@ public class ProductDAO extends DBContext {
         return dto;
     }
 
+   
+    public boolean hasParticipatedInTransactions(int productId) {
+        String sql = "SELECT (EXISTS (SELECT 1 FROM goods_receipt_details grd "
+                + "INNER JOIN product_variants pv ON grd.variant_id = pv.variant_id WHERE pv.product_id = ?) "
+                + "OR EXISTS (SELECT 1 FROM return_order_details rod "
+                + "INNER JOIN product_variants pv ON rod.variant_id = pv.variant_id WHERE pv.product_id = ?)) AS has_tx";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            ps.setInt(2, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean("has_tx");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /**
      * Cập nhật sản phẩm và đồng bộ variants/attributes từ DTO (chỉnh sửa).
      */
