@@ -62,7 +62,7 @@
                                                 <!-- Product Image -->
                                                 <div class="col-md-2">
                                                     <label class="form-label">Ảnh sản phẩm</label>
-                                                    <div class="image-upload-box"
+                                                    <div class="image-upload-box" id="imageUploadBox"
                                                         onclick="document.getElementById('productImage').click()">
                                                         <i class="fa fa-camera"></i>
                                                     </div>
@@ -541,15 +541,17 @@
                         });
                     });
 
-                    // Image preview
+                    // Image preview - giống product_edit
                     document.getElementById('productImage').addEventListener('change', function (e) {
-                        const file = e.target.files[0];
+                        var file = e.target.files[0];
                         if (file) {
-                            const reader = new FileReader();
-                            reader.onload = function (e) {
-                                const uploadBox = document.querySelector('.image-upload-box');
-                                uploadBox.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;">`;
-                            }
+                            var reader = new FileReader();
+                            reader.onload = function (ev) {
+                                var uploadBox = document.getElementById('imageUploadBox');
+                                if (uploadBox) {
+                                    uploadBox.innerHTML = '<img src="' + ev.target.result + '" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" alt="">';
+                                }
+                            };
                             reader.readAsDataURL(file);
                         }
                     });
