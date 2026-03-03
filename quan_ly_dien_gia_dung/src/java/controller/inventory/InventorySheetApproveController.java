@@ -94,7 +94,7 @@ public class InventorySheetApproveController extends HttpServlet {
             return;
         }
         if ("approve".equals(action)) {
-            dao.updateStatus(sheetId, "approved");
+            dao.approveSheet(sheetId, user.getUserId());
         } else if ("reject".equals(action)) {
             dao.updateStatus(sheetId, "rejected");
         }

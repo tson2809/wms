@@ -6,6 +6,7 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html>
 <html>
@@ -174,8 +175,12 @@
                                                 <td>${p.variantName}</td>
                                                 <td>${p.categoryName}</td>
                                                 <td>${p.brandName}</td>
-                                                <td>${p.costPrice}</td>
-                                                <td>${p.salePrice}</td>
+                                                <td>
+                                                    <fmt:formatNumber value="${p.costPrice}" type="number" groupingUsed="true"/>
+                                                </td>
+                                                <td>
+                                                    <fmt:formatNumber value="${p.salePrice}" type="number" groupingUsed="true"/>
+                                                </td>
                                                 <td>${p.totalQuantity}</td>
                                                 <td>
                                                     <c:choose>
