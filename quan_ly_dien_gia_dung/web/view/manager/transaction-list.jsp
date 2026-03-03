@@ -171,11 +171,11 @@
                                                 ${t.quantityChange}
                                             </td>
                                             <td>${t.referenceType}-${t.referenceId}</td>
-                                            <td>${t.createdBy}</td>                                          
-                                            <td>${t.notes}</td>
+                                            <td>${t.createdBy}</td>  
                                             <td>
                                                 <fmt:formatDate value="${t.transactionDate}" pattern="dd/MM/yyyy"/>
                                             </td>
+                                            <td>${t.notes}</td>                                          
                                             <td class="text-center">
                                                 <a href="transaction-detail?id=${t.transactionId}"
                                                    class="action-btn action-view"
