@@ -47,6 +47,11 @@
                 <i class="fa fa-clipboard-list me-2"></i>
                 Lịch sử biến động kho
             </a>
+            <a href="${pageContext.request.contextPath}/inventory-list"
+               class="nav-item nav-link ${activePage == 'inventoryList' ? 'active' : ''}">
+                <i class="fa fa-boxes me-2"></i>
+                Tồn kho
+            </a>
             <a href="${pageContext.request.contextPath}/inventory-sheet-list"
                class="nav-item nav-link ${activePage == 'sheetList' ? 'active' : ''}">
                 <i class="fa fa-clipboard-list me-2"></i>

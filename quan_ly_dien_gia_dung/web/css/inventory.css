@@ -257,3 +257,22 @@ body {
 .badge-out {
     background: #dc3545;
 }
+
+.selected-filters{
+    margin:10px 0;
+}
+
+.filter-tag{
+    display:inline-block;
+    background:#eef3ff;
+    border-radius:20px;
+    padding:4px 10px;
+    margin:4px;
+    font-size:13px;
+}
+
+.filter-tag a{
+    margin-left:5px;
+    color:red;
+    text-decoration:none;
+}
