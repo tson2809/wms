@@ -7,6 +7,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@page import="java.util.*"%>
 
 <!DOCTYPE html>
 <html>
@@ -63,7 +65,7 @@
                                     <h5 class="mb-0">Tồn kho</h5>
                                 </div>
                                 <div class="inventory-toolbar">
-                                    <a href="#" class="btn btn-primary btn-sm">
+                                    <a href="${pageContext.request.contextPath}/goods-receipt-list" class="btn btn-primary btn-sm">
                                         + Nhập kho
                                     </a>
                                     <a href="#" class="btn btn-warning btn-sm">
@@ -72,7 +74,7 @@
                                     <a href="${pageContext.request.contextPath}/inventory-sheet-list" class="btn btn-secondary btn-sm">
                                         Kiểm tra kho
                                     </a>
-                                    <a href="${pageContext.request.contextPath}/export-inventory?keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}"
+                                    <a href="${pageContext.request.contextPath}/export-inventory?keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}${queryParams}"
                                        class="btn btn-success btn-sm">
                                         Xuất Excel
                                     </a>
@@ -105,6 +107,26 @@
                                             </select>
                                         </div>
 
+                                        <c:forEach items="${attributeFilters}" var="f">
+                                            <div class="col-md-2">
+                                                <label>${f.key}</label>
+
+                                                <select class="form-select" name="attr_${f.key}">
+                                                    <option value="">All</option>
+
+                                                    <c:forEach items="${f.value}" var="v">
+                                                        <option value="${v}"
+                                                                <c:if test="${param['attr_'.concat(f.key)] eq v}">
+                                                                    selected
+                                                                </c:if>>
+                                                            ${v}
+                                                        </option>
+                                                    </c:forEach>
+
+                                                </select>
+                                            </div>
+                                        </c:forEach>
+
                                         <div class="col-md-2">
                                             <label>Trạng thái</label>
                                             <select class="form-select" name="status">
@@ -121,6 +143,34 @@
                                                href="${pageContext.request.contextPath}/inventory-list">
                                                 Reset
                                             </a>
+                                        </div>
+                                    </div>
+                                    <div class="selected-filters">
+
+                                        <div class="selected-filters">
+                                            <c:forEach var="p" items="${paramValues}">
+                                                <c:if test="${fn:startsWith(p.key,'attr_') && not empty p.value[0]}">
+
+                                                    <c:url var="removeUrl" value="/inventory-list">
+
+                                                        <c:forEach var="q" items="${paramValues}">
+                                                            <c:if test="${q.key != p.key}">
+                                                                <c:forEach var="v" items="${q.value}">
+                                                                    <c:param name="${q.key}" value="${v}" />
+                                                                </c:forEach>
+                                                            </c:if>
+                                                        </c:forEach>
+
+                                                    </c:url>
+
+                                                    <span class="filter-tag">
+                                                        ${fn:substringAfter(p.key,'attr_')} : ${p.value[0]}
+                                                        <a href="${removeUrl}">✕</a>
+                                                    </span>
+
+                                                </c:if>
+                                            </c:forEach>
+
                                         </div>
                                     </div>
                                 </form>
@@ -160,64 +210,98 @@
                                             <th>Giá</th>
                                             <th>Số lượng</th>
                                             <th>Trạng thái</th>
+                                            <th>Hành động</th>
                                         </tr>
                                     </thead>
 
                                     <tbody>
+                                        ${list.size()}
                                         <c:forEach items="${list}" var="p">
                                             <tr>
+
                                                 <td>
-                                                    <img width="40"
-                                                         src="${empty p.image ? pageContext.request.contextPath.concat('/img/no-image.png') : p.image}">
+                                                    <c:choose>
+                                                        <c:when test="${empty p.image}">
+                                                            <img width="40" src="${pageContext.request.contextPath}/img/no-image.png">
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <img width="40" src="${p.image}">
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </td>
+
                                                 <td>${p.sku}</td>
                                                 <td>${p.productName}</td>
                                                 <td>${p.variantName}</td>
                                                 <td>${p.categoryName}</td>
                                                 <td>${p.brandName}</td>
+
                                                 <td>
                                                     <fmt:formatNumber value="${p.costPrice}" type="number" groupingUsed="true"/>
                                                 </td>
+
                                                 <td>
                                                     <fmt:formatNumber value="${p.salePrice}" type="number" groupingUsed="true"/>
                                                 </td>
+
                                                 <td>${p.totalQuantity}</td>
+
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${p.status == 'Out of Stock'}">
                                                             <span class="badge bg-danger">Out</span>
                                                         </c:when>
+
                                                         <c:when test="${p.status == 'Low'}">
                                                             <span class="badge bg-warning text-dark">Low</span>
                                                         </c:when>
+
                                                         <c:otherwise>
                                                             <span class="badge bg-success">In</span>
                                                         </c:otherwise>
+
                                                     </c:choose>
                                                 </td>
-
+                                                <td class="text-center">
+                                                    <a href="${pageContext.request.contextPath}/inventory-detail?variantId=${p.variantId}"
+                                                       class="action-btn action-view"
+                                                       title="View">
+                                                        <iconify-icon icon="majesticons:eye-line"></iconify-icon>
+                                                    </a>
+                                                </td>
                                             </tr>
-                                        </c:forEach>
+                                        </c:forEach>                                   
                                     </tbody>
                                 </table>
 
                                 <div class="pagination-wrapper">
                                     <div class="pagination-controls">
-
+                                        <c:set var="queryParams" value="" />
+                                        <c:forEach var="p" items="${paramValues}">
+                                            <c:if test="${p.key ne 'page'}">
+                                                <c:forEach var="v" items="${p.value}">
+                                                    <c:set var="queryParams"
+                                                           value="${queryParams}&${p.key}=${v}" />
+                                                </c:forEach>
+                                            </c:if>
+                                        </c:forEach>
                                         <a class="page-btn ${currentPage == 1 ? 'disabled' : ''}"
-                                           href="${pageContext.request.contextPath}/inventory-list?page=${currentPage - 1}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}&sort=${param.sort}&dir=${param.dir}">
+                                           href="${pageContext.request.contextPath}/inventory-list?page=${currentPage - 1}${queryParams}">
                                             ‹
                                         </a>
                                         <span class="page-jump-form">
                                             Page
                                             <form action="${pageContext.request.contextPath}/inventory-list"
                                                   method="get"
-                                                  style="display:inline;">      
-                                                <input type="hidden" name="keyword" value="${param.keyword}">
-                                                <input type="hidden" name="categoryId" value="${param.categoryId}">
-                                                <input type="hidden" name="status" value="${param.status}">
-                                                <input type="hidden" name="sort" value="${param.sort}">
-                                                <input type="hidden" name="dir" value="${param.dir}">
+                                                  style="display:inline;">
+                                                <c:forEach var="p" items="${paramValues}">
+                                                    <c:if test="${p.key ne 'page'}">
+                                                        <c:forEach var="v" items="${p.value}">
+                                                            <input type="hidden" name="${p.key}" value="${v}">
+                                                        </c:forEach>
+                                                    </c:if>
+                                                </c:forEach>
+
                                                 <input type="number"
                                                        name="page"
                                                        min="1"
@@ -225,16 +309,14 @@
                                                        value="${currentPage}"
                                                        style="width:60px;"
                                                        onchange="this.form.submit()">
+
                                             </form>
                                             of ${totalPages}
                                         </span>
-
-
                                         <a class="page-btn ${currentPage == totalPages ? 'disabled' : ''}"
-                                           href="${pageContext.request.contextPath}/inventory-list?page=${currentPage + 1}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}&sort=${param.sort}&dir=${param.dir}">
+                                           href="${pageContext.request.contextPath}/inventory-list?page=${currentPage + 1}${queryParams}">
                                             ›
                                         </a>
-
                                     </div>
                                 </div>
                             </div>

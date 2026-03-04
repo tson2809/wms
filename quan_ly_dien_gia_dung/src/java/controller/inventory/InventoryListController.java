@@ -13,6 +13,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import model.ProductInventory;
@@ -70,15 +72,12 @@ public class InventoryListController extends HttpServlet {
         String status = request.getParameter("status");
         String sort = request.getParameter("sort");
         String dir = request.getParameter("dir");
-
         int page = 1;
         int pageSize = 10;
-
         try {
             page = Integer.parseInt(request.getParameter("page"));
         } catch (Exception ignored) {
         }
-
         Integer categoryId = null;
         try {
             if (categoryParam != null && !categoryParam.isEmpty()) {
@@ -86,19 +85,27 @@ public class InventoryListController extends HttpServlet {
             }
         } catch (Exception ignored) {
         }
-
-        List<ProductInventory> list
-                = productDAO.getInventoryList(keyword, categoryId, status,
-                        page, pageSize, sort, dir);
-
+        Map<String, String> filters = new LinkedHashMap<>();
+        Enumeration<String> params = request.getParameterNames();
+        while (params.hasMoreElements()) {
+            String name = params.nextElement();
+            if (name.startsWith("attr_")) {
+                String value = request.getParameter(name);
+                if (value != null && !value.isBlank()) {
+                    filters.put(name.substring(5), value);
+                }
+            }
+        }
+        List<ProductInventory> list = productDAO.getInventoryList(keyword, categoryId, status, filters, page, pageSize, sort, dir);
         Map<String, Integer> sum = productDAO.getInventorySummary();
-        int totalRecords = productDAO.countInventory(keyword, categoryId,status);
+        int totalRecords = productDAO.countInventory(keyword, categoryId, status, filters);
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
         request.setAttribute("list", list);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("sum", sum);
         request.setAttribute("categories", categoryDAO.getAllCategories());
+        request.setAttribute("attributeFilters", productDAO.getVariantFilters());
         request.setAttribute("activePage", "inventoryList");
         request.getRequestDispatcher("/view/common/inventory-list.jsp").forward(request, response);
     }
