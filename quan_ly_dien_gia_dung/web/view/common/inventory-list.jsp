@@ -106,6 +106,16 @@
                                                 </c:forEach>
                                             </select>
                                         </div>
+                                        
+                                        <div class="col-md-2">
+                                            <label>Trạng thái</label>
+                                            <select class="form-select" name="status">
+                                                <option value="">All</option>
+                                                <option value="In Stock" ${param.status=='In Stock'?'selected':''}>In stock</option>
+                                                <option value="Low" ${param.status=='Low'?'selected':''}>Low stock</option>
+                                                <option value="Out of Stock" ${param.status=='Out of Stock'?'selected':''}>Out of stock</option>
+                                            </select>
+                                        </div>
 
                                         <c:forEach items="${attributeFilters}" var="f">
                                             <div class="col-md-2">
@@ -126,17 +136,6 @@
                                                 </select>
                                             </div>
                                         </c:forEach>
-
-                                        <div class="col-md-2">
-                                            <label>Trạng thái</label>
-                                            <select class="form-select" name="status">
-                                                <option value="">All</option>
-                                                <option value="In Stock" ${param.status=='In Stock'?'selected':''}>In stock</option>
-                                                <option value="Low" ${param.status=='Low'?'selected':''}>Low stock</option>
-                                                <option value="Out of Stock" ${param.status=='Out of Stock'?'selected':''}>Out of stock</option>
-                                            </select>
-                                        </div>
-
                                         <div class="col-md-3">
                                             <button class="btn btn-primary">Tìm</button>
                                             <a class="btn btn-outline-secondary"
@@ -203,7 +202,7 @@
                                             <th>Ảnh</th>
                                             <th>SKU</th>
                                             <th>Sản phẩm</th>
-                                            <th>Biến thể</th>
+                                            <th>Thuộc tính</th>
                                             <th>Thể loại</th>
                                             <th>Hãng</th>
                                             <th>Chi phí</th>
