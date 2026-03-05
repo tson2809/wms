@@ -1110,9 +1110,7 @@ public class ProductDAO extends DBContext {
     }
 
     public Map<String, Integer> getSerialSummary(int variantId) {
-
         Map<String, Integer> map = new HashMap<>();
-
         String sql = """
         SELECT 
             COUNT(*) total,
@@ -1122,26 +1120,43 @@ public class ProductDAO extends DBContext {
         FROM product_serials
         WHERE variant_id = ?
     """;
-
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, variantId);
-
             ResultSet rs = ps.executeQuery();
-
             if (rs.next()) {
-
                 map.put("total", rs.getInt("total"));
                 map.put("inStock", rs.getInt("inStock"));
                 map.put("sold", rs.getInt("sold"));
                 map.put("defective", rs.getInt("defective"));
-
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return map;
+    }
+
+    public List<String[]> getSerialList(int variantId) {
+        List<String[]> list = new ArrayList<>();
+        String sql = """
+        SELECT serial_number, status, created_at
+        FROM product_serials
+        WHERE variant_id = ?
+        ORDER BY created_at DESC
+    """;
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String[] s = new String[3];
+                s[0] = rs.getString("serial_number");
+                s[1] = rs.getString("status");
+                s[2] = rs.getString("created_at");
+
+                list.add(s);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
