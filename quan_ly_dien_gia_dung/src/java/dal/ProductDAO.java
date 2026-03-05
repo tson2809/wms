@@ -775,6 +775,37 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
+    public List<ProductVariant> getAllActiveProductVariants() {
+        List<ProductVariant> list = new ArrayList<>();
+        String sql = "SELECT pv.*, p.product_name FROM product_variants pv "
+                + "INNER JOIN products p ON pv.product_id = p.product_id "
+                + "WHERE pv.status = 'active' AND p.status = 'active' "
+                + "ORDER BY p.product_name, pv.sku";
+
+        try (PreparedStatement pre = this.getConnection().prepareStatement(sql);
+             ResultSet rs = pre.executeQuery()) {
+            while (rs.next()) {
+                ProductVariant pv = new ProductVariant();
+                pv.setVariantId(rs.getInt("variant_id"));
+                pv.setProductId(rs.getInt("product_id"));
+                pv.setSku(rs.getString("sku"));
+                pv.setBarcode(rs.getString("barcode"));
+                pv.setVariantPicture(rs.getString("variant_picture"));
+                pv.setSalePrice(rs.getBigDecimal("sale_price"));
+                pv.setCostPrice(rs.getBigDecimal("cost_price"));
+                pv.setQuantity(rs.getInt("quantity"));
+                pv.setStatus(rs.getString("status"));
+                pv.setCreatedAt(rs.getTimestamp("created_at"));
+                list.add(pv);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    
     public boolean isBarcodeExistsExcludingProduct(String barcode, int productId) {
         if (barcode == null || barcode.trim().isEmpty()) {
             return false;
@@ -886,6 +917,26 @@ public class ProductDAO extends DBContext {
 
         dto.setVariants(variantList);
         return dto;
+    }
+
+   
+    public boolean hasParticipatedInTransactions(int productId) {
+        String sql = "SELECT (EXISTS (SELECT 1 FROM goods_receipt_details grd "
+                + "INNER JOIN product_variants pv ON grd.variant_id = pv.variant_id WHERE pv.product_id = ?) "
+                + "OR EXISTS (SELECT 1 FROM return_order_details rod "
+                + "INNER JOIN product_variants pv ON rod.variant_id = pv.variant_id WHERE pv.product_id = ?)) AS has_tx";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            ps.setInt(2, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean("has_tx");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     /**

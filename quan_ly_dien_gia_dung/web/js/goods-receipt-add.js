@@ -584,7 +584,8 @@
         clearStorage();
     });
 
-    $('#importFileBtn').on('click', function() {
+    // Use delegated events so handlers work even if elements are rendered after this script runs
+    $(document).on('click', '#importFileBtn', function() {
         $('#importError').hide();
         $('#importSuccess').hide();
         $('#excelFile').val('');
@@ -592,7 +593,7 @@
         modal.show();
     });
 
-    $('#processImport').on('click', function() {
+    $(document).on('click', '#processImport', function() {
         var fileInput = document.getElementById('excelFile');
         var file = fileInput.files[0];
 
