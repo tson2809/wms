@@ -34,6 +34,11 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                                 </div>
                             </c:if>
+                            <c:if test="${productHasTransactions}">
+                                <div class="alert alert-warning" role="alert">
+                                    <strong>Không thể cập nhật:</strong> Sản phẩm đã tham gia giao dịch (nhập hàng, trả hàng) nên không được phép sửa thông tin.
+                                </div>
+                            </c:if>
                             <c:if test="${not empty errorVariant}">
                                 <div class="alert alert-danger">${errorVariant}</div>
                             </c:if>
@@ -141,7 +146,14 @@
                                 <div class="form-card">
                                     <div class="d-flex justify-content-end gap-2">
                                         <button type="button" class="btn-cancel" onclick="window.location.href = '${pageContext.request.contextPath}/product-list'">Hủy</button>
-                                        <button type="submit" class="btn-save"><i class="fa fa-save me-2"></i>Cập nhật sản phẩm</button>
+                                        <c:choose>
+                                            <c:when test="${productHasTransactions}">
+                                                <button type="button" class="btn-save" disabled title="Sản phẩm đã tham gia giao dịch"><i class="fa fa-save me-2"></i>Cập nhật sản phẩm</button>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <button type="submit" class="btn-save"><i class="fa fa-save me-2"></i>Cập nhật sản phẩm</button>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </div>
                             </form>

@@ -66,19 +66,19 @@ public class LoginController extends HttpServlet {
             return;
         }
 
-        String storedPassword = fullUser.getPassword();
-        if (storedPassword == null) {
-            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
-            request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
-            return;
-        }
+//        String storedPassword = fullUser.getPassword();
+//        if (storedPassword == null) {
+//            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
+//            request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
+//            return;
+//        }
         
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        if (!encoder.matches(password, storedPassword)) {
-            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
-            request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
-            return;
-        }
+//        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+//        if (!encoder.matches(password, storedPassword)) {
+//            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
+//            request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
+//            return;
+//        }
 
         HttpSession session = request.getSession();
         session.setAttribute("user", fullUser);

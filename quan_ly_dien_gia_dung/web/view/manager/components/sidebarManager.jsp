@@ -1,11 +1,16 @@
-<%-- Document : sidebar Created on : 7 thg 1, 2026, 19:06:03 Author : thais --%>
-<%-- Document : sidebar Created on : 7 thg 1, 2026, 19:06:03 Author : thais --%>
+<%-- 
+    Document : sidebar 
+    Created on : 7 thg 1, 2026, 19:06:03 
+    Author : thais 
+--%>
+
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <% String currentURI=request.getRequestURI(); String
     indexActive=currentURI.contains("/indexManager") ? "active" : "" ; String
     supplierActive=(currentURI.contains("/supplier-list") || currentURI.contains("/supplier-add") ||
     currentURI.contains("/supplier-detail")) ? "active" : "" ; String
+    purchaseOrderActive=(currentURI.contains("/purchase-order")) ? "active" : "" ; String
     goodsReceiptActive=(currentURI.contains("/goods-receipt-list") ||
     currentURI.contains("/goods-receipt-detail") || currentURI.contains("/goods-receipt-add"))
     ? "active" : "" ; String returnActive=(currentURI.contains("/return-list") ||
@@ -26,6 +31,8 @@
                class="nav-item nav-link <%= supplierActive %>"><i
                     class="fa fa-truck me-2"></i>Nhà cung
                 cấp</a>
+            <a href="${pageContext.request.contextPath}/purchase-order/list"
+               class="nav-item nav-link <%= purchaseOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Purchase Order</a>
             <a href="${pageContext.request.contextPath}/goods-receipt-list"
                class="nav-item nav-link <%= goodsReceiptActive %>"><i
                     class="fa fa-file-import me-2"></i>Phiếu nhập kho</a>
@@ -56,9 +63,8 @@
                class="nav-item nav-link ${activePage == 'sheetList' ? 'active' : ''}">
                 <i class="fa fa-clipboard-list me-2"></i>
                 Quản lý sheet
-            </a>     
+            </a>
         </div>
     </nav>
 </div>
 <!-- Sidebar End -->
-
