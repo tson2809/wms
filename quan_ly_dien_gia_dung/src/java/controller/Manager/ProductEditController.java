@@ -21,6 +21,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.User;
 import modelDTO.ProductAddDTO;
 import modelDTO.ProductVariantSimpleDTO;
@@ -162,10 +165,14 @@ public class ProductEditController extends HttpServlet {
                     hasError = true;
                     break;
                 }
-                if (productDAO.isSkuExistsExcludingProduct(sku, productId)) {
-                    request.setAttribute("errorVariant", "Mã SKU \"" + sku + "\" đã tồn tại (sản phẩm khác).");
-                    hasError = true;
-                    break;
+                try {
+                    if (productDAO.isSkuExistsExcludingProduct(sku, productId)) {
+                        request.setAttribute("errorVariant", "Mã SKU \"" + sku + "\" đã tồn tại (sản phẩm khác).");
+                        hasError = true;
+                        break;
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductEditController.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             if (!hasError && variantBarcodes != null) {

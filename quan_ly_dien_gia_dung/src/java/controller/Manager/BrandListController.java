@@ -1,6 +1,6 @@
-package controller.Admin;
+package controller.Manager;
 
-import dal.CategoryDAO;
+import dal.BrandDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,14 +9,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
-import model.Category;
+import model.Brand;
 import model.User;
 
-@WebServlet(name = "CategoryListController", urlPatterns = {"/category-list"})
-public class CategoryListController extends HttpServlet {
+@WebServlet(name = "BrandListController", urlPatterns = {"/brand-list"})
+public class BrandListController extends HttpServlet {
 
-    private final CategoryDAO categoryDAO = new CategoryDAO();
-    private static final int PAGE_SIZE = 10;
+    private final BrandDAO brandDAO = new BrandDAO();
 
     private boolean hasRole(HttpServletRequest request, String... roles) {
         HttpSession session = request.getSession(false);
@@ -40,49 +39,62 @@ public class CategoryListController extends HttpServlet {
         return false;
     }
 
+    private int parseIntOrDefault(String raw, int def) {
+        if (raw == null || raw.isBlank()) {
+            return def;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException e) {
+            return def;
+        }
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
-        if (!hasRole(request, "admin", "manager")) {
+        if (!hasRole(request, "manager")) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        int page = 1;
-        String pageParam = request.getParameter("page");
-        if (pageParam != null && !pageParam.isBlank()) {
-            try {
-                page = Integer.parseInt(pageParam);
-            } catch (NumberFormatException e) {
-                page = 1;
-            }
-        }
-
         String keyword = request.getParameter("keyword");
         String status = request.getParameter("status");
+        String sortBy = request.getParameter("sortBy");
+        String sortDir = request.getParameter("sortDir");
 
-        int totalCategories = categoryDAO.countCategories(keyword, status);
-        int totalPages = (int) Math.ceil((double) totalCategories / PAGE_SIZE);
+        int page = parseIntOrDefault(request.getParameter("page"), 1);
+        int size = parseIntOrDefault(request.getParameter("size"), 10);
+        if (size != 5 && size != 10 && size != 20) {
+            size = 10;
+        }
+        if (page < 1) {
+            page = 1;
+        }
+
+        int totalBrands = brandDAO.countBrands(keyword, status);
+        int totalPages = (int) Math.ceil((double) totalBrands / size);
         if (page > totalPages && totalPages > 0) {
             page = totalPages;
         }
 
-        List<Category> categories = categoryDAO.getCategoriesByPage(page, PAGE_SIZE, keyword, status);
+        List<Brand> brands = brandDAO.getBrandsByPage(page, size, keyword, status, sortBy, sortDir);
 
-        request.setAttribute("categories", categories);
+        request.setAttribute("brands", brands);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-        request.setAttribute("totalCategories", totalCategories);
+        request.setAttribute("totalBrands", totalBrands);
+        request.setAttribute("size", size);
 
-        request.getRequestDispatcher("/view/admin/category-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/manager/brand-list.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect(request.getContextPath() + "/category-list");
+        response.sendRedirect(request.getContextPath() + "/brand-list");
     }
 }
