@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import model.Brand;
 import model.ProductInventory;
 import modelDTO.ProductAddDTO;
 import modelDTO.ProductVariantSimpleDTO;
@@ -233,6 +234,7 @@ public class ProductDAO extends DBContext {
     public List<ProductInventory> getInventoryList(
             String keyword,
             Integer categoryId,
+            Integer brandId,
             String status,
             Map<String, String> filters,
             int page,
@@ -254,36 +256,41 @@ public class ProductDAO extends DBContext {
         }
 
         StringBuilder sql = new StringBuilder("""
-        SELECT 
-            v.variant_id,
-            v.sku,
-            v.quantity,
-            v.reorder_level,
-            v.cost_price,
-            v.sale_price,
-            v.variant_picture,
-            p.product_name,
-            c.category_name,
-            b.brand_name,
-            (
-                SELECT GROUP_CONCAT(attribute_value ORDER BY attribute_name SEPARATOR ', ')
-                FROM product_variant_attributes pa
-                WHERE pa.variant_id = v.variant_id
-            ) AS variant_name
-        FROM product_variants v
-        JOIN products p ON v.product_id = p.product_id
-        LEFT JOIN categories c ON p.category_id = c.category_id
-        LEFT JOIN brands b ON p.brand_id = b.brand_id
-        WHERE p.status = 'active'
-        AND v.status = 'active'
-    """);
-
+SELECT 
+    v.variant_id,
+    v.sku,
+    v.quantity,
+    v.reorder_level,
+    v.cost_price,
+    v.sale_price,
+    v.variant_picture,
+    p.product_name,
+    c.category_name,
+    b.brand_name,
+    u.unit_name,
+    (
+        SELECT GROUP_CONCAT(attribute_value ORDER BY attribute_name SEPARATOR ', ')
+        FROM product_variant_attributes pa
+        WHERE pa.variant_id = v.variant_id
+    ) AS variant_name
+FROM product_variants v
+JOIN products p ON v.product_id = p.product_id
+LEFT JOIN categories c ON p.category_id = c.category_id
+LEFT JOIN brands b ON p.brand_id = b.brand_id
+LEFT JOIN units u ON p.unit_id = u.unit_id
+WHERE p.status = 'active'
+AND v.status = 'active'
+""");
         if (keyword != null && !keyword.isBlank()) {
             sql.append(" AND p.product_name LIKE ?");
         }
 
         if (categoryId != null) {
             sql.append(" AND p.category_id = ?");
+        }
+
+        if (brandId != null) {
+            sql.append(" AND p.brand_id = ?");
         }
 
         if (status != null && !status.isBlank()) {
@@ -330,6 +337,10 @@ public class ProductDAO extends DBContext {
                 ps.setInt(index++, categoryId);
             }
 
+            if (brandId != null) {
+                ps.setInt(index++, brandId);
+            }
+
             if (filters != null && !filters.isEmpty()) {
                 for (Map.Entry<String, String> f : filters.entrySet()) {
                     ps.setString(index++, f.getKey());
@@ -356,7 +367,7 @@ public class ProductDAO extends DBContext {
                 p.setCostPrice(rs.getDouble("cost_price"));
                 p.setSalePrice(rs.getDouble("sale_price"));
                 p.setTotalQuantity(rs.getInt("quantity"));
-
+                p.setUnitName(rs.getString("unit_name"));
                 int q = rs.getInt("quantity");
                 int reorder = rs.getInt("reorder_level");
 
@@ -381,6 +392,7 @@ public class ProductDAO extends DBContext {
     public int countInventory(
             String keyword,
             Integer categoryId,
+            Integer brandId,
             String status,
             Map<String, String> filters) {
 
@@ -400,6 +412,10 @@ public class ProductDAO extends DBContext {
 
         if (categoryId != null) {
             sql.append(" AND p.category_id = ?");
+        }
+
+        if (brandId != null) {
+            sql.append(" AND p.brand_id = ?");
         }
 
         if (status != null && !status.isBlank()) {
@@ -443,6 +459,10 @@ public class ProductDAO extends DBContext {
 
             if (categoryId != null) {
                 ps.setInt(index++, categoryId);
+            }
+
+            if (brandId != null) {
+                ps.setInt(index++, brandId);
             }
 
             if (filters != null && !filters.isEmpty()) {
@@ -505,6 +525,41 @@ public class ProductDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return map;
+    }
+
+    public Map<String, List<String>> getVariantFiltersByCategory(Integer categoryId) {
+
+        Map<String, List<String>> map = new LinkedHashMap<>();
+
+        String sql = """
+        SELECT DISTINCT a.attribute_name, a.attribute_value
+        FROM product_variant_attributes a
+        JOIN product_variants v ON a.variant_id = v.variant_id
+        JOIN products p ON v.product_id = p.product_id
+        WHERE (? IS NULL OR p.category_id = ?)
+        ORDER BY a.attribute_name
+    """;
+
+        try (Connection c = getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setObject(1, categoryId);
+            ps.setObject(2, categoryId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                String name = rs.getString("attribute_name");
+                String value = rs.getString("attribute_value");
+
+                map.computeIfAbsent(name, k -> new ArrayList<>()).add(value);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return map;
     }
 
@@ -782,8 +837,7 @@ public class ProductDAO extends DBContext {
                 + "WHERE pv.status = 'active' AND p.status = 'active' "
                 + "ORDER BY p.product_name, pv.sku";
 
-        try (PreparedStatement pre = this.getConnection().prepareStatement(sql);
-             ResultSet rs = pre.executeQuery()) {
+        try (PreparedStatement pre = this.getConnection().prepareStatement(sql); ResultSet rs = pre.executeQuery()) {
             while (rs.next()) {
                 ProductVariant pv = new ProductVariant();
                 pv.setVariantId(rs.getInt("variant_id"));
@@ -805,7 +859,6 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    
     public boolean isBarcodeExistsExcludingProduct(String barcode, int productId) {
         if (barcode == null || barcode.trim().isEmpty()) {
             return false;
@@ -919,7 +972,6 @@ public class ProductDAO extends DBContext {
         return dto;
     }
 
-   
     public boolean hasParticipatedInTransactions(int productId) {
         String sql = "SELECT (EXISTS (SELECT 1 FROM goods_receipt_details grd "
                 + "INNER JOIN product_variants pv ON grd.variant_id = pv.variant_id WHERE pv.product_id = ?) "
@@ -1208,6 +1260,57 @@ public class ProductDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return list;
+    }
+
+    public List<Brand> getBrandsByCategory(Integer categoryId) {
+
+        List<Brand> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder("""
+        SELECT DISTINCT 
+            b.brand_id,
+            b.brand_name,
+            b.description,
+            b.status,
+            b.created_at
+        FROM brands b
+        JOIN products p ON b.brand_id = p.brand_id
+        WHERE b.status = 'active'
+        AND p.status = 'active'
+    """);
+
+        if (categoryId != null) {
+            sql.append(" AND p.category_id = ?");
+        }
+
+        sql.append(" ORDER BY b.brand_name");
+
+        try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+
+            if (categoryId != null) {
+                ps.setInt(1, categoryId);
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                Brand b = new Brand();
+
+                b.setBrandId(rs.getInt("brand_id"));
+                b.setBrandName(rs.getString("brand_name"));
+                b.setDescription(rs.getString("description"));
+                b.setStatus(rs.getString("status"));
+                b.setCreatedAt(rs.getTimestamp("created_at"));
+
+                list.add(b);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return list;
     }
 }
