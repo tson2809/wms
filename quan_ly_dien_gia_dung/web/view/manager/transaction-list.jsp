@@ -151,7 +151,6 @@
                                         <th>Reference</th>
                                         <th>Tạo ra bởi</th>     
                                         <th>Ngày tạo</th> 
-                                        <th>Ghi chú</th>
                                         <th>Hành động</th>
                                     </tr>
                                 </thead>
@@ -174,8 +173,7 @@
                                             <td>${t.createdBy}</td>  
                                             <td>
                                                 <fmt:formatDate value="${t.transactionDate}" pattern="dd/MM/yyyy"/>
-                                            </td>
-                                            <td>${t.notes}</td>                                          
+                                            </td>                                        
                                             <td class="text-center">
                                                 <a href="transaction-detail?id=${t.transactionId}"
                                                    class="action-btn action-view"

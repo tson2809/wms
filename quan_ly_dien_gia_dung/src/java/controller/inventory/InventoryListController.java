@@ -69,6 +69,7 @@ public class InventoryListController extends HttpServlet {
             throws ServletException, IOException {
         String keyword = request.getParameter("keyword");
         String categoryParam = request.getParameter("categoryId");
+        String brandParam = request.getParameter("brandId");
         String status = request.getParameter("status");
         String sort = request.getParameter("sort");
         String dir = request.getParameter("dir");
@@ -85,6 +86,13 @@ public class InventoryListController extends HttpServlet {
             }
         } catch (Exception ignored) {
         }
+        Integer brandId = null;
+        try {
+            if (brandParam != null && !brandParam.isEmpty()) {
+                brandId = Integer.parseInt(brandParam);
+            }
+        } catch (Exception ignored) {
+        }
         Map<String, String> filters = new LinkedHashMap<>();
         Enumeration<String> params = request.getParameterNames();
         while (params.hasMoreElements()) {
@@ -96,16 +104,18 @@ public class InventoryListController extends HttpServlet {
                 }
             }
         }
-        List<ProductInventory> list = productDAO.getInventoryList(keyword, categoryId, status, filters, page, pageSize, sort, dir);
+        List<ProductInventory> list
+                = productDAO.getInventoryList(keyword, categoryId, brandId, status, filters, page, pageSize, sort, dir);
         Map<String, Integer> sum = productDAO.getInventorySummary();
-        int totalRecords = productDAO.countInventory(keyword, categoryId, status, filters);
+        int totalRecords = productDAO.countInventory(keyword, categoryId, brandId, status, filters);
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
         request.setAttribute("list", list);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("sum", sum);
         request.setAttribute("categories", categoryDAO.getAllCategories());
-        request.setAttribute("attributeFilters", productDAO.getVariantFilters());
+        request.setAttribute("brands", productDAO.getBrandsByCategory(categoryId));
+        request.setAttribute("attributeFilters", productDAO.getVariantFiltersByCategory(categoryId));
         request.setAttribute("activePage", "inventoryList");
         request.getRequestDispatcher("/view/common/inventory-list.jsp").forward(request, response);
     }
