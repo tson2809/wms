@@ -78,8 +78,6 @@
                                        class="btn btn-success btn-sm">
                                         Xuất Excel
                                     </a>
-
-
                                 </div>
                                 <form class="filter-bar"
                                       method="get"
@@ -87,7 +85,6 @@
                                     <div class="row g-3 align-items-end">
                                         <div class="col-md-4">
                                             <label>Tên sản phẩm</label>
-
                                             <input class="form-control"
                                                    name="keyword"
                                                    placeholder="Tên sản phẩm"
@@ -95,7 +92,7 @@
                                         </div>
                                         <div class="col-md-3">
                                             <label>Thể loại</label>
-                                            <select class="form-select" name="categoryId">
+                                            <select class="form-select" name="categoryId" onchange="this.form.submit()">
                                                 <option value="">All</option>
                                                 <c:forEach items="${categories}" var="c">
                                                     <option value="${c.categoryId}"
@@ -106,35 +103,21 @@
                                             </select>
                                         </div>
                                         <div class="col-md-3">
-
                                             <label>Trạng thái</label>
-
                                             <select class="form-select" name="status">
-
                                                 <option value="">All</option>
-
                                                 <option value="In Stock"
                                                         ${param.status=='In Stock'?'selected':''}>In stock</option>
-
                                                 <option value="Low"
                                                         ${param.status=='Low'?'selected':''}>Low stock</option>
-
                                                 <option value="Out of Stock"
                                                         ${param.status=='Out of Stock'?'selected':''}>Out of stock</option>
-
                                             </select>
-
                                         </div>
-
-
                                         <div class="col-md-2 d-flex gap-2">
-
                                             <button class="btn btn-primary w-100">
-
                                                 Tìm
-
                                             </button>
-
                                             <a class="btn btn-outline-secondary w-100"
                                                href="${pageContext.request.contextPath}/inventory-list">
                                                 Reset
@@ -281,11 +264,39 @@
                                                     </c:choose>
                                                 </td>
                                                 <td class="text-center">
-                                                    <a href="${pageContext.request.contextPath}/inventory-detail?variantId=${p.variantId}"
-                                                       class="action-btn action-view"
-                                                       title="View">
-                                                        <iconify-icon icon="majesticons:eye-line"></iconify-icon>
-                                                    </a>
+
+                                                    <div class="d-flex justify-content-center align-items-center gap-2">
+
+                                                        <a href="${pageContext.request.contextPath}/inventory-detail?variantId=${p.variantId}"
+                                                           class="action-btn action-view"
+                                                           title="View">
+
+                                                            <iconify-icon icon="majesticons:eye-line"></iconify-icon>
+
+                                                        </a>
+
+                                                       <c:if test="${currentUser.roleId == 2}">
+
+                                                            <a class="btn btn-warning btn-sm"
+                                                               href="update-price?variantId=${p.variantId}"
+                                                               title="Cập nhật giá">
+
+                                                                <iconify-icon icon="mdi:cash-edit"></iconify-icon>
+
+                                                            </a>
+
+                                                            <a class="btn btn-info btn-sm"
+                                                               href="price-history-detail?variantId=${p.variantId}"
+                                                               title="Lịch sử giá">
+
+                                                                <iconify-icon icon="mdi:history"></iconify-icon>
+
+                                                            </a>
+
+                                                        </c:if>
+
+                                                    </div>
+
                                                 </td>
                                             </tr>
                                         </c:forEach>                                   
