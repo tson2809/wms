@@ -43,6 +43,11 @@
                 trả hàng</a>
             <a href="/quan_ly_dien_gia_dung/product-list" class="nav-item nav-link"><i
                     class="fa fa-box me-2"></i>Sản phẩm</a>
+
+            <a href="/quan_ly_dien_gia_dung/category-list" class="nav-item nav-link"><i
+                    class="fa fa-box me-2"></i>Danh mục</a>
+            <a href="/quan_ly_dien_gia_dung/brand-list" class="nav-item nav-link"><i
+                    class="fa fa-box me-2"></i>Thương hiệu</a>  
             <a href="${pageContext.request.contextPath}/unit-list"
                class="nav-item nav-link <%= unitActive %>"><i
                     class="fa fa-ruler me-2"></i>Đơn vị tính</a>
@@ -69,6 +74,7 @@
                 <i class="fa fa-clipboard-list me-2"></i>
                 Quản lý sheet
             </a>
+              
         </div>
     </nav>
 </div>

@@ -1,6 +1,6 @@
-package controller.Admin;
+package controller.Manager;
 
-import dal.CategoryDAO;
+import dal.BrandDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -8,13 +8,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import model.Category;
+import model.Brand;
 import model.User;
 
-@WebServlet(name = "CategoryAddController", urlPatterns = {"/category-add"})
-public class CategoryAddController extends HttpServlet {
+@WebServlet(name = "BrandAddController", urlPatterns = {"/brand-add"})
+public class BrandAddController extends HttpServlet {
 
-    private final CategoryDAO categoryDAO = new CategoryDAO();
+    private final BrandDAO brandDAO = new BrandDAO();
 
     private boolean hasRole(HttpServletRequest request, String... roles) {
         HttpSession session = request.getSession(false);
@@ -41,11 +41,11 @@ public class CategoryAddController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!hasRole(request, "admin", "manager")) {
+        if (!hasRole(request, "manager")) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        request.getRequestDispatcher("/view/admin/category-add.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/admin/brand-add.jsp").forward(request, response);
     }
 
     @Override
@@ -53,47 +53,52 @@ public class CategoryAddController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        if (!hasRole(request, "admin", "manager")) {
+        if (!hasRole(request, "manager")) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        String categoryName = request.getParameter("categoryName");
+        String brandName = request.getParameter("brandName");
         String description = request.getParameter("description");
 
         boolean hasError = false;
 
-        if (categoryName == null || categoryName.isBlank()) {
-            request.setAttribute("categoryNameError", "Tên danh mục không được để trống");
+        if (brandName == null || brandName.isBlank()) {
+            request.setAttribute("brandNameError", "Tên thương hiệu không được để trống");
             hasError = true;
-        } else if (categoryName.trim().length() > 100) {
-            request.setAttribute("categoryNameError", "Tên danh mục tối đa 100 ký tự");
+        } else if (brandName.trim().length() > 100) {
+            request.setAttribute("brandNameError", "Tên thương hiệu tối đa 100 ký tự");
             hasError = true;
-        } else if (categoryDAO.isCategoryNameExists(categoryName.trim())) {
-            request.setAttribute("categoryNameError", "Tên danh mục đã tồn tại");
+        } else if (brandDAO.isBrandNameExists(brandName.trim())) {
+            request.setAttribute("brandNameError", "Tên thương hiệu đã tồn tại");
+            hasError = true;
+        }
+
+        if (description != null && description.trim().length() > 255) {
+            request.setAttribute("descriptionError", "Mô tả tối đa 255 ký tự");
             hasError = true;
         }
 
         if (hasError) {
-            request.setAttribute("categoryName", categoryName);
+            request.setAttribute("brandName", brandName);
             request.setAttribute("description", description);
-            request.getRequestDispatcher("/view/admin/category-add.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/manager/brand-add.jsp").forward(request, response);
             return;
         }
 
-        Category category = new Category();
-        category.setCategoryName(categoryName.trim());
-        category.setDescription(description == null ? null : description.trim());
-        category.setStatus("active");
+        Brand brand = new Brand();
+        brand.setBrandName(brandName.trim());
+        brand.setDescription(description == null ? null : description.trim());
+        brand.setStatus("active");
 
-        boolean ok = categoryDAO.insertCategory(category);
+        boolean ok = brandDAO.insertBrand(brand);
         if (ok) {
-            response.sendRedirect(request.getContextPath() + "/category-list?success=created");
+            response.sendRedirect(request.getContextPath() + "/brand-list?success=created");
         } else {
-            request.setAttribute("generalError", "Không thể tạo danh mục. Vui lòng thử lại.");
-            request.setAttribute("categoryName", categoryName);
+            request.setAttribute("generalError", "Không thể tạo thương hiệu. Vui lòng thử lại.");
+            request.setAttribute("brandName", brandName);
             request.setAttribute("description", description);
-            request.getRequestDispatcher("/view/admin/category-add.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/manager/brand-add.jsp").forward(request, response);
         }
     }
 }
