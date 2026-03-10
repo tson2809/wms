@@ -1,4 +1,4 @@
-package controller.Admin;
+package controller.Manager;
 
 import dal.CategoryDAO;
 import jakarta.servlet.ServletException;
@@ -52,7 +52,7 @@ public class CategoryEditController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!hasRole(request, "admin", "manager")) {
+        if (!hasRole(request, "manager")) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -70,7 +70,7 @@ public class CategoryEditController extends HttpServlet {
         }
 
         request.setAttribute("category", category);
-        request.getRequestDispatcher("/view/admin/category-edit.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/manager/category-edit.jsp").forward(request, response);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class CategoryEditController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        if (!hasRole(request, "admin", "manager")) {
+        if (!hasRole(request, "manager")) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -115,7 +115,7 @@ public class CategoryEditController extends HttpServlet {
             old.setCategoryName(categoryName == null ? old.getCategoryName() : categoryName);
             old.setDescription(description);
             request.setAttribute("category", old);
-            request.getRequestDispatcher("/view/admin/category-edit.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/manager/category-edit.jsp").forward(request, response);
             return;
         }
 
@@ -128,7 +128,7 @@ public class CategoryEditController extends HttpServlet {
         } else {
             request.setAttribute("generalError", "Không thể cập nhật danh mục. Vui lòng thử lại.");
             request.setAttribute("category", old);
-            request.getRequestDispatcher("/view/admin/category-edit.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/manager/category-edit.jsp").forward(request, response);
         }
     }
 }

@@ -1,6 +1,6 @@
-package controller.Admin;
+package controller.Manager;
 
-import dal.CategoryDAO;
+import dal.BrandDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -10,10 +10,10 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import model.User;
 
-@WebServlet(name = "CategoryToggleStatusController", urlPatterns = {"/category-toggle-status"})
-public class CategoryToggleStatusController extends HttpServlet {
+@WebServlet(name = "BrandToggleStatusController", urlPatterns = {"/brand-toggle-status"})
+public class BrandToggleStatusController extends HttpServlet {
 
-    private final CategoryDAO categoryDAO = new CategoryDAO();
+    private final BrandDAO brandDAO = new BrandDAO();
 
     private boolean hasRole(HttpServletRequest request, String... roles) {
         HttpSession session = request.getSession(false);
@@ -61,24 +61,24 @@ public class CategoryToggleStatusController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        if (!hasRole(request, "admin", "manager")) {
+        if (!hasRole(request, "manager")) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        Integer categoryId = parseIntegerOrNull(request.getParameter("id"));
+        Integer brandId = parseIntegerOrNull(request.getParameter("id"));
         String status = request.getParameter("status");
 
         String referer = request.getHeader("Referer");
-        String fallback = request.getContextPath() + "/category-list";
+        String fallback = request.getContextPath() + "/brand-list";
         String redirectUrl = (referer != null && !referer.isBlank()) ? referer : fallback;
 
-        if (categoryId == null || status == null || status.isBlank()) {
+        if (brandId == null || status == null || status.isBlank()) {
             response.sendRedirect(addParam(redirectUrl, "error", "invalid_request"));
             return;
         }
 
-        boolean ok = categoryDAO.updateCategoryStatus(categoryId, status);
+        boolean ok = brandDAO.updateBrandStatus(brandId, status);
         if (ok) {
             response.sendRedirect(addParam(redirectUrl, "success", "status_updated"));
         } else {
@@ -89,6 +89,6 @@ public class CategoryToggleStatusController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect(request.getContextPath() + "/category-list");
+        response.sendRedirect(request.getContextPath() + "/brand-list");
     }
 }

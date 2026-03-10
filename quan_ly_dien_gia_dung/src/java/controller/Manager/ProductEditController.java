@@ -180,14 +180,10 @@ public class ProductEditController extends HttpServlet {
                     hasError = true;
                     break;
                 }
-                try {
-                    if (productDAO.isSkuExistsExcludingProduct(sku, productId)) {
-                        request.setAttribute("errorVariant", "Mã SKU \"" + sku + "\" đã tồn tại (sản phẩm khác).");
-                        hasError = true;
-                        break;
-                    }
-                } catch (SQLException ex) {
-                    Logger.getLogger(ProductEditController.class.getName()).log(Level.SEVERE, null, ex);
+                if (productDAO.isSkuExistsExcludingProduct(sku, productId)) {
+                    request.setAttribute("errorVariant", "Mã SKU \"" + sku + "\" đã tồn tại (sản phẩm khác).");
+                    hasError = true;
+                    break;
                 }
             }
             if (!hasError && variantBarcodes != null) {
