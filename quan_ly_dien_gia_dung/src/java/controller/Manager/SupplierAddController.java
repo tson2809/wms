@@ -40,7 +40,8 @@ public class SupplierAddController extends HttpServlet {
             return;
         }
 
-        request.getRequestDispatcher("/view/manager/supplier_add.jsp").forward(request, response);
+        request.setAttribute("mode", "add");
+        request.getRequestDispatcher("/view/manager/supplier_detail.jsp").forward(request, response);
     }
 
     @Override
@@ -113,7 +114,8 @@ public class SupplierAddController extends HttpServlet {
             request.setAttribute("phone", phone);
             request.setAttribute("status", status != null ? status : "active");
             request.setAttribute("description", description);
-            request.getRequestDispatcher("/view/manager/supplier_add.jsp").forward(request, response);
+            request.setAttribute("mode", "add");
+            request.getRequestDispatcher("/view/manager/supplier_detail.jsp").forward(request, response);
             return;
         }
 
@@ -128,7 +130,8 @@ public class SupplierAddController extends HttpServlet {
         int id = supplierDAO.insertSupplier(s);
         if (id > 0) {
             request.setAttribute("successMessage", "Thêm nhà cung cấp thành công.");
-            request.getRequestDispatcher("/view/manager/supplier_add.jsp").forward(request, response);
+            request.setAttribute("mode", "add");
+            request.getRequestDispatcher("/view/manager/supplier_detail.jsp").forward(request, response);
         } else {
             request.setAttribute("errorSupplierName", "Không thể thêm nhà cung cấp. Vui lòng thử lại.");
             request.setAttribute("supplierName", supplierName);
@@ -137,7 +140,8 @@ public class SupplierAddController extends HttpServlet {
             request.setAttribute("phone", phone);
             request.setAttribute("status", status);
             request.setAttribute("description", description);
-            request.getRequestDispatcher("/view/manager/supplier_add.jsp").forward(request, response);
+            request.setAttribute("mode", "add");
+            request.getRequestDispatcher("/view/manager/supplier_detail.jsp").forward(request, response);
         }
     }
 }
