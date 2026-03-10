@@ -7,6 +7,9 @@ import dal.UnitDAO;
 import dal.ProductDAO;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -167,22 +170,27 @@ public class ProductAddController extends HttpServlet {
                 String fileName = filePart.getSubmittedFileName();
                 String saveName = System.currentTimeMillis() + "_" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
 
-                // Lấy đường dẫn thật của thư mục gốc project (không chứa /build)
+                // 1. Lưu vào web/ (source) - ảnh có trong project
                 String rootPath = getServletContext().getRealPath("/");
                 if (rootPath != null && rootPath.contains("build")) {
                     rootPath = rootPath.substring(0, rootPath.indexOf("build"));
                 }
-
-                String uploadPath = rootPath + "web" + File.separator + "img" + File.separator + "products";
-
-                File uploadDir = new File(uploadPath);
-                if (!uploadDir.exists()) {
-                    uploadDir.mkdirs(); // tạo thư mục nếu chưa có
+                String webPath = rootPath + "web" + File.separator + "img" + File.separator + "products";
+                File webDir = new File(webPath);
+                if (!webDir.exists()) {
+                    webDir.mkdirs();
                 }
 
                 try {
-                    filePart.write(uploadPath + File.separator + saveName);
+                    filePart.write(webPath + File.separator + saveName);
                     picturePath = "img/products/" + saveName;
+
+                    // 2. Copy sang build/ - ảnh hiển thị ngay khi chạy
+                    String buildPath = getServletContext().getRealPath("/img/products");
+                    File buildDir = new File(buildPath);
+                    if (buildDir.exists() || buildDir.mkdirs()) {
+                        Files.copy(Path.of(webPath, saveName), Path.of(buildPath, saveName), StandardCopyOption.REPLACE_EXISTING);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

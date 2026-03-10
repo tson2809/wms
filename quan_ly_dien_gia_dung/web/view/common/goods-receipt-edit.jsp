@@ -255,7 +255,7 @@
         <c:if test="${not empty productsJson}">
             <div id="goods-receipt-edit-products-json" style="display:none"><c:out value="${fn:replace(productsJson, '</', '&lt;/')}" escapeXml="false"/></div>
         </c:if>
-        <script src="${pageContext.request.contextPath}/js/goods-receipt-edit.js"></script>
+        <script src="${pageContext.request.contextPath}/js/goods-receipt-edit.js?v=2"></script>
 
         <!-- Modal for Serial Numbers -->
         <div class="modal fade" id="serialModal" tabindex="-1">

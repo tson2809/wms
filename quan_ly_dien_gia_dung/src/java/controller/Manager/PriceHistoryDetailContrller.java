@@ -2,10 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controller.inventory;
+package controller.Manager;
 
-import dal.CategoryDAO;
-import dal.ProductDAO;
+import com.google.gson.Gson;
+import dal.PriceHistoryDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -13,20 +13,15 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import model.ProductInventory;
-import model.User;
 
 /**
  *
- * @author hung
+ * @author GIAKHANHPC
  */
-@WebServlet(name = "InventoryListController", urlPatterns = {"/inventory-list"})
-public class InventoryListController extends HttpServlet {
+@WebServlet(name = "PriceHistoryDetailContrller", urlPatterns = {"/price-history-detail"})
+public class PriceHistoryDetailContrller extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -45,10 +40,10 @@ public class InventoryListController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet InventoryListController</title>");
+            out.println("<title>Servlet PriceHistoryDetailContrller</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet InventoryListController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet PriceHistoryDetailContrller at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -63,65 +58,41 @@ public class InventoryListController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    CategoryDAO categoryDAO = new CategoryDAO();
-    ProductDAO productDAO = new ProductDAO();
+    PriceHistoryDAO dao = new PriceHistoryDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        User user = (User) request.getSession().getAttribute("user");
-        request.setAttribute("currentUser", user);
-        String keyword = request.getParameter("keyword");
-        String categoryParam = request.getParameter("categoryId");
-        String brandParam = request.getParameter("brandId");
-        String status = request.getParameter("status");
-        String sort = request.getParameter("sort");
-        String dir = request.getParameter("dir");
+        int variantId = Integer.parseInt(request.getParameter("variantId"));
+        String[] product = dao.getVariantInfo(variantId);
+        String fromDate = request.getParameter("fromDate");
+        String toDate = request.getParameter("toDate");
         int page = 1;
         int pageSize = 10;
         try {
             page = Integer.parseInt(request.getParameter("page"));
         } catch (Exception ignored) {
         }
-        Integer categoryId = null;
-        try {
-            if (categoryParam != null && !categoryParam.isEmpty()) {
-                categoryId = Integer.parseInt(categoryParam);
-            }
-        } catch (Exception ignored) {
+        List<String[]> list = dao.getPriceHistoryByVariant(
+                variantId, fromDate, toDate, page, pageSize);
+        int total = dao.countPriceHistory(variantId, fromDate, toDate);
+        int totalPages = (int) Math.ceil((double) total / pageSize);
+        List<String> dates = new ArrayList<>();
+        List<Double> costPrices = new ArrayList<>();
+        List<Double> salePrices = new ArrayList<>();
+        for (String[] h : list) {
+            dates.add(h[4]);
+            costPrices.add(Double.valueOf(h[1]));
+            salePrices.add(Double.valueOf(h[3]));
         }
-        Integer brandId = null;
-        try {
-            if (brandParam != null && !brandParam.isEmpty()) {
-                brandId = Integer.parseInt(brandParam);
-            }
-        } catch (Exception ignored) {
-        }
-        Map<String, String> filters = new LinkedHashMap<>();
-        Enumeration<String> params = request.getParameterNames();
-        while (params.hasMoreElements()) {
-            String name = params.nextElement();
-            if (name.startsWith("attr_")) {
-                String value = request.getParameter(name);
-                if (value != null && !value.isBlank()) {
-                    filters.put(name.substring(5), value);
-                }
-            }
-        }
-        List<ProductInventory> list
-                = productDAO.getInventoryList(keyword, categoryId, brandId, status, filters, page, pageSize, sort, dir);
-        Map<String, Integer> sum = productDAO.getInventorySummary();
-        int totalRecords = productDAO.countInventory(keyword, categoryId, brandId, status, filters);
-        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
-        request.setAttribute("list", list);
+        request.setAttribute("historyList", list);
+        request.setAttribute("dates", new Gson().toJson(dates));
+        request.setAttribute("costPrices", new Gson().toJson(costPrices));
+        request.setAttribute("salePrices", new Gson().toJson(salePrices));
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-        request.setAttribute("sum", sum);
-        request.setAttribute("categories", categoryDAO.getAllCategories());
-        request.setAttribute("brands", productDAO.getBrandsByCategory(categoryId));
-        request.setAttribute("attributeFilters", productDAO.getVariantFiltersByCategory(categoryId));
-        request.setAttribute("activePage", "inventoryList");
-        request.getRequestDispatcher("/view/common/inventory-list.jsp").forward(request, response);
+        request.setAttribute("product", product);
+        request.getRequestDispatcher("/view/manager/price-history-detail.jsp").forward(request, response);
     }
 
     /**
