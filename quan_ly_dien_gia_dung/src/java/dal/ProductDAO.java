@@ -811,14 +811,8 @@ AND v.status = 'active'
         return false;
     }
 
-<<<<<<< HEAD
-    
-    public boolean isSkuExistsExcludingProduct(String sku, int productId) throws SQLException {
-        if (sku == null || sku.trim().isEmpty())
-=======
     public boolean isSkuExistsExcludingProduct(String sku, int productId) {
         if (sku == null || sku.trim().isEmpty()) {
->>>>>>> main
             return false;
         }
         String sql = "SELECT COUNT(*) FROM product_variants WHERE sku = ? AND product_id != ?";
@@ -828,13 +822,6 @@ AND v.status = 'active'
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
-<<<<<<< HEAD
-                
-                
-            }
-            return false;}
-    }
-=======
                 }
             }
         } catch (SQLException e) {
@@ -843,7 +830,6 @@ AND v.status = 'active'
         return false;
     }
 
->>>>>>> main
     public List<ProductVariant> getAllActiveProductVariants() {
         List<ProductVariant> list = new ArrayList<>();
         String sql = "SELECT pv.*, p.product_name FROM product_variants pv "
@@ -869,12 +855,8 @@ AND v.status = 'active'
         } catch (SQLException e) {
             e.printStackTrace();
         }
-<<<<<<< HEAD
-return list;
-=======
 
         return list;
->>>>>>> main
     }
 
     public boolean isBarcodeExistsExcludingProduct(String barcode, int productId) {
@@ -1151,10 +1133,6 @@ return list;
         }
     }
 
-<<<<<<< HEAD
-}
-
-=======
     public ProductInventory getInventoryDetail(int variantId) {
 
         ProductInventory p = null;
@@ -1336,4 +1314,3 @@ return list;
         return list;
     }
 }
->>>>>>> main
