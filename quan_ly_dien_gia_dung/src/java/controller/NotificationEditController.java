@@ -53,8 +53,8 @@ public class NotificationEditController extends HttpServlet {
             List<String> allTypes = notificationDAO.getNotificationTypes();
             request.setAttribute("allTypes", allTypes);
             request.setAttribute("notification", notification);
-
-            request.getRequestDispatcher("/view/common/notification_edit.jsp").forward(request, response);
+            request.setAttribute("mode", "edit");
+            request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/notification-list");
         }
@@ -120,7 +120,8 @@ public class NotificationEditController extends HttpServlet {
             request.setAttribute("notification", existingNotification);
             List<String> allTypes = notificationDAO.getNotificationTypes();
             request.setAttribute("allTypes", allTypes);
-            request.getRequestDispatcher("/view/common/notification_edit.jsp").forward(request, response);
+            request.setAttribute("mode", "edit");
+            request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
             return;
         }
 
@@ -144,13 +145,15 @@ public class NotificationEditController extends HttpServlet {
             request.setAttribute("notification", notification);
             List<String> allTypes = notificationDAO.getNotificationTypes();
             request.setAttribute("allTypes", allTypes);
-            request.getRequestDispatcher("/view/common/notification_edit.jsp").forward(request, response);
+            request.setAttribute("mode", "edit");
+            request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
         } else {
             request.setAttribute("errorMessage", "Không thể cập nhật thông báo. Vui lòng thử lại.");
             request.setAttribute("notification", notification);
             List<String> allTypes = notificationDAO.getNotificationTypes();
             request.setAttribute("allTypes", allTypes);
-            request.getRequestDispatcher("/view/common/notification_edit.jsp").forward(request, response);
+            request.setAttribute("mode", "edit");
+            request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
         }
     }
 }
