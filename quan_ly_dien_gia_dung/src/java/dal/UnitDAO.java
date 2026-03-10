@@ -51,4 +51,68 @@ public class UnitDAO extends DBContext {
 
         return null;
     }
+
+    /** Kiểm tra tên đơn vị đã tồn tại chưa. excludeId != null khi edit (bỏ qua chính nó). */
+    public boolean unitNameExists(String name, Integer excludeId) {
+        String sql = "SELECT COUNT(*) FROM units WHERE LOWER(unit_name) = LOWER(?)"
+                   + (excludeId != null ? " AND unit_id <> ?" : "");
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setString(1, name.trim());
+            if (excludeId != null) ps.setInt(2, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean createUnit(String name) {
+        String sql = "INSERT INTO units(unit_name) VALUES(?)";
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setString(1, name.trim());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateUnit(int id, String name) {
+        String sql = "UPDATE units SET unit_name = ? WHERE unit_id = ?";
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setString(1, name.trim());
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /** Kiểm tra unit đang được dùng trong bảng products. */
+    public boolean isUnitUsed(int unitId) {
+        String sql = "SELECT COUNT(*) FROM products WHERE unit_id = ?";
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setInt(1, unitId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteUnit(int id) {
+        String sql = "DELETE FROM units WHERE unit_id = ?";
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

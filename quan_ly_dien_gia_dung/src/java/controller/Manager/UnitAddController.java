@@ -1,0 +1,73 @@
+package controller.Manager;
+
+import dal.UnitDAO;
+import java.io.IOException;
+import java.net.URLEncoder;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.*;
+import model.User;
+
+@WebServlet(name = "UnitAddController", urlPatterns = {"/unit-add"})
+public class UnitAddController extends HttpServlet {
+    private final UnitDAO unitDAO = new UnitDAO();
+
+    private boolean checkManager(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession(false);
+        User user = (session != null) ? (User) session.getAttribute("user") : null;
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return false;
+        }
+        if (user.getRole() == null || !"Manager".equalsIgnoreCase(user.getRole().getRoleName())) {
+            response.sendRedirect(request.getContextPath() + "/indexManager");
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!checkManager(request, response)) return;
+        request.setAttribute("mode", "add");
+        request.getRequestDispatcher("/view/manager/unit_detail.jsp").forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!checkManager(request, response)) return;
+
+        request.setCharacterEncoding("UTF-8");
+        String unitName = request.getParameter("unitName");
+
+        if (unitName == null || unitName.trim().isEmpty()) {
+            request.setAttribute("error", "Tên đơn vị không được để trống.");
+            request.setAttribute("unitName", unitName);
+            request.setAttribute("mode", "add");
+            request.getRequestDispatcher("/view/manager/unit_detail.jsp").forward(request, response);
+            return;
+        }
+
+        if (unitDAO.unitNameExists(unitName.trim(), null)) {
+            request.setAttribute("error", "Tên đơn vị đã tồn tại.");
+            request.setAttribute("unitName", unitName);
+            request.setAttribute("mode", "add");
+            request.getRequestDispatcher("/view/manager/unit_detail.jsp").forward(request, response);
+            return;
+        }
+
+        if (unitDAO.createUnit(unitName)) {
+            response.sendRedirect(request.getContextPath() + "/unit-list?message="
+                    + URLEncoder.encode("Thêm đơn vị thành công.", "UTF-8")
+                    + "&messageType=success");
+        } else {
+            request.setAttribute("error", "Có lỗi xảy ra. Vui lòng thử lại.");
+            request.setAttribute("unitName", unitName);
+            request.setAttribute("mode", "add");
+            request.getRequestDispatcher("/view/manager/unit_detail.jsp").forward(request, response);
+        }
+    }
+}
