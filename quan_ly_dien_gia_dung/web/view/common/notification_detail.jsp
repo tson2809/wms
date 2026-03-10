@@ -1,4 +1,8 @@
-<%-- Document : notification_detail Author : thais --%>
+<%-- 
+    Document : notification_detail
+    Created on : 4 thg 2, 2026, 12:56:03 
+    Author : thais 
+--%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
