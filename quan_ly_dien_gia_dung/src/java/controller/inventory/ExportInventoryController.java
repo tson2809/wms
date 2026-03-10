@@ -12,7 +12,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.ProductInventory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -67,12 +70,46 @@ public class ExportInventoryController extends HttpServlet {
             throws ServletException, IOException {
         String keyword = request.getParameter("keyword");
         String categoryRaw = request.getParameter("categoryId");
+        String brandRaw = request.getParameter("brandId");
         String status = request.getParameter("status");
         Integer categoryId = null;
-        if (categoryRaw != null && !categoryRaw.isEmpty()) {
-            categoryId = Integer.parseInt(categoryRaw);
+        Integer brandId = null;
+        try {
+            if (categoryRaw != null && !categoryRaw.isEmpty()) {
+                categoryId = Integer.parseInt(categoryRaw);
+            }
+        } catch (Exception ignored) {
         }
-        List<ProductInventory> list= dao.getInventoryList(keyword, categoryId, status, 1, 999999, null, null);
+        try {
+            if (brandRaw != null && !brandRaw.isEmpty()) {
+                brandId = Integer.parseInt(brandRaw);
+            }
+        } catch (Exception ignored) {
+        }
+        Map<String, String> filters = new LinkedHashMap<>();
+        Enumeration<String> params = request.getParameterNames();
+        while (params.hasMoreElements()) {
+            String name = params.nextElement();
+            if (name.startsWith("attr_")) {
+                String value = request.getParameter(name);
+                if (value != null && !value.isBlank()) {
+                    filters.put(name.substring(5), value);
+
+                }
+            }
+        }
+        List<ProductInventory> list
+                = dao.getInventoryList(
+                        keyword,
+                        categoryId,
+                        brandId,
+                        status,
+                        filters,
+                        1,
+                        999999,
+                        null,
+                        null
+                );
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet("Inventory");
         int rowNum = 0;
@@ -84,7 +121,8 @@ public class ExportInventoryController extends HttpServlet {
         header.createCell(4).setCellValue("Cost");
         header.createCell(5).setCellValue("Price");
         header.createCell(6).setCellValue("Quantity");
-        header.createCell(7).setCellValue("Status");
+        header.createCell(7).setCellValue("Unit");
+        header.createCell(8).setCellValue("Status");
         for (ProductInventory p : list) {
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(p.getSku());
@@ -94,14 +132,19 @@ public class ExportInventoryController extends HttpServlet {
             row.createCell(4).setCellValue(p.getCostPrice());
             row.createCell(5).setCellValue(p.getSalePrice());
             row.createCell(6).setCellValue(p.getTotalQuantity());
-            row.createCell(7).setCellValue(p.getStatus());
+            row.createCell(7).setCellValue(p.getUnitName());
+            row.createCell(8).setCellValue(p.getStatus());
+        }
+        for (int i = 0; i < 9; i++) {
+            sheet.autoSizeColumn(i);
         }
         String time = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss")
                 .format(new java.util.Date());
         String fileName = "inventory_" + time + ".xlsx";
         response.setContentType(
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition",
+        response.setHeader(
+                "Content-Disposition",
                 "attachment; filename=" + fileName);
         workbook.write(response.getOutputStream());
         workbook.close();

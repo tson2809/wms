@@ -401,19 +401,85 @@ public class InventorySheetDAO extends DBContext {
     public List<String> searchUserName(String keyword) {
         List<String> list = new ArrayList<>();
         String sql = "SELECT full_name FROM users WHERE full_name LIKE ? LIMIT 10";
-
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setString(1, "%" + keyword + "%");
             ResultSet rs = ps.executeQuery();
-
             while (rs.next()) {
                 list.add(rs.getString(1));
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public void approveSheet(int sheetId, int approvedBy) {
+
+        String selectDetails = """
+        SELECT d.variant_id,
+               d.system_quantity,
+               d.counted_quantity,
+               pv.quantity
+        FROM inventory_sheet_details d
+        JOIN product_variants pv ON d.variant_id = pv.variant_id
+        WHERE d.sheet_id = ?
+    """;
+
+        String updateVariant = """
+        UPDATE product_variants
+        SET quantity = ?
+        WHERE variant_id = ?
+    """;
+
+        String insertTransaction = """
+        INSERT INTO inventory_transactions
+        (variant_id, transaction_type, reference_type,
+         reference_id, quantity_change,
+         quantity_before, quantity_after, created_by, notes)
+        VALUES (?, 'adjustment', 'inventory_sheet',
+                ?, ?, ?, ?, ?, ?)
+    """;
+
+        String updateSheet = """
+        UPDATE inventory_sheets
+        SET status = 'approved', approved_by = ?
+        WHERE sheet_id = ?
+    """;
+        try (Connection con = getConnection()) {
+            con.setAutoCommit(false);
+            try (PreparedStatement ps1 = con.prepareStatement(selectDetails); PreparedStatement ps2 = con.prepareStatement(updateVariant); PreparedStatement ps3 = con.prepareStatement(insertTransaction); PreparedStatement ps4 = con.prepareStatement(updateSheet)) {
+                ps1.setInt(1, sheetId);
+                ResultSet rs = ps1.executeQuery();
+                while (rs.next()) {
+                    int variantId = rs.getInt("variant_id");
+                    int systemQty = rs.getInt("system_quantity");
+                    int countedQty = rs.getInt("counted_quantity");
+                    int currentQty = rs.getInt("quantity");
+                    int difference = countedQty - systemQty;
+                    if (difference != 0) {
+                        ps2.setInt(1, countedQty);
+                        ps2.setInt(2, variantId);
+                        ps2.executeUpdate();
+                        ps3.setInt(1, variantId);
+                        ps3.setInt(2, sheetId);
+                        ps3.setInt(3, difference);
+                        ps3.setInt(4, currentQty);
+                        ps3.setInt(5, countedQty);
+                        ps3.setInt(6, approvedBy);
+                        ps3.setString(7, "Điều chỉnh tồn kho sau kiểm kê");
+                        ps3.executeUpdate();
+                    }
+                }
+                ps4.setInt(1, approvedBy);
+                ps4.setInt(2, sheetId);
+                ps4.executeUpdate();
+                con.commit();
+            } catch (Exception e) {
+                con.rollback();
+                throw e;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
