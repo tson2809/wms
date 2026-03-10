@@ -614,9 +614,8 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
-<<<<<<< HEAD
     
-    public boolean isSkuExistsExcludingProduct(String sku, int productId) {
+    public boolean isSkuExistsExcludingProduct(String sku, int productId) throws SQLException {
         if (sku == null || sku.trim().isEmpty())
             return false;
         String sql = "SELECT COUNT(*) FROM product_variants WHERE sku = ? AND product_id != ?";
@@ -626,7 +625,11 @@ public class ProductDAO extends DBContext {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next())
                     return rs.getInt(1) > 0;
-=======
+                
+                
+            }
+            return false;}
+    }
     public List<ProductVariant> getAllActiveProductVariants() {
         List<ProductVariant> list = new ArrayList<>();
         String sql = "SELECT pv.*, p.product_name FROM product_variants pv " +
@@ -649,13 +652,11 @@ public class ProductDAO extends DBContext {
                 pv.setStatus(rs.getString("status"));
                 pv.setCreatedAt(rs.getTimestamp("created_at"));
                 list.add(pv);
->>>>>>> add-purchase-order
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-<<<<<<< HEAD
-        return false;
+return list;
     }
 
     
@@ -913,8 +914,4 @@ public class ProductDAO extends DBContext {
     }
 
 }
-=======
-        return list;
-    }
-}
->>>>>>> add-purchase-order
+
