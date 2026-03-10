@@ -29,8 +29,8 @@ public class NotificationAddController extends HttpServlet {
             throws ServletException, IOException {
         List<String> allTypes = notificationDAO.getNotificationTypes();
         request.setAttribute("allTypes", allTypes);
-
-        request.getRequestDispatcher("/view/common/notification_add.jsp").forward(request, response);
+        request.setAttribute("mode", "add");
+        request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
     }
 
     @Override
@@ -67,7 +67,8 @@ public class NotificationAddController extends HttpServlet {
             request.setAttribute("content", content);
             List<String> allTypes = notificationDAO.getNotificationTypes();
             request.setAttribute("allTypes", allTypes);
-            request.getRequestDispatcher("/view/common/notification_add.jsp").forward(request, response);
+            request.setAttribute("mode", "add");
+            request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
             return;
         }
 
@@ -86,7 +87,8 @@ public class NotificationAddController extends HttpServlet {
             request.setAttribute("successMessage", "Thêm thông báo thành công.");
             List<String> allTypes = notificationDAO.getNotificationTypes();
             request.setAttribute("allTypes", allTypes);
-            request.getRequestDispatcher("/view/common/notification_add.jsp").forward(request, response);
+            request.setAttribute("mode", "add");
+            request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
         } else {
             request.setAttribute("errorTitle", "Không thể thêm thông báo. Vui lòng thử lại.");
             request.setAttribute("notificationType", notificationType);
@@ -94,7 +96,8 @@ public class NotificationAddController extends HttpServlet {
             request.setAttribute("content", content);
             List<String> allTypes = notificationDAO.getNotificationTypes();
             request.setAttribute("allTypes", allTypes);
-            request.getRequestDispatcher("/view/common/notification_add.jsp").forward(request, response);
+            request.setAttribute("mode", "add");
+            request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
         }
     }
 }

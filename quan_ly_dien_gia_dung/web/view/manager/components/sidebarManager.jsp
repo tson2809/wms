@@ -14,7 +14,9 @@
     goodsReceiptActive=(currentURI.contains("/goods-receipt-list") ||
     currentURI.contains("/goods-receipt-detail") || currentURI.contains("/goods-receipt-add"))
     ? "active" : "" ; String returnActive=(currentURI.contains("/return-list") ||
-    currentURI.contains("/return-add") || currentURI.contains("/return-view")) ? "active" : "" ; %>
+    currentURI.contains("/return-add") || currentURI.contains("/return-view")) ? "active" : "" ;
+    String unitActive=(currentURI.contains("/unit-list") || currentURI.contains("/unit-add") ||
+    currentURI.contains("/unit-edit")) ? "active" : "" ; %>
 <!-- Sidebar Start -->
 <div class="sidebar pe-6 pb-5">
     <nav class="navbar bg-light navbar-light">
@@ -40,7 +42,10 @@
                class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn
                 trả hàng</a>
             <a href="/quan_ly_dien_gia_dung/product-list" class="nav-item nav-link"><i
-                    class="fa fa-box me-2"></i>Sản phẩm</a>                                 
+                    class="fa fa-box me-2"></i>Sản phẩm</a>
+            <a href="${pageContext.request.contextPath}/unit-list"
+               class="nav-item nav-link <%= unitActive %>"><i
+                    class="fa fa-ruler me-2"></i>Đơn vị tính</a>
             <a href="${pageContext.request.contextPath}/inventory-alert"
                class="nav-item nav-link ${activePage == 'alert' ? 'active' : ''}">
                 <i class="fa fa-exclamation-triangle me-2"></i>
