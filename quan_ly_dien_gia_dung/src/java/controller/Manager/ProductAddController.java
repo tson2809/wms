@@ -219,6 +219,17 @@ public class ProductAddController extends HttpServlet {
 
         List<ProductVariantSimpleDTO> variants = new ArrayList<>();
         if (variantSkus != null && variantSkus.length > 0) {
+            List<Part> imageParts = new ArrayList<>();
+            try {
+                for (Part p : request.getParts()) {
+                    if ("variantImage".equals(p.getName())) {
+                        imageParts.add(p);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             for (int i = 0; i < variantSkus.length; i++) {
                 ProductVariantSimpleDTO variant = new ProductVariantSimpleDTO();
                 variant.setSku(variantSkus[i].trim());
@@ -236,6 +247,19 @@ public class ProductAddController extends HttpServlet {
                     }
                 }
                 variant.setAttributeValues(attrValues);
+
+                String variantPicture = "";
+                if (i < imageParts.size()) {
+                    Part imgPart = imageParts.get(i);
+                    if (imgPart != null && imgPart.getSize() > 0) {
+                        String saved = saveVariantImage(imgPart, request);
+                        if (saved != null) {
+                            variantPicture = saved;
+                        }
+                    }
+                }
+                variant.setVariantPicture(variantPicture);
+
                 variants.add(variant);
             }
         }
@@ -261,5 +285,38 @@ public class ProductAddController extends HttpServlet {
 
     private String getParam(HttpServletRequest request, String name) {
         return request.getParameter(name);
+    }
+
+    private String saveVariantImage(Part filePart, HttpServletRequest request) {
+        try {
+            String fileName = filePart.getSubmittedFileName();
+            if (fileName == null || fileName.isBlank()) {
+                return null;
+            }
+            String saveName = System.currentTimeMillis() + "_" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+
+            String rootPath = getServletContext().getRealPath("/");
+            if (rootPath != null && rootPath.contains("build")) {
+                rootPath = rootPath.substring(0, rootPath.indexOf("build"));
+            }
+            String webPath = rootPath + "web" + File.separator + "img" + File.separator + "variants";
+            File webDir = new File(webPath);
+            if (!webDir.exists()) {
+                webDir.mkdirs();
+            }
+
+            filePart.write(webPath + File.separator + saveName);
+
+            String buildPath = getServletContext().getRealPath("/img/variants");
+            File buildDir = new File(buildPath);
+            if (buildDir.exists() || buildDir.mkdirs()) {
+                Files.copy(Path.of(webPath, saveName), Path.of(buildPath, saveName), StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            return "img/variants/" + saveName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

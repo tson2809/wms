@@ -697,15 +697,17 @@ AND v.status = 'active'
 
     private int insertVariant(Connection conn, int productId, ProductVariantSimpleDTO variantDTO)
             throws SQLException {
-        String sql = "INSERT INTO product_variants (product_id, sku, barcode, "
+        String sql = "INSERT INTO product_variants (product_id, sku, barcode, variant_picture, "
                 + "sale_price, cost_price, quantity, status, created_at) "
-                + "VALUES (?, ?, ?, 0, 0, 0, 'active', NOW())";
+                + "VALUES (?, ?, ?, ?, 0, 0, 0, 'active', NOW())";
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, productId);
             ps.setString(2, variantDTO.getSku());
             String barcode = variantDTO.getBarcode();
             ps.setString(3, (barcode == null || barcode.trim().isEmpty()) ? null : barcode.trim());
+            String picture = variantDTO.getVariantPicture();
+            ps.setString(4, (picture == null || picture.trim().isEmpty()) ? null : picture.trim());
 
             int rowsAffected = ps.executeUpdate();
 
