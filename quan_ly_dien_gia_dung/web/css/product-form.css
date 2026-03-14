@@ -45,6 +45,7 @@
     color: #9ca3af;
 }
 
+
 /* Attribute Styles */
 .attribute-row {
     background: #f9fafb;
@@ -130,7 +131,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
+    padding: 5px;
     background: #f9fafb;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
@@ -147,6 +148,46 @@
     font-weight: 500;
     color: #374151;
     min-width: 150px;
+}
+
+/* Ô ảnh phiên bản: sau Mã SKU & Barcode, viền vuông nét đứt giống Ảnh sản phẩm */
+.variant-image-box {
+    width: 65px;
+    height: 65px;
+    min-width: 65px;
+    min-height: 65px;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: #f9fafb;
+    transition: border-color 0.3s, background 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.variant-image-box:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.variant-image-box i {
+    font-size: 20px;
+    color: #9ca3af;
+}
+
+/* Ảnh preview trong ô phiên bản: luôn vừa khung */
+.variant-image-box img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    display: block;
 }
 
 .variant-item input[type="text"] {
@@ -193,6 +234,12 @@
 
 .btn-save:hover {
     background: #2563eb;
+}
+
+.btn-save[disabled] {
+    opacity: 0.1;
+    cursor: not-allowed;
+    background: #9ca3af;
 }
 
 .btn-cancel {

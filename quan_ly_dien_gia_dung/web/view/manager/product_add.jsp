@@ -21,6 +21,7 @@
                 <link href="${pageContext.request.contextPath}/css/bootstrap.min.css" rel="stylesheet">
                 <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
                 <link href="${pageContext.request.contextPath}/css/product-form.css" rel="stylesheet">
+
             </head>
 
             <body>
@@ -442,7 +443,11 @@
                                 '<input type="checkbox" class="variant-checkbox" data-index="' + index + '">' +
                                 '<div class="variant-combination">' + esc(variantText) + '</div>' +
                                 '<input type="text" name="variantSku" placeholder="Mã SKU" style="width: 150px;" required>' +
-                                '<input type="text" name="variantBarcode" placeholder="Barcode" style="width: 150px;">';
+                                '<input type="text" name="variantBarcode" placeholder="Barcode" style="width: 150px;">' +
+                                '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
+                                    '<i class="fa fa-camera"></i>' +
+                                '</div>' +
+                                '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
 
                             container.appendChild(variantDiv);
                         });
@@ -523,7 +528,11 @@
                                 '<input type="checkbox" class="variant-checkbox" data-index="' + index + '">' +
                                 '<div class="variant-combination">' + esc(variantText) + '</div>' +
                                 '<input type="text" name="variantSku" placeholder="Mã SKU" value="' + esc(preserved.sku) + '" style="width: 150px;" required>' +
-                                '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(preserved.barcode) + '" style="width: 150px;">';
+                                '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(preserved.barcode) + '" style="width: 150px;">' +
+                                '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
+                                    '<i class="fa fa-camera"></i>' +
+                                '</div>' +
+                                '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
 
                             container.appendChild(variantDiv);
                         });
@@ -541,7 +550,7 @@
                         });
                     });
 
-                    // Image preview - giống product_edit
+                    // Image preview - ảnh sản phẩm chính
                     document.getElementById('productImage').addEventListener('change', function (e) {
                         var file = e.target.files[0];
                         if (file) {
@@ -551,6 +560,21 @@
                                 if (uploadBox) {
                                     uploadBox.innerHTML = '<img src="' + ev.target.result + '" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" alt="">';
                                 }
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+
+                    // Preview ảnh từng phiên bản: dùng delegation vì ô ảnh được tạo động
+                    document.getElementById('productAddForm').addEventListener('change', function (e) {
+                        if (e.target && e.target.name === 'variantImage') {
+                            var file = e.target.files[0];
+                            if (!file) return;
+                            var box = e.target.previousElementSibling;
+                            if (!box || !box.classList.contains('variant-image-box')) return;
+                            var reader = new FileReader();
+                            reader.onload = function (ev) {
+                                box.innerHTML = '<img src="' + ev.target.result + '" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;">';
                             };
                             reader.readAsDataURL(file);
                         }

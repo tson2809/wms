@@ -148,7 +148,7 @@
                                         <button type="button" class="btn-cancel" onclick="window.location.href = '${pageContext.request.contextPath}/product-list'">Hủy</button>
                                         <c:choose>
                                             <c:when test="${productHasTransactions}">
-                                                <button type="button" class="btn-save" disabled title="Sản phẩm đã tham gia giao dịch"><i class="fa fa-save me-2"></i>Cập nhật sản phẩm</button>
+                                                <button type="button" class="btn-save" disabled style="opacity:0.5;cursor:not-allowed;background:#9ca3af;border-color:#9ca3af;" title="Sản phẩm đã tham gia giao dịch"><i class="fa fa-save me-2"></i>Cập nhật sản phẩm</button>
                                             </c:when>
                                             <c:otherwise>
                                                 <button type="submit" class="btn-save"><i class="fa fa-save me-2"></i>Cập nhật sản phẩm</button>
@@ -402,13 +402,10 @@
                                                 var oldVariantMap = {};
                                                 document.querySelectorAll('#variantsContainer .variant-item').forEach(function (row) {
                                                     var key = row.querySelector('.variant-combination')?.textContent;
-                                                    if (!key)
-                                                        return;
-
+                                                    if (!key) return;
                                                     var sku = row.querySelector('input[name="variantSku"]')?.value || '';
                                                     var barcode = row.querySelector('input[name="variantBarcode"]')?.value || '';
                                                     var variantIdInput = row.querySelector('input[name="variantId"]');
-
                                                     oldVariantMap[key] = {
                                                         variantId: variantIdInput ? variantIdInput.value : null,
                                                         sku: sku,
@@ -432,11 +429,19 @@
 
                                                 newCombinations.forEach(function (variant, index) {
                                                     var key = variant.join(' / ');
-                                                    var old = oldVariantMap[key] || {};
-
+                                                    var old = oldVariantMap[key];
+                                                    if (!old) {
+                                                        var k = key;
+                                                        while (k) {
+                                                            var parentKey = k.replace(/ \/ [^/]*$/, '').trim();
+                                                            if (parentKey === k) break;
+                                                            k = parentKey;
+                                                            if (oldVariantMap[k]) { old = oldVariantMap[k]; break; }
+                                                        }
+                                                    }
+                                                    old = old || {};
                                                     var variantDiv = document.createElement('div');
                                                     variantDiv.className = 'variant-item';
-
                                                     var variantIdVal = (old.variantId && String(old.variantId).trim()) ? esc(old.variantId) : '';
                                                     variantDiv.innerHTML =
                                                             '<input type="hidden" name="variantId" value="' + variantIdVal + '">' +
@@ -444,7 +449,6 @@
                                                             '<div class="variant-combination">' + esc(key) + '</div>' +
                                                             '<input type="text" name="variantSku" value="' + esc(old.sku || '') + '" placeholder="Mã SKU" style="width:150px" required>' +
                                                             '<input type="text" name="variantBarcode" value="' + esc(old.barcode || '') + '" placeholder="Barcode" style="width:150px">';
-
                                                     container.appendChild(variantDiv);
                                                 });
 
