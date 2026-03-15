@@ -171,6 +171,7 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/main.js"></script>
         <script>
+                                            var contextPath = '${pageContext.request.contextPath}';
                                             let attributes = [];
                                             let attributeIdCounter = 0;
                                             let variants = [];
@@ -206,12 +207,18 @@
                                                                     variantDiv.className = 'variant-item';
                                                                     var variantText = (v.attributeValues || []).join(' / ');
                                                                     var variantIdVal = (v.variantId != null && v.variantId > 0) ? String(v.variantId) : '';
+                                                                    var variantPic = (v.variantPicture != null && String(v.variantPicture).trim() !== '') ? String(v.variantPicture).trim() : '';
+                                                                    variantDiv.setAttribute('data-variant-picture', variantPic);
                                                                     variantDiv.innerHTML =
                                                                             '<input type="hidden" name="variantId" value="' + esc(variantIdVal) + '">' +
                                                                             '<input type="checkbox" class="variant-checkbox" data-index="' + index + '">' +
                                                                             '<div class="variant-combination">' + esc(variantText) + '</div>' +
                                                                             '<input type="text" name="variantSku" placeholder="Mã SKU" value="' + esc(v.sku) + '" style="width: 150px;" required>' +
-                                                                            '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(v.barcode) + '" style="width: 150px;">';
+                                                                            '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(v.barcode) + '" style="width: 150px;">' +
+                                                                            '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
+                                                                            (variantPic ? '<img src="' + contextPath + '/' + esc(variantPic) + '" alt="">' : '<i class="fa fa-camera"></i>') +
+                                                                            '</div>' +
+                                                                            '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
                                                                     container.appendChild(variantDiv);
                                                                 });
                                                             }
@@ -406,10 +413,12 @@
                                                     var sku = row.querySelector('input[name="variantSku"]')?.value || '';
                                                     var barcode = row.querySelector('input[name="variantBarcode"]')?.value || '';
                                                     var variantIdInput = row.querySelector('input[name="variantId"]');
+                                                    var variantPicture = row.getAttribute('data-variant-picture') || '';
                                                     oldVariantMap[key] = {
                                                         variantId: variantIdInput ? variantIdInput.value : null,
                                                         sku: sku,
-                                                        barcode: barcode
+                                                        barcode: barcode,
+                                                        variantPicture: variantPicture
                                                     };
                                                 });
 
@@ -438,17 +447,31 @@
                                                             k = parentKey;
                                                             if (oldVariantMap[k]) { old = oldVariantMap[k]; break; }
                                                         }
+                                                        if (!old) {
+                                                            for (var ok in oldVariantMap) {
+                                                                if (ok === key || ok.indexOf(key + ' / ') === 0) {
+                                                                    old = oldVariantMap[ok];
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                     old = old || {};
                                                     var variantDiv = document.createElement('div');
                                                     variantDiv.className = 'variant-item';
                                                     var variantIdVal = (old.variantId && String(old.variantId).trim()) ? esc(old.variantId) : '';
+                                                    var pic = (old.variantPicture && String(old.variantPicture).trim()) ? String(old.variantPicture).trim() : '';
+                                                    variantDiv.setAttribute('data-variant-picture', pic);
                                                     variantDiv.innerHTML =
                                                             '<input type="hidden" name="variantId" value="' + variantIdVal + '">' +
                                                             '<input type="checkbox" class="variant-checkbox" data-index="' + index + '">' +
                                                             '<div class="variant-combination">' + esc(key) + '</div>' +
                                                             '<input type="text" name="variantSku" value="' + esc(old.sku || '') + '" placeholder="Mã SKU" style="width:150px" required>' +
-                                                            '<input type="text" name="variantBarcode" value="' + esc(old.barcode || '') + '" placeholder="Barcode" style="width:150px">';
+                                                            '<input type="text" name="variantBarcode" value="' + esc(old.barcode || '') + '" placeholder="Barcode" style="width:150px">' +
+                                                            '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
+                                                            (pic ? '<img src="' + contextPath + '/' + esc(pic) + '" alt="">' : '<i class="fa fa-camera"></i>') +
+                                                            '</div>' +
+                                                            '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
                                                     container.appendChild(variantDiv);
                                                 });
 
@@ -474,10 +497,12 @@
                                                         var skuInput = row.querySelector('input[name="variantSku"]');
                                                         var barcodeInput = row.querySelector('input[name="variantBarcode"]');
                                                         var variantIdInput = row.querySelector('input[name="variantId"]');
+                                                        var variantPicture = row.getAttribute('data-variant-picture') || '';
                                                         preservedValues.push({
                                                             sku: skuInput ? skuInput.value : '',
                                                             barcode: barcodeInput ? barcodeInput.value : '',
-                                                            variantId: variantIdInput ? variantIdInput.value : ''
+                                                            variantId: variantIdInput ? variantIdInput.value : '',
+                                                            variantPicture: variantPicture
                                                         });
                                                     }
                                                 });
@@ -503,13 +528,19 @@
                                                 variants.forEach(function (variant, index) {
                                                     var variantDiv = document.createElement('div');
                                                     variantDiv.className = 'variant-item';
-                                                    var preserved = preservedValues[index] || {sku: '', barcode: '', variantId: ''};
+                                                    var preserved = preservedValues[index] || {sku: '', barcode: '', variantId: '', variantPicture: ''};
                                                     var variantIdVal = (preserved.variantId && String(preserved.variantId).trim()) ? esc(preserved.variantId) : '';
+                                                    var pic = (preserved.variantPicture && String(preserved.variantPicture).trim()) ? String(preserved.variantPicture).trim() : '';
+                                                    variantDiv.setAttribute('data-variant-picture', pic);
                                                     variantDiv.innerHTML = '<input type="hidden" name="variantId" value="' + variantIdVal + '">' +
                                                             '<input type="checkbox" class="variant-checkbox" data-index="' + index + '">' +
                                                             '<div class="variant-combination">' + esc(variant.join(' / ')) + '</div>' +
                                                             '<input type="text" name="variantSku" placeholder="Mã SKU" value="' + esc(preserved.sku) + '" style="width: 150px;" required>' +
-                                                            '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(preserved.barcode) + '" style="width: 150px;">';
+                                                            '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(preserved.barcode) + '" style="width: 150px;">' +
+                                                            '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
+                                                            (pic ? '<img src="' + contextPath + '/' + esc(pic) + '" alt="">' : '<i class="fa fa-camera"></i>') +
+                                                            '</div>' +
+                                                            '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
                                                     container.appendChild(variantDiv);
                                                 });
                                                 if (variants.length === 0) {
@@ -531,6 +562,21 @@
                                                     reader.onload = function (ev) {
                                                         var uploadBox = document.getElementById('imageUploadBox');
                                                         uploadBox.innerHTML = '<img src="' + ev.target.result + '" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;" alt="">';
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            });
+
+                                            document.getElementById('productEditForm').addEventListener('change', function (e) {
+                                                if (e.target && e.target.name === 'variantImage') {
+                                                    var file = e.target.files[0];
+                                                    if (!file) return;
+                                                    var row = e.target.closest('.variant-item');
+                                                    var box = row ? row.querySelector('.variant-image-box') : null;
+                                                    if (!box || !box.classList.contains('variant-image-box')) return;
+                                                    var reader = new FileReader();
+                                                    reader.onload = function (ev) {
+                                                        box.innerHTML = '<img src="' + ev.target.result + '" alt="">';
                                                     };
                                                     reader.readAsDataURL(file);
                                                 }

@@ -263,6 +263,18 @@
                                     this.appendChild(inp);
                                 });
                             }
+                            // Gửi ảnh variant dạng base64 (khi đã chọn ảnh rồi thêm thuộc tính nên file input bị mất)
+                            this.querySelectorAll('input[name^="variantImageBase64_"]').forEach(el => el.remove());
+                            document.querySelectorAll('#variantsContainer .variant-item').forEach((row, i) => {
+                                const pending = row.getAttribute('data-pending-image');
+                                if (pending) {
+                                    const inp = document.createElement('input');
+                                    inp.type = 'hidden';
+                                    inp.name = 'variantImageBase64_' + i;
+                                    inp.value = pending;
+                                    this.appendChild(inp);
+                                }
+                            });
                         });
                     });
 
@@ -409,44 +421,76 @@
                         }
                     }
 
+                    function esc(s) {
+                        return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    }
+
                     function generateVariants() {
                         // Filter attributes with name and values
                         const validAttrs = attributes.filter(attr => attr.name && attr.values.length > 0);
 
                         if (validAttrs.length === 0) {
-                            // Chưa có thuộc tính/giá trị → chưa sinh được variant
                             document.getElementById('variantsCard').style.display = 'none';
                             variants = [];
                             return;
                         }
 
-                        // Generate cartesian product
+                        // Map variant cũ: giữ SKU, barcode, ảnh preview (data URL) khi rebuild
+                        const oldVariantMap = {};
+                        document.querySelectorAll('#variantsContainer .variant-item').forEach(row => {
+                            const key = row.querySelector('.variant-combination')?.textContent?.trim();
+                            if (!key) return;
+                            const sku = row.querySelector('input[name="variantSku"]')?.value || '';
+                            const barcode = row.querySelector('input[name="variantBarcode"]')?.value || '';
+                            const box = row.querySelector('.variant-image-box');
+                            const img = box ? box.querySelector('img') : null;
+                            const pendingUrl = (img && img.src && img.src.indexOf('data:') === 0) ? img.src : (row.getAttribute('data-pending-image') || '');
+                            oldVariantMap[key] = { sku, barcode, pendingPreviewDataUrl: pendingUrl };
+                        });
+
                         variants = cartesianProduct(validAttrs.map(attr => attr.values));
 
-                        // Show variants card
                         document.getElementById('variantsCard').style.display = 'block';
                         document.getElementById('variantCount').textContent = variants.length + ' phiên bản';
 
-                        // Render variants
                         const container = document.getElementById('variantsContainer');
                         container.innerHTML = '';
 
                         variants.forEach((variant, index) => {
+                            const variantText = variant.join(' / ');
+                            let old = oldVariantMap[variantText];
+                            if (!old) {
+                                let k = variantText;
+                                while (k) {
+                                    const parentKey = k.replace(/ \/ [^/]*$/, '').trim();
+                                    if (parentKey === k) break;
+                                    k = parentKey;
+                                    if (oldVariantMap[k]) { old = oldVariantMap[k]; break; }
+                                }
+                            }
+                            if (!old) {
+                                for (const ok in oldVariantMap) {
+                                    if (ok === variantText || ok.indexOf(variantText + ' / ') === 0) {
+                                        old = oldVariantMap[ok];
+                                        break;
+                                    }
+                                }
+                            }
+                            old = old || {};
+
                             const variantDiv = document.createElement('div');
                             variantDiv.className = 'variant-item';
-
-                            // Build variant text
-                            const variantText = variant.join(' / ');
-                            const esc = (s) => (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            const pendingUrl = (old.pendingPreviewDataUrl && old.pendingPreviewDataUrl.indexOf('data:') === 0) ? old.pendingPreviewDataUrl : '';
+                            if (pendingUrl) variantDiv.setAttribute('data-pending-image', pendingUrl);
+                            let boxContent = '<i class="fa fa-camera"></i>';
+                            if (pendingUrl) boxContent = '<img src="' + pendingUrl.replace(/"/g, '&quot;') + '" alt="">';
 
                             variantDiv.innerHTML =
                                 '<input type="checkbox" class="variant-checkbox" data-index="' + index + '">' +
                                 '<div class="variant-combination">' + esc(variantText) + '</div>' +
-                                '<input type="text" name="variantSku" placeholder="Mã SKU" style="width: 150px;" required>' +
-                                '<input type="text" name="variantBarcode" placeholder="Barcode" style="width: 150px;">' +
-                                '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
-                                    '<i class="fa fa-camera"></i>' +
-                                '</div>' +
+                                '<input type="text" name="variantSku" placeholder="Mã SKU" value="' + esc(old.sku || '') + '" style="width: 150px;" required>' +
+                                '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(old.barcode || '') + '" style="width: 150px;">' +
+                                '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' + boxContent + '</div>' +
                                 '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
 
                             container.appendChild(variantDiv);
@@ -483,7 +527,7 @@
                             .map(cb => parseInt(cb.getAttribute('data-index')))
                             .sort((a, b) => b - a);
 
-                        // Preserve SKU/Barcode values for remaining variants before re-render
+                        // Preserve SKU, Barcode, ảnh preview cho các phiên bản còn lại
                         const container = document.getElementById('variantsContainer');
                         const rows = container.querySelectorAll('.variant-item');
                         const preservedValues = [];
@@ -491,9 +535,13 @@
                             if (!indicesToDelete.includes(i)) {
                                 const skuInput = row.querySelector('input[name="variantSku"]');
                                 const barcodeInput = row.querySelector('input[name="variantBarcode"]');
+                                const box = row.querySelector('.variant-image-box');
+                                const img = box ? box.querySelector('img') : null;
+                                const pendingUrl = (img && img.src && img.src.indexOf('data:') === 0) ? img.src : (row.getAttribute('data-pending-image') || '');
                                 preservedValues.push({
                                     sku: skuInput ? skuInput.value : '',
-                                    barcode: barcodeInput ? barcodeInput.value : ''
+                                    barcode: barcodeInput ? barcodeInput.value : '',
+                                    pendingPreviewDataUrl: pendingUrl
                                 });
                             }
                         });
@@ -514,24 +562,24 @@
                         document.getElementById('variantCount').textContent = variants.length + ' phiên bản';
                         document.getElementById('selectAllVariants').checked = false;
 
-                        // Re-render variants
+                        // Re-render variants (giữ SKU, barcode, ảnh preview)
                         container.innerHTML = '';
                         variants.forEach((variant, index) => {
                             const variantDiv = document.createElement('div');
                             variantDiv.className = 'variant-item';
-
                             const variantText = variant.join(' / ');
-                            const preserved = preservedValues[index] || { sku: '', barcode: '' };
-                            const esc = (s) => (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            const preserved = preservedValues[index] || { sku: '', barcode: '', pendingPreviewDataUrl: '' };
+                            const pendingUrl = (preserved.pendingPreviewDataUrl && preserved.pendingPreviewDataUrl.indexOf('data:') === 0) ? preserved.pendingPreviewDataUrl : '';
+                            if (pendingUrl) variantDiv.setAttribute('data-pending-image', pendingUrl);
+                            let boxContent = '<i class="fa fa-camera"></i>';
+                            if (pendingUrl) boxContent = '<img src="' + pendingUrl.replace(/"/g, '&quot;') + '" alt="">';
 
                             variantDiv.innerHTML =
                                 '<input type="checkbox" class="variant-checkbox" data-index="' + index + '">' +
                                 '<div class="variant-combination">' + esc(variantText) + '</div>' +
                                 '<input type="text" name="variantSku" placeholder="Mã SKU" value="' + esc(preserved.sku) + '" style="width: 150px;" required>' +
                                 '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(preserved.barcode) + '" style="width: 150px;">' +
-                                '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
-                                    '<i class="fa fa-camera"></i>' +
-                                '</div>' +
+                                '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' + boxContent + '</div>' +
                                 '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
 
                             container.appendChild(variantDiv);
@@ -570,11 +618,14 @@
                         if (e.target && e.target.name === 'variantImage') {
                             var file = e.target.files[0];
                             if (!file) return;
-                            var box = e.target.previousElementSibling;
+                            var row = e.target.closest('.variant-item');
+                            var box = row ? row.querySelector('.variant-image-box') : e.target.previousElementSibling;
                             if (!box || !box.classList.contains('variant-image-box')) return;
                             var reader = new FileReader();
                             reader.onload = function (ev) {
-                                box.innerHTML = '<img src="' + ev.target.result + '" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;">';
+                                var dataUrl = ev.target.result;
+                                box.innerHTML = '<img src="' + dataUrl + '" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;">';
+                                if (row) row.setAttribute('data-pending-image', dataUrl);
                             };
                             reader.readAsDataURL(file);
                         }

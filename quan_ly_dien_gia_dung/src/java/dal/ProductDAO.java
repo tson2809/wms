@@ -930,6 +930,23 @@ AND v.status = 'active'
             return dto;
         }
 
+        try (Connection connPic = getConnection();
+             PreparedStatement psPic = connPic.prepareStatement("SELECT variant_id, variant_picture FROM product_variants WHERE product_id = ? AND status = 'active'")) {
+            psPic.setInt(1, productId);
+            try (ResultSet rsPic = psPic.executeQuery()) {
+                java.util.Map<Integer, String> pictureByVariantId = new java.util.HashMap<>();
+                while (rsPic.next()) {
+                    pictureByVariantId.put(rsPic.getInt("variant_id"), rsPic.getString("variant_picture"));
+                }
+                for (ProductVariantSimpleDTO v : variantList) {
+                    if (v.getVariantId() != null) {
+                        v.setVariantPicture(pictureByVariantId.get(v.getVariantId()));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+        }
+
         String sqlAttr = "SELECT variant_id, attribute_name, attribute_value FROM product_variant_attributes WHERE variant_id = ?";
         java.util.Map<Integer, java.util.Map<String, String>> variantAttrMap = new java.util.LinkedHashMap<>();
         java.util.Set<String> allAttrNamesSet = new java.util.LinkedHashSet<>();
@@ -1036,7 +1053,8 @@ AND v.status = 'active'
                     String sku = v.getSku() != null ? v.getSku().trim() : "";
                     String barcode = v.getBarcode() != null ? v.getBarcode().trim() : "";
                     if (vid != null && vid > 0) {
-                        updateVariant(conn, vid, sku, barcode);
+                        String picture = v.getVariantPicture() != null ? v.getVariantPicture().trim() : null;
+                        updateVariant(conn, vid, sku, barcode, picture);
                         deleteVariantAttributes(conn, vid);
                         if (attributeNames.size() > 0 && v.getAttributeValues() != null
                                 && !v.getAttributeValues().isEmpty()) {
@@ -1110,13 +1128,21 @@ AND v.status = 'active'
         return list;
     }
 
-    private void updateVariant(Connection conn, int variantId, String sku, String barcode) throws SQLException {
+    private void updateVariant(Connection conn, int variantId, String sku, String barcode, String picture) throws SQLException {
         String sql = "UPDATE product_variants SET sku=?, barcode=? WHERE variant_id=?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, sku);
             ps.setString(2, barcode == null || barcode.isEmpty() ? null : barcode);
             ps.setInt(3, variantId);
             ps.executeUpdate();
+        }
+        if (picture != null && !picture.trim().isEmpty()) {
+            try (PreparedStatement psPic = conn.prepareStatement("UPDATE product_variants SET variant_picture=? WHERE variant_id=?")) {
+                psPic.setString(1, picture.trim());
+                psPic.setInt(2, variantId);
+                psPic.executeUpdate();
+            } catch (SQLException e) {
+            }
         }
     }
 
