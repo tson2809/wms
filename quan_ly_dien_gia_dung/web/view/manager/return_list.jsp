@@ -361,9 +361,9 @@ Author : laptop368
                                                     </td>
                                                     <td class="action-col">
                                                         <div class="action-btn-group">
-                                                            <a href="${pageContext.request.contextPath}/return-view?id=${ro.returnOrderId}"
+                                                            <a href="${pageContext.request.contextPath}/return-edit?id=${ro.returnOrderId}"
                                                                class="action-btn action-view"
-                                                               title="Xem chi tiết">
+                                                               title="Chỉnh sửa đơn trả hàng">
                                                                 <iconify-icon
                                                                     icon="lucide:eye"></iconify-icon>
                                                             </a>
