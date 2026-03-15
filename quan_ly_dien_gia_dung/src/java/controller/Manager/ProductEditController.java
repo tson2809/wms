@@ -260,6 +260,26 @@ public class ProductEditController extends HttpServlet {
                     .collect(Collectors.toList());
         }
 
+        List<Part> variantImageParts = new ArrayList<>();
+        try {
+            for (Part p : request.getParts()) {
+                if ("variantImage".equals(p.getName())) {
+                    variantImageParts.add(p);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        java.util.Map<Integer, String> existingPictureByVariantId = new java.util.HashMap<>();
+        if (existingDto.getVariants() != null) {
+            for (ProductVariantSimpleDTO ev : existingDto.getVariants()) {
+                if (ev.getVariantId() != null && ev.getVariantPicture() != null && !ev.getVariantPicture().trim().isEmpty()) {
+                    existingPictureByVariantId.put(ev.getVariantId(), ev.getVariantPicture().trim());
+                }
+            }
+        }
+
         List<ProductVariantSimpleDTO> variants = new ArrayList<>();
         if (variantSkus != null && variantSkus.length > 0) {
             for (int i = 0; i < variantSkus.length; i++) {
@@ -268,9 +288,11 @@ public class ProductEditController extends HttpServlet {
                 v.setBarcode(variantBarcodes != null && i < variantBarcodes.length
                         ? (variantBarcodes[i] != null ? variantBarcodes[i].trim() : "")
                         : "");
+                Integer variantId = null;
                 if (variantIds != null && i < variantIds.length && variantIds[i] != null && !variantIds[i].trim().isEmpty()) {
                     try {
-                        v.setVariantId(Integer.parseInt(variantIds[i].trim()));
+                        variantId = Integer.parseInt(variantIds[i].trim());
+                        v.setVariantId(variantId);
                     } catch (NumberFormatException ignored) { }
                 }
                 List<String> attrValues = new ArrayList<>();
@@ -281,6 +303,22 @@ public class ProductEditController extends HttpServlet {
                     }
                 }
                 v.setAttributeValues(attrValues);
+
+                String variantPicture = null;
+                if (i < variantImageParts.size()) {
+                    Part imgPart = variantImageParts.get(i);
+                    if (imgPart != null && imgPart.getSize() > 0) {
+                        String submitted = imgPart.getSubmittedFileName();
+                        if (submitted != null && !submitted.isBlank()) {
+                            variantPicture = saveVariantImage(imgPart, request);
+                        }
+                    }
+                }
+                if (variantPicture == null && variantId != null) {
+                    variantPicture = existingPictureByVariantId.get(variantId);
+                }
+                v.setVariantPicture(variantPicture != null ? variantPicture : "");
+
                 variants.add(v);
             }
         }
@@ -310,7 +348,7 @@ public class ProductEditController extends HttpServlet {
             request.setAttribute("supplierId", supplierId);
             request.setAttribute("unitId", unitId);
             request.setAttribute("description", description);
-            request.setAttribute("editDataJson", buildEditDataJsonFromParams(attributeNamesStr, variantAttrValuesArr, variantIds, variantSkus, variantBarcodes));
+            request.setAttribute("editDataJson", buildEditDataJsonFromDTO(dto));
             request.getRequestDispatcher("/view/manager/product_edit.jsp").forward(request, response);
         }
     }
@@ -398,6 +436,7 @@ public class ProductEditController extends HttpServlet {
             sb.append("{\"variantId\":").append(v.getVariantId() != null ? v.getVariantId() : 0)
                     .append(",\"sku\":").append(escapeJson(v.getSku() != null ? v.getSku() : ""))
                     .append(",\"barcode\":").append(escapeJson(v.getBarcode() != null ? v.getBarcode() : ""))
+                    .append(",\"variantPicture\":").append(escapeJson(v.getVariantPicture() != null ? v.getVariantPicture() : ""))
                     .append(",\"attributeValues\":[");
             List<String> av = v.getAttributeValues();
             if (av != null) {
@@ -419,5 +458,38 @@ public class ProductEditController extends HttpServlet {
 
     private String getParam(HttpServletRequest request, String name) {
         return request.getParameter(name);
+    }
+
+    private String saveVariantImage(Part filePart, HttpServletRequest request) {
+        try {
+            String fileName = filePart.getSubmittedFileName();
+            if (fileName == null || fileName.isBlank()) {
+                return null;
+            }
+            String saveName = System.currentTimeMillis() + "_" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+
+            String rootPath = getServletContext().getRealPath("/");
+            if (rootPath != null && rootPath.contains("build")) {
+                rootPath = rootPath.substring(0, rootPath.indexOf("build"));
+            }
+            String webPath = rootPath + "web" + File.separator + "img" + File.separator + "variants";
+            File webDir = new File(webPath);
+            if (!webDir.exists()) {
+                webDir.mkdirs();
+            }
+
+            filePart.write(webPath + File.separator + saveName);
+
+            String buildPath = getServletContext().getRealPath("/img/variants");
+            File buildDir = new File(buildPath);
+            if (buildDir.exists() || buildDir.mkdirs()) {
+                Files.copy(Path.of(webPath, saveName), Path.of(buildPath, saveName), StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            return "img/variants/" + saveName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
