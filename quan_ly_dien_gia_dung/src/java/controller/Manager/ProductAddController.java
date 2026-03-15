@@ -7,6 +7,7 @@ import dal.UnitDAO;
 import dal.ProductDAO;
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -252,10 +253,18 @@ public class ProductAddController extends HttpServlet {
                 if (i < imageParts.size()) {
                     Part imgPart = imageParts.get(i);
                     if (imgPart != null && imgPart.getSize() > 0) {
-                        String saved = saveVariantImage(imgPart, request);
-                        if (saved != null) {
-                            variantPicture = saved;
+                        String submitted = imgPart.getSubmittedFileName();
+                        if (submitted != null && !submitted.isBlank()) {
+                            String saved = saveVariantImage(imgPart, request);
+                            if (saved != null) variantPicture = saved;
                         }
+                    }
+                }
+                if (variantPicture.isEmpty()) {
+                    String base64Param = request.getParameter("variantImageBase64_" + i);
+                    if (base64Param != null && base64Param.startsWith("data:")) {
+                        String saved = saveVariantImageFromBase64(base64Param, request);
+                        if (saved != null) variantPicture = saved;
                     }
                 }
                 variant.setVariantPicture(variantPicture);
@@ -313,6 +322,38 @@ public class ProductAddController extends HttpServlet {
                 Files.copy(Path.of(webPath, saveName), Path.of(buildPath, saveName), StandardCopyOption.REPLACE_EXISTING);
             }
 
+            return "img/variants/" + saveName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String saveVariantImageFromBase64(String dataUrl, HttpServletRequest request) {
+        try {
+            int comma = dataUrl.indexOf(',');
+            if (comma < 0) return null;
+            String base64 = dataUrl.substring(comma + 1);
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            if (bytes == null || bytes.length == 0) return null;
+            String ext = "png";
+            if (dataUrl.startsWith("data:image/jpeg") || dataUrl.startsWith("data:image/jpg")) ext = "jpg";
+            else if (dataUrl.startsWith("data:image/gif")) ext = "gif";
+            else if (dataUrl.startsWith("data:image/webp")) ext = "webp";
+            String saveName = System.currentTimeMillis() + "_variant." + ext;
+            String rootPath = getServletContext().getRealPath("/");
+            if (rootPath != null && rootPath.contains("build")) {
+                rootPath = rootPath.substring(0, rootPath.indexOf("build"));
+            }
+            String webPath = rootPath + "web" + File.separator + "img" + File.separator + "variants";
+            File webDir = new File(webPath);
+            if (!webDir.exists()) webDir.mkdirs();
+            Files.write(Path.of(webPath, saveName), bytes);
+            String buildPath = getServletContext().getRealPath("/img/variants");
+            File buildDir = new File(buildPath);
+            if (buildDir.exists() || buildDir.mkdirs()) {
+                Files.copy(Path.of(webPath, saveName), Path.of(buildPath, saveName), StandardCopyOption.REPLACE_EXISTING);
+            }
             return "img/variants/" + saveName;
         } catch (Exception e) {
             e.printStackTrace();
