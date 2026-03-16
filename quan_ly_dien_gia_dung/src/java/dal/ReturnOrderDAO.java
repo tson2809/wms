@@ -153,6 +153,202 @@ public class ReturnOrderDAO extends DBContext {
         return false;
     }
 
+    /** Kiểm tra mã phiếu trả tồn tại, bỏ qua đơn có id cho trước (dùng khi edit). */
+    public boolean returnCodeExistsExcludingId(String returnCode, int excludeReturnOrderId) {
+        if (returnCode == null || returnCode.trim().isEmpty()) return false;
+        String sql = "SELECT COUNT(*) FROM return_orders WHERE return_code = ? AND return_order_id != ?";
+        try (PreparedStatement pre = getConnection().prepareStatement(sql)) {
+            pre.setString(1, returnCode.trim());
+            pre.setInt(2, excludeReturnOrderId);
+            ResultSet rs = pre.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public ReturnOrder getReturnOrderById(int returnOrderId) {
+        String sql = """
+                SELECT ro.return_order_id, ro.return_code, ro.supplier_id, ro.return_date, ro.total_refund_amount,
+                       ro.refund_status, ro.status, ro.description, ro.created_by, ro.received_by, ro.created_at,
+                       s.supplier_name,
+                       u1.full_name AS created_by_name,
+                       u2.full_name AS received_by_name,
+                       COALESCE(d.total_qty, 0) AS total_quantity
+                FROM return_orders ro
+                LEFT JOIN suppliers s ON ro.supplier_id = s.supplier_id
+                LEFT JOIN users u1 ON ro.created_by = u1.user_id
+                LEFT JOIN users u2 ON ro.received_by = u2.user_id
+                LEFT JOIN (
+                    SELECT return_order_id, SUM(quantity) AS total_qty
+                    FROM return_order_details
+                    GROUP BY return_order_id
+                ) d ON ro.return_order_id = d.return_order_id
+                WHERE ro.return_order_id = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, returnOrderId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                ReturnOrder ro = new ReturnOrder();
+                ro.setReturnOrderId(rs.getInt("return_order_id"));
+                ro.setReturnCode(rs.getString("return_code"));
+                ro.setSupplierId(rs.getInt("supplier_id"));
+                ro.setReturnDate(rs.getDate("return_date"));
+                ro.setTotalRefundAmount(rs.getBigDecimal("total_refund_amount"));
+                ro.setRefundStatus(rs.getString("refund_status"));
+                ro.setStatus(rs.getString("status"));
+                ro.setDescription(rs.getString("description"));
+                ro.setCreatedBy(rs.getObject("created_by") != null ? rs.getInt("created_by") : null);
+                ro.setReceivedBy(rs.getObject("received_by") != null ? rs.getInt("received_by") : null);
+                ro.setCreatedAt(rs.getTimestamp("created_at"));
+                ro.setSupplierName(rs.getString("supplier_name"));
+                ro.setCreatedByUserName(rs.getString("created_by_name"));
+                ro.setReceivedByUserName(rs.getString("received_by_name"));
+                ro.setTotalQuantity(rs.getInt("total_quantity"));
+                return ro;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public List<ReturnOrderDetail> getReturnOrderDetailsByOrderId(int returnOrderId) {
+        List<ReturnOrderDetail> list = new ArrayList<>();
+        String sql = """
+                SELECT rod.return_detail_id, rod.return_order_id, rod.variant_id, rod.quantity,
+                       rod.original_price, rod.refund_price, rod.total_refund,
+                       pv.sku AS variant_sku, p.product_name, u.unit_name
+                FROM return_order_details rod
+                INNER JOIN product_variants pv ON rod.variant_id = pv.variant_id
+                INNER JOIN products p ON pv.product_id = p.product_id
+                LEFT JOIN units u ON p.unit_id = u.unit_id
+                WHERE rod.return_order_id = ?
+                ORDER BY rod.return_detail_id
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, returnOrderId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ReturnOrderDetail d = new ReturnOrderDetail();
+                d.setReturnDetailId(rs.getInt("return_detail_id"));
+                d.setReturnOrderId(rs.getInt("return_order_id"));
+                d.setVariantId(rs.getInt("variant_id"));
+                d.setQuantity(rs.getInt("quantity"));
+                d.setOriginalPrice(rs.getBigDecimal("original_price"));
+                d.setRefundPrice(rs.getBigDecimal("refund_price"));
+                d.setTotalRefund(rs.getBigDecimal("total_refund"));
+                d.setVariantSku(rs.getString("variant_sku"));
+                d.setProductName(rs.getString("product_name"));
+                d.setUnitName(rs.getString("unit_name"));
+                list.add(d);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return list;
+        }
+        for (ReturnOrderDetail d : list) {
+            List<ReturnOrderSerial> serials = new ArrayList<>();
+            String sqlSer = "SELECT ros.serial_id, ps.serial_number FROM return_order_serials ros INNER JOIN product_serials ps ON ros.serial_id = ps.serial_id WHERE ros.return_detail_id = ?";
+            try (PreparedStatement psSer = getConnection().prepareStatement(sqlSer)) {
+                psSer.setInt(1, d.getReturnDetailId());
+                ResultSet rser = psSer.executeQuery();
+                while (rser.next()) {
+                    ReturnOrderSerial s = new ReturnOrderSerial();
+                    s.setSerialId(rser.getInt("serial_id"));
+                    s.setSerialNumber(rser.getString("serial_number"));
+                    serials.add(s);
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            d.setSerials(serials);
+        }
+        return list;
+    }
+
+    public boolean updateReturnOrder(int returnOrderId, String returnCode, int supplierId, java.sql.Date returnDate,
+            java.math.BigDecimal totalRefundAmount, String refundStatus, String description,
+            List<ReturnOrderDetail> details) {
+        java.sql.Connection conn = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+            String sqlOrder = "UPDATE return_orders SET return_code=?, supplier_id=?, return_date=?, total_refund_amount=?, refund_status=?, description=? WHERE return_order_id=?";
+            try (PreparedStatement ps = conn.prepareStatement(sqlOrder)) {
+                ps.setString(1, returnCode);
+                ps.setInt(2, supplierId);
+                ps.setDate(3, returnDate);
+                ps.setBigDecimal(4, totalRefundAmount);
+                ps.setString(5, refundStatus != null ? refundStatus : "not_refunded");
+                ps.setString(6, description);
+                ps.setInt(7, returnOrderId);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement psDel = conn.prepareStatement("DELETE FROM return_order_serials WHERE return_detail_id IN (SELECT return_detail_id FROM return_order_details WHERE return_order_id = ?)")) {
+                psDel.setInt(1, returnOrderId);
+                psDel.executeUpdate();
+            }
+            try (PreparedStatement psDel = conn.prepareStatement("DELETE FROM return_order_details WHERE return_order_id = ?")) {
+                psDel.setInt(1, returnOrderId);
+                psDel.executeUpdate();
+            }
+            String sqlDetail = "INSERT INTO return_order_details (return_order_id, variant_id, quantity, original_price, refund_price, total_refund) VALUES (?, ?, ?, ?, ?, ?)";
+            String sqlSerial = "INSERT INTO return_order_serials (return_detail_id, serial_id) VALUES (?, ?)";
+            for (ReturnOrderDetail d : details) {
+                try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                    java.math.BigDecimal totalRefund = d.getRefundPrice().multiply(java.math.BigDecimal.valueOf(d.getQuantity()));
+                    psDetail.setInt(1, returnOrderId);
+                    psDetail.setInt(2, d.getVariantId());
+                    psDetail.setInt(3, d.getQuantity());
+                    psDetail.setBigDecimal(4, d.getOriginalPrice());
+                    psDetail.setBigDecimal(5, d.getRefundPrice());
+                    psDetail.setBigDecimal(6, totalRefund);
+                    psDetail.executeUpdate();
+                    ResultSet rsDetail = psDetail.getGeneratedKeys();
+                    int detailId = rsDetail.next() ? rsDetail.getInt(1) : 0;
+                    if (detailId > 0 && d.getSerials() != null && !d.getSerials().isEmpty()) {
+                        try (PreparedStatement psSerial = conn.prepareStatement(sqlSerial)) {
+                            for (ReturnOrderSerial serial : d.getSerials()) {
+                                psSerial.setInt(1, detailId);
+                                psSerial.setInt(2, serial.getSerialId());
+                                psSerial.addBatch();
+                            }
+                            psSerial.executeBatch();
+                        }
+                    }
+                }
+            }
+            conn.commit();
+            return true;
+        } catch (Exception ex) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException e) { Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, e); }
+            }
+            Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        } finally {
+            if (conn != null) {
+                try { conn.setAutoCommit(true); } catch (SQLException ex) { /* ignore */ }
+            }
+        }
+    }
+
+    public boolean updateReturnOrderRefundStatusOnly(int returnOrderId, String refundStatus) {
+        if (refundStatus == null || refundStatus.trim().isEmpty()) return false;
+        String sql = "UPDATE return_orders SET refund_status = ? WHERE return_order_id = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, refundStatus.trim());
+            ps.setInt(2, returnOrderId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
   
     public String searchProductsForReturnJson(String keyword, Integer supplierId) {
         StringBuilder sql = new StringBuilder("""
