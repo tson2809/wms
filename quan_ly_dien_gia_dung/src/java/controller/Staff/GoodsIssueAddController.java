@@ -7,6 +7,9 @@ package controller.Staff;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dal.GoodsIssueDAO;
+import dal.PurchaseOrderDetailDAO;
+import dal.PurchaseOrderDAO;
+import dal.ReturnOrderDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,7 +18,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import model.PurchaseOrderDetail;
+import model.ReturnOrderDetail;
+import model.ReturnOrderSerial;
 import model.GoodsIssueDetail;
 import model.User;
 
@@ -26,6 +34,9 @@ import model.User;
 @WebServlet(name = "GoodsIssueAddController", urlPatterns = {"/goods-issue-add"})
 public class GoodsIssueAddController extends HttpServlet {
     private GoodsIssueDAO goodsIssueDAO = new GoodsIssueDAO();
+    private PurchaseOrderDAO purchaseOrderDAO = new PurchaseOrderDAO();
+    private PurchaseOrderDetailDAO purchaseOrderDetailDAO = new PurchaseOrderDetailDAO();
+    private ReturnOrderDAO returnOrderDAO = new ReturnOrderDAO();
     private static final Gson gson = new Gson();
 
     @Override
@@ -68,7 +79,144 @@ public class GoodsIssueAddController extends HttpServlet {
             return;
         }
 
+        if ("listSourceOrders".equals(action)) {
+            handleListSourceOrders(request, response);
+            return;
+        }
+
+        if ("loadFromSource".equals(action)) {
+            handleLoadFromSource(request, response);
+            return;
+        }
+
         handleCreateIssue(request, response);
+    }
+
+    private void handleListSourceOrders(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String sourceType = request.getParameter("sourceType");
+        String keyword = request.getParameter("search");
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        String pattern = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : "%";
+
+        if ("purchase_order".equals(sourceType)) {
+            String sql = "SELECT purchase_order_id, po_code, status FROM purchase_orders WHERE po_code LIKE ? ORDER BY created_at DESC LIMIT 20";
+            try (var ps = purchaseOrderDAO.getConnection().prepareStatement(sql)) {
+                ps.setString(1, pattern);
+                var rs = ps.executeQuery();
+                while (rs.next()) {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", rs.getInt("purchase_order_id"));
+                    m.put("code", rs.getString("po_code"));
+                    String st = rs.getString("status");
+                    m.put("sub", st != null ? ("Trạng thái: " + st) : "");
+                    result.add(m);
+                }
+            } catch (Exception ignored) {
+            }
+        } else if ("return_order".equals(sourceType)) {
+            String sql = "SELECT return_order_id, return_code, status FROM return_orders WHERE return_code LIKE ? ORDER BY created_at DESC LIMIT 20";
+            try (var ps = returnOrderDAO.getConnection().prepareStatement(sql)) {
+                ps.setString(1, pattern);
+                var rs = ps.executeQuery();
+                while (rs.next()) {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", rs.getInt("return_order_id"));
+                    m.put("code", rs.getString("return_code"));
+                    String st = rs.getString("status");
+                    m.put("sub", st != null ? ("Trạng thái: " + st) : "");
+                    result.add(m);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(gson.toJson(result));
+    }
+
+    private void handleLoadFromSource(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String sourceType = request.getParameter("sourceType");
+        String sourceIdRaw = request.getParameter("sourceId");
+
+        int sourceId;
+        try {
+            sourceId = Integer.parseInt(sourceIdRaw);
+        } catch (NumberFormatException e) {
+            response.setStatus(400);
+            response.getWriter().write("Invalid sourceId");
+            return;
+        }
+
+        List<Map<String, Object>> out = new ArrayList<>();
+
+        if ("purchase_order".equals(sourceType)) {
+            List<PurchaseOrderDetail> details = purchaseOrderDetailDAO.getDetailsByPurchaseOrderId(sourceId);
+            List<Integer> variantIds = new ArrayList<>();
+            for (PurchaseOrderDetail d : details) {
+                if (d != null && d.getVariantId() > 0 && !variantIds.contains(d.getVariantId())) {
+                    variantIds.add(d.getVariantId());
+                }
+            }
+
+            var infoMap = goodsIssueDAO.getVariantInfoByIds(variantIds);
+            for (PurchaseOrderDetail d : details) {
+                if (d == null) continue;
+                GoodsIssueDAO.VariantInfo vi = infoMap.get(d.getVariantId());
+                if (vi == null) continue;
+
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("variantId", vi.getVariantId());
+                m.put("code", vi.getSku());
+                m.put("name", vi.getProductName());
+                m.put("unit", vi.getUnitName());
+                m.put("stock", vi.getStock());
+                m.put("quantity", 0);
+                m.put("serials", new ArrayList<>());
+                out.add(m);
+            }
+        } else if ("return_order".equals(sourceType)) {
+            List<ReturnOrderDetail> details = returnOrderDAO.getReturnOrderDetailsByOrderId(sourceId);
+            List<Integer> variantIds = new ArrayList<>();
+            for (ReturnOrderDetail d : details) {
+                if (d != null && d.getVariantId() > 0 && !variantIds.contains(d.getVariantId())) {
+                    variantIds.add(d.getVariantId());
+                }
+            }
+
+            var infoMap = goodsIssueDAO.getVariantInfoByIds(variantIds);
+            for (ReturnOrderDetail d : details) {
+                if (d == null) continue;
+                GoodsIssueDAO.VariantInfo vi = infoMap.get(d.getVariantId());
+                if (vi == null) continue;
+
+                List<String> serialNumbers = new ArrayList<>();
+                if (d.getSerials() != null) {
+                    for (ReturnOrderSerial s : d.getSerials()) {
+                        if (s != null && s.getSerialNumber() != null && !s.getSerialNumber().trim().isEmpty()) {
+                            serialNumbers.add(s.getSerialNumber().trim());
+                        }
+                    }
+                }
+
+                List<String> inStockSerials = goodsIssueDAO.filterInStockSerialNumbers(vi.getVariantId(), serialNumbers);
+
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("variantId", vi.getVariantId());
+                m.put("code", vi.getSku());
+                m.put("name", vi.getProductName());
+                m.put("unit", vi.getUnitName());
+                m.put("stock", vi.getStock());
+                m.put("serials", inStockSerials);
+                m.put("quantity", inStockSerials.size());
+                out.add(m);
+            }
+        }
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(gson.toJson(out));
     }
 
     private void handleCreateIssue(HttpServletRequest request, HttpServletResponse response)
