@@ -61,42 +61,31 @@
                                     <b>SKU:</b> ${product[0]}
 
                                 </div>
-                                <form method="get" class="row g-2 mb-3">
-
+                                <form method="get"
+                                      class="row g-2 mb-3"
+                                      onsubmit="return validatePriceHistoryDate()">
                                     <input type="hidden" name="variantId" value="${param.variantId}">
-
                                     <div class="col-md-3">
-
                                         <label>Từ ngày</label>
-
                                         <input type="date"
+                                               id="fromDate"
                                                name="fromDate"
                                                value="${param.fromDate}"
                                                class="form-control">
-
                                     </div>
-
                                     <div class="col-md-3">
-
                                         <label>Đến ngày</label>
-
                                         <input type="date"
+                                               id="toDate"
                                                name="toDate"
                                                value="${param.toDate}"
                                                class="form-control">
-
                                     </div>
-
                                     <div class="col-md-2 align-self-end">
-
                                         <button class="btn btn-primary w-100">
-
                                             Lọc
-
                                         </button>
-
                                     </div>
-
                                 </form>
                                 <div class="card mb-4">
                                     <div class="card-body">
@@ -118,55 +107,38 @@
                                     </thead>
                                     <tbody>
                                         <c:forEach var="h" items="${historyList}">
-
                                             <tr>
-
                                                 <td>${h[4]}</td>
-
                                                 <td>
                                                     <fmt:formatNumber value="${h[0]}" type="number" groupingUsed="true"/>
                                                 </td>
-
                                                 <td class="text-success fw-bold">
                                                     <fmt:formatNumber value="${h[1]}" type="number" groupingUsed="true"/>
                                                 </td>
-
                                                 <td>
                                                     <fmt:formatNumber value="${h[2]}" type="number" groupingUsed="true"/>
                                                 </td>
-
                                                 <td class="text-primary fw-bold">
                                                     <fmt:formatNumber value="${h[3]}" type="number" groupingUsed="true"/>
                                                 </td>
                                                 <td>${h[6]}</td>
                                                 <td>${h[5]}</td>
-
                                             </tr>
-
                                         </c:forEach>
-
                                     </tbody>
-
                                 </table>
                                 <div class="pagination-wrapper">
-
                                     <div class="pagination-controls">
-
                                         <c:set var="queryParams" value="" />
-
                                         <c:forEach var="p" items="${paramValues}">
                                             <c:if test="${p.key ne 'page'}">
-
                                                 <c:forEach var="v" items="${p.value}">
 
                                                     <c:set var="queryParams"
                                                            value="${queryParams}&${p.key}=${v}" />
-
                                                 </c:forEach>
-
                                             </c:if>
                                         </c:forEach>
-
                                         <a class="page-btn ${currentPage == 1 ? 'disabled' : ''}"
 
                                            href="${pageContext.request.contextPath}/price-history-detail?page=${currentPage - 1}${queryParams}">
@@ -174,32 +146,20 @@
                                             ‹
 
                                         </a>
-
-
                                         <span class="page-jump-form">
-
                                             Page
-
                                             <form action="${pageContext.request.contextPath}/price-history-detail"
                                                   method="get"
                                                   style="display:inline;">
-
                                                 <c:forEach var="p" items="${paramValues}">
-
                                                     <c:if test="${p.key ne 'page'}">
-
                                                         <c:forEach var="v" items="${p.value}">
-
                                                             <input type="hidden"
                                                                    name="${p.key}"
                                                                    value="${v}">
-
                                                         </c:forEach>
-
                                                     </c:if>
-
                                                 </c:forEach>
-
                                                 <input type="number"
                                                        name="page"
                                                        min="1"
@@ -207,11 +167,8 @@
                                                        value="${currentPage}"
                                                        style="width:60px;"
                                                        onchange="this.form.submit()">
-
                                             </form>
-
                                             of ${totalPages}
-
                                         </span>
                                         <a class="page-btn ${currentPage == totalPages ? 'disabled' : ''}"
                                            href="${pageContext.request.contextPath}/price-history-detail?page=${currentPage + 1}${queryParams}">
@@ -271,6 +228,32 @@
                 }
             });
         });
+    </script>
+    <script>
+        const fromDateInput = document.getElementById("fromDate");
+        const toDateInput = document.getElementById("toDate");
+        const today = new Date().toISOString().split("T")[0];
+        fromDateInput.max = today;
+        toDateInput.max = today;
+        fromDateInput.addEventListener("change", function () {
+            toDateInput.min = this.value;
+        });
+        toDateInput.addEventListener("change", function () {
+            fromDateInput.max = this.value;
+        });
+        function validatePriceHistoryDate() {
+            const from = fromDateInput.value;
+            const to = toDateInput.value;
+            if (from && to && from > to) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày");
+                return false;
+            }
+            if (to && to > today) {
+                alert("Đến ngày không được lớn hơn ngày hiện tại");
+                return false;
+            }
+            return true;
+        }
     </script>
 
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>

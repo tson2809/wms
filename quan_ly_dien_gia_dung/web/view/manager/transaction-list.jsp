@@ -55,7 +55,10 @@
                             <h5>Inventory Transactions</h5>
                         </div>
 
-                        <form action="inventory-transactions" method="get" class="inventory-filter-form mb-3">
+                        <form action="inventory-transactions"
+                              method="get"
+                              class="inventory-filter-form mb-3"
+                              onsubmit="return validateDateFilter()">
                             <div class="row g-2">
 
                                 <div class="col-md-3">
@@ -117,15 +120,15 @@
                                          class="list-group position-absolute w-100"
                                          style="z-index:1000;"></div>
                                 </div>
-                                           
+
                                 <div class="col-md-3">
                                     <label>Từ ngày</label>
-                                    <input type="date" name="dateFrom" value="${param.dateFrom}" class="form-control">
+                                    <input type="date" id="dateFrom" name="dateFrom" value="${param.dateFrom}" class="form-control">
                                 </div>
 
                                 <div class="col-md-3">
                                     <label>Đến ngày</label>
-                                    <input type="date" name="dateTo" value="${param.dateTo}" class="form-control">
+                                    <input type="date" id="dateTo" name="dateTo" value="${param.dateTo}" class="form-control">
                                 </div>
 
                                 <div class="col-md-2 d-flex align-items-end">
@@ -280,6 +283,32 @@
                             });
                         });
             });
+        }
+    </script>
+    <script>
+        const dateFromInput = document.getElementById("dateFrom");
+        const dateToInput = document.getElementById("dateTo");
+        const today = new Date().toISOString().split("T")[0];
+        dateFromInput.max = today;
+        dateToInput.max = today;
+        dateFromInput.addEventListener("change", function () {
+            dateToInput.min = this.value;
+        });
+        dateToInput.addEventListener("change", function () {
+            dateFromInput.max = this.value;
+        });
+        function validateDateFilter() {
+            const from = dateFromInput.value;
+            const to = dateToInput.value;
+            if (from && to && from > to) {
+                alert("Từ ngày phải nhỏ hơn hoặc bằng đến ngày");
+                return false;
+            }
+            if (to && to > today) {
+                alert("Đến ngày không được ở tương lai");
+                return false;
+            }
+            return true;
         }
     </script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
