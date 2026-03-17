@@ -200,6 +200,8 @@
                 class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
                 <a href="${pageContext.request.contextPath}/profile"
                    class="dropdown-item">Hồ sơ</a>
+                <a href="${pageContext.request.contextPath}/change-password"
+                   class="dropdown-item">Đổi mật khẩu</a>
                 <a href="${pageContext.request.contextPath}/logout"
                    class="dropdown-item">Đăng xuất</a>
             </div>
