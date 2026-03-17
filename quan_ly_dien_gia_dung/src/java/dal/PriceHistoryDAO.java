@@ -219,4 +219,37 @@ public class PriceHistoryDAO extends DBContext {
         }
         return null;
     }
+
+    public List<String[]> getPriceHistoryForChart(int variantId,
+            String fromDate, String toDate) {
+        List<String[]> list = new ArrayList<>();
+        String sql = """
+    SELECT ph.new_cost_price,
+           ph.new_sale_price,
+           ph.change_date
+    FROM price_history ph
+    WHERE ph.variant_id = ?
+    AND (? IS NULL OR ph.change_date >= ?)
+    AND (? IS NULL OR ph.change_date <= ?)
+    ORDER BY ph.change_date ASC
+    """;
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            ps.setString(2, fromDate);
+            ps.setString(3, fromDate);
+            ps.setString(4, toDate);
+            ps.setString(5, toDate);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String[] s = new String[3];
+                s[0] = rs.getString("new_cost_price");
+                s[1] = rs.getString("new_sale_price");
+                s[2] = rs.getString("change_date");
+                list.add(s);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

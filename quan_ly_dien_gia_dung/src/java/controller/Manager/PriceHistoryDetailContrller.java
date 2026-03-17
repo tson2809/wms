@@ -77,13 +77,15 @@ public class PriceHistoryDetailContrller extends HttpServlet {
                 variantId, fromDate, toDate, page, pageSize);
         int total = dao.countPriceHistory(variantId, fromDate, toDate);
         int totalPages = (int) Math.ceil((double) total / pageSize);
+        List<String[]> chartList = dao.getPriceHistoryForChart(
+                variantId, fromDate, toDate);
         List<String> dates = new ArrayList<>();
         List<Double> costPrices = new ArrayList<>();
         List<Double> salePrices = new ArrayList<>();
-        for (String[] h : list) {
-            dates.add(h[4]);
-            costPrices.add(Double.valueOf(h[1]));
-            salePrices.add(Double.valueOf(h[3]));
+        for (String[] h : chartList) {
+            dates.add(h[2]);
+            costPrices.add(Double.valueOf(h[0]));
+            salePrices.add(Double.valueOf(h[1]));
         }
         request.setAttribute("historyList", list);
         request.setAttribute("dates", new Gson().toJson(dates));
