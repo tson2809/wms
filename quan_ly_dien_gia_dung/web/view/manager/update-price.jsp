@@ -74,11 +74,22 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Giá vốn mới</label>
-                                        <input class="form-control" name="newCost" required>
+                                        <input class="form-control"
+                                               type="number"
+                                               name="newCost"
+                                               min="0"
+                                               step="0.01"
+                                               required>
                                     </div>
+
                                     <div class="mb-3">
                                         <label class="form-label">Giá bán mới</label>
-                                        <input class="form-control" name="newSale" required>
+                                        <input class="form-control"
+                                               type="number"
+                                               name="newSale"
+                                               min="0"
+                                               step="0.01"
+                                               required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Lý do thay đổi</label>

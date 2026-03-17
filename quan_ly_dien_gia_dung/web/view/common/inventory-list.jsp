@@ -68,7 +68,7 @@
                                     <a href="${pageContext.request.contextPath}/goods-receipt-list" class="btn btn-primary btn-sm">
                                         + Nhập kho
                                     </a>
-                                    <a href="#" class="btn btn-warning btn-sm">
+                                    <a href="${pageContext.request.contextPath}/goods-issue-list" class="btn btn-warning btn-sm">
                                         + Xuất kho
                                     </a>
                                     <a href="${pageContext.request.contextPath}/inventory-sheet-list" class="btn btn-secondary btn-sm">

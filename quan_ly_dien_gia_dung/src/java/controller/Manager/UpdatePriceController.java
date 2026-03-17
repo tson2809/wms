@@ -78,17 +78,37 @@ public class UpdatePriceController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int variantId = Integer.parseInt(request.getParameter("variantId"));
-        double newCost = Double.parseDouble(request.getParameter("newCost"));
-        double newSale = Double.parseDouble(request.getParameter("newSale"));
+        int variantId;
+        double newCost;
+        double newSale;
+        try {
+            variantId = Integer.parseInt(request.getParameter("variantId"));
+        } catch (Exception e) {
+            request.setAttribute("error", "Variant không hợp lệ");
+            request.getRequestDispatcher("/view/manager/update-price.jsp").forward(request, response);
+            return;
+        }
+        try {
+            newCost = Double.parseDouble(request.getParameter("newCost"));
+            newSale = Double.parseDouble(request.getParameter("newSale"));
+        } catch (Exception e) {
+            request.setAttribute("error", "Giá phải là số hợp lệ");
+            request.setAttribute("variant", dao.getVariantPrice(variantId));
+            request.getRequestDispatcher("/view/manager/update-price.jsp").forward(request, response);
+            return;
+        }
+        if (newCost < 0 || newSale < 0) {
+            request.setAttribute("error", "Giá không được nhỏ hơn 0");
+            request.setAttribute("variant", dao.getVariantPrice(variantId));
+            request.getRequestDispatcher("/view/manager/update-price.jsp").forward(request, response);
+            return;
+        }
         String reason = request.getParameter("reason");
         User user = (User) request.getSession().getAttribute("user");
-
         if (user == null) {
             response.sendRedirect("login");
             return;
         }
-
         int changedBy = user.getUserId();
         dao.updatePrice(variantId, newCost, newSale, reason, changedBy);
         response.sendRedirect("price-history-detail?variantId=" + variantId);
