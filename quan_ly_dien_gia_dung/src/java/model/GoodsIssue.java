@@ -23,6 +23,7 @@ public class GoodsIssue {
     private Timestamp updatedAt;
     private User createdByUser;
     private User approvedByUser;
+    private Integer returnOrderId;
 
     public GoodsIssue() {}
 
@@ -61,4 +62,7 @@ public class GoodsIssue {
 
     public User getApprovedByUser() { return approvedByUser; }
     public void setApprovedByUser(User approvedByUser) { this.approvedByUser = approvedByUser; }
+
+    public Integer getReturnOrderId() { return returnOrderId; }
+    public void setReturnOrderId(Integer returnOrderId) { this.returnOrderId = returnOrderId; }
 }
