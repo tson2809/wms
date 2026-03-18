@@ -9,7 +9,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.GoodsIssue;
@@ -21,6 +23,54 @@ import model.User;
  * @author thais
  */
 public class GoodsIssueDAO extends DBContext {
+
+    public static class VariantInfo {
+        private int variantId;
+        private String sku;
+        private String productName;
+        private String unitName;
+        private int stock;
+
+        public int getVariantId() {
+            return variantId;
+        }
+
+        public void setVariantId(int variantId) {
+            this.variantId = variantId;
+        }
+
+        public String getSku() {
+            return sku;
+        }
+
+        public void setSku(String sku) {
+            this.sku = sku;
+        }
+
+        public String getProductName() {
+            return productName;
+        }
+
+        public void setProductName(String productName) {
+            this.productName = productName;
+        }
+
+        public String getUnitName() {
+            return unitName;
+        }
+
+        public void setUnitName(String unitName) {
+            this.unitName = unitName;
+        }
+
+        public int getStock() {
+            return stock;
+        }
+
+        public void setStock(int stock) {
+            this.stock = stock;
+        }
+    }
 
     public List<GoodsIssue> getAllGoodsIssues() {
         List<GoodsIssue> list = new ArrayList<>();
@@ -175,6 +225,78 @@ public class GoodsIssueDAO extends DBContext {
         }
         json.append("]");
         return json.toString();
+    }
+
+    /** Lấy thông tin variant (sku, name, unit, tồn) theo danh sách variantId (không filter quantity). */
+    public Map<Integer, VariantInfo> getVariantInfoByIds(List<Integer> variantIds) {
+        Map<Integer, VariantInfo> map = new HashMap<>();
+        if (variantIds == null || variantIds.isEmpty()) return map;
+
+        StringBuilder in = new StringBuilder();
+        for (int i = 0; i < variantIds.size(); i++) {
+            if (i > 0) in.append(",");
+            in.append("?");
+        }
+
+        String sql = """
+                     SELECT pv.variant_id, pv.sku, pv.quantity,
+                            p.product_name, u.unit_name
+                     FROM product_variants pv
+                     INNER JOIN products p ON pv.product_id = p.product_id
+                     LEFT JOIN units u ON p.unit_id = u.unit_id
+                     WHERE pv.variant_id IN (%s)
+                     """.formatted(in.toString());
+
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < variantIds.size(); i++) {
+                ps.setInt(i + 1, variantIds.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                VariantInfo vi = new VariantInfo();
+                vi.setVariantId(rs.getInt("variant_id"));
+                vi.setSku(rs.getString("sku"));
+                vi.setProductName(rs.getString("product_name"));
+                vi.setUnitName(rs.getString("unit_name"));
+                vi.setStock(rs.getInt("quantity"));
+                map.put(vi.getVariantId(), vi);
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, e);
+        }
+        return map;
+    }
+
+    /** Lọc các serialNumber thuộc variant và đang in_stock. */
+    public List<String> filterInStockSerialNumbers(int variantId, List<String> serialNumbers) {
+        List<String> result = new ArrayList<>();
+        if (serialNumbers == null || serialNumbers.isEmpty()) return result;
+
+        StringBuilder in = new StringBuilder();
+        for (int i = 0; i < serialNumbers.size(); i++) {
+            if (i > 0) in.append(",");
+            in.append("?");
+        }
+
+        String sql = """
+                     SELECT serial_number
+                     FROM product_serials
+                     WHERE variant_id = ? AND status = 'in_stock' AND serial_number IN (%s)
+                     """.formatted(in.toString());
+
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            for (int i = 0; i < serialNumbers.size(); i++) {
+                ps.setString(i + 2, serialNumbers.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result.add(rs.getString("serial_number"));
+            }
+        } catch (SQLException e) {
+            Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, e);
+        }
+        return result;
     }
 
     /** Tìm kiếm sản phẩm có tồn kho (quantity > 0) để xuất kho. */
