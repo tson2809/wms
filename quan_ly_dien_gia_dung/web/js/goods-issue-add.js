@@ -25,7 +25,10 @@
     }
 
     function setSourceEnabled(enabled) {
-        $('#sourceCodeSearch').prop('disabled', !enabled);
+        // Make sure user can type to search codes
+        $('#sourceCodeSearch')
+            .prop('disabled', !enabled)
+            .prop('readonly', !enabled);
         if (!enabled) resetSource();
     }
 
@@ -460,29 +463,33 @@
     }
 
     // ── Source order bindings ───────────────────────────────────────
-    $('#sourceType').on('change', function() {
-        var t = $(this).val();
-        setSourceEnabled(!!t);
-    });
+    $(function() {
+        setSourceEnabled(!!$('#sourceType').val());
 
-    $('#sourceCodeSearch').on('focus', function() { fetchSourceOrders($(this).val().trim()); });
-    $('#sourceCodeSearch').on('keyup', function() {
-        clearTimeout(sourceSearchTimeout);
-        var v = $(this).val().trim();
-        sourceSearchTimeout = setTimeout(function() { fetchSourceOrders(v); }, 300);
-    });
+        $('#sourceType').on('change', function() {
+            var t = $(this).val();
+            setSourceEnabled(!!t);
+        });
 
-    $(document).on('click', '#clearSourceBtn', function() {
-        resetSource();
-    });
+        $('#sourceCodeSearch').on('focus', function() { fetchSourceOrders($(this).val().trim()); });
+        $('#sourceCodeSearch').on('keyup', function() {
+            clearTimeout(sourceSearchTimeout);
+            var v = $(this).val().trim();
+            sourceSearchTimeout = setTimeout(function() { fetchSourceOrders(v); }, 300);
+        });
 
-    $(document).on('click', '#loadSourceBtn', function() {
-        loadFromSource();
-    });
+        $(document).on('click', '#clearSourceBtn', function() {
+            resetSource();
+        });
 
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('#sourceCodeSearch, #sourceCodeDropdown').length) {
-            $('#sourceCodeDropdown').hide();
-        }
+        $(document).on('click', '#loadSourceBtn', function() {
+            loadFromSource();
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#sourceCodeSearch, #sourceCodeDropdown').length) {
+                $('#sourceCodeDropdown').hide();
+            }
+        });
     });
 })();

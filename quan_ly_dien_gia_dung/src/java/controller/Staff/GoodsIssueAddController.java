@@ -100,7 +100,15 @@ public class GoodsIssueAddController extends HttpServlet {
         String pattern = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : "%";
 
         if ("purchase_order".equals(sourceType)) {
-            String sql = "SELECT purchase_order_id, po_code, status FROM purchase_orders WHERE po_code LIKE ? ORDER BY created_at DESC LIMIT 20";
+            // Exclude completed flows (received) and cancelled orders from selectable list
+            String sql = """
+                         SELECT purchase_order_id, po_code, status
+                         FROM purchase_orders
+                         WHERE po_code LIKE ?
+                           AND COALESCE(status, '') NOT IN ('received', 'completed', 'cancelled')
+                         ORDER BY created_at DESC
+                         LIMIT 20
+                         """;
             try (var ps = purchaseOrderDAO.getConnection().prepareStatement(sql)) {
                 ps.setString(1, pattern);
                 var rs = ps.executeQuery();
@@ -115,7 +123,15 @@ public class GoodsIssueAddController extends HttpServlet {
             } catch (Exception ignored) {
             }
         } else if ("return_order".equals(sourceType)) {
-            String sql = "SELECT return_order_id, return_code, status FROM return_orders WHERE return_code LIKE ? ORDER BY created_at DESC LIMIT 20";
+            // Exclude completed/cancelled return orders from selectable list
+            String sql = """
+                         SELECT return_order_id, return_code, status
+                         FROM return_orders
+                         WHERE return_code LIKE ?
+                           AND COALESCE(status, '') NOT IN ('completed', 'cancelled')
+                         ORDER BY created_at DESC
+                         LIMIT 20
+                         """;
             try (var ps = returnOrderDAO.getConnection().prepareStatement(sql)) {
                 ps.setString(1, pattern);
                 var rs = ps.executeQuery();
