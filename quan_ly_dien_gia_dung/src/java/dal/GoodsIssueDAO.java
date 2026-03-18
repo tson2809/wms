@@ -155,6 +155,9 @@ public class GoodsIssueDAO extends DBContext {
         gi.setNotes(rs.getString("notes"));
         gi.setCreatedAt(rs.getTimestamp("created_at"));
         gi.setUpdatedAt(rs.getTimestamp("updated_at"));
+        if (rs.getObject("return_order_id") != null) {
+            gi.setReturnOrderId(rs.getInt("return_order_id"));
+        }
 
         if (rs.getObject("created_by_id") != null) {
             User u = new User();
@@ -370,6 +373,13 @@ public class GoodsIssueDAO extends DBContext {
     public boolean createGoodsIssue(String issueCode, String issueType, String issueDate,
                                     String receiverName, String department, String notes,
                                     int createdBy, List<GoodsIssueDetail> details) {
+        return createGoodsIssue(issueCode, issueType, issueDate, receiverName, department, notes, createdBy, details, null);
+    }
+
+    /** Tạo phiếu xuất kho với return_order_id (khi tạo từ đơn trả hàng). */
+    public boolean createGoodsIssue(String issueCode, String issueType, String issueDate,
+                                    String receiverName, String department, String notes,
+                                    int createdBy, List<GoodsIssueDetail> details, Integer returnOrderId) {
         Connection conn = null;
         try {
             conn = getConnection();
@@ -377,8 +387,8 @@ public class GoodsIssueDAO extends DBContext {
 
             String sqlIssue = """
                               INSERT INTO goods_issues
-                              (issue_code, issue_type, issue_date, receiver_name, department, status, created_by, notes)
-                              VALUES (?, ?, ?, ?, ?, 'draft', ?, ?)
+                              (issue_code, issue_type, issue_date, receiver_name, department, status, created_by, notes, return_order_id)
+                              VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?)
                               """;
             int issueId;
             try (PreparedStatement ps = conn.prepareStatement(sqlIssue, PreparedStatement.RETURN_GENERATED_KEYS)) {
@@ -389,6 +399,7 @@ public class GoodsIssueDAO extends DBContext {
                 ps.setString(5, department != null ? department : "");
                 ps.setInt(6, createdBy);
                 ps.setString(7, notes != null ? notes : "");
+                ps.setObject(8, returnOrderId);
                 ps.executeUpdate();
                 ResultSet rs = ps.getGeneratedKeys();
                 if (rs.next()) issueId = rs.getInt(1);

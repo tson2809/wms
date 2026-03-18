@@ -337,13 +337,13 @@ Author : laptop368
                                                     <td>${ro.receivedByUserName != null && !empty ro.receivedByUserName ? ro.receivedByUserName : '—'}</td>
                                                     <td class="action-col">
                                                         <div class="action-btn-group">
-                                                            <a href="${pageContext.request.contextPath}/return-edit?id=${ro.returnOrderId}"
+                                                            <c:choose>
+                                                                <c:when test="${sessionScope.user.role.roleId == 2}">
+                                                                    <a href="${pageContext.request.contextPath}/return-edit?id=${ro.returnOrderId}"
                                                                        class="action-btn action-view"
                                                                        title="Chỉnh sửa đơn trả hàng">
                                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                                     </a>
-                                                            <c:choose>
-                                                                <c:when test="${sessionScope.user.role.roleId == 2}">
                                                                     <c:if test="${ro.status == 'pending' || ro.status == 'processing'}">
                                                                         <form action="${pageContext.request.contextPath}/return-order-list" method="post" class="d-inline"
                                                                               onsubmit="return confirm('Bạn xác nhận hủy đơn trả hàng này?');">
@@ -361,7 +361,6 @@ Author : laptop368
                                                                             </button>
                                                                         </form>
                                                                     </c:if>
-                                                                    
                                                                 </c:when>
                                                                 <c:when test="${sessionScope.user.role.roleId == 3}">
                                                                     <c:if test="${ro.status == 'pending' && ro.receivedBy == null}">

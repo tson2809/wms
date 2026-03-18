@@ -6,6 +6,7 @@ package controller;
 
 import com.google.gson.Gson;
 import dal.GoodsIssueDAO;
+import dal.ReturnOrderDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -27,6 +28,7 @@ import model.User;
 @WebServlet(name = "GoodsIssueEditController", urlPatterns = {"/goods-issue-detail"})
 public class GoodsIssueEditController extends HttpServlet {
     private GoodsIssueDAO goodsIssueDAO = new GoodsIssueDAO();
+    private ReturnOrderDAO returnOrderDAO = new ReturnOrderDAO();
     private static final Gson gson = new Gson();
 
     private void loadAndForward(int issueId, HttpServletRequest request, HttpServletResponse response)
@@ -98,15 +100,14 @@ public class GoodsIssueEditController extends HttpServlet {
             User user = (User) request.getSession().getAttribute("user");
             Integer approvedBy = "completed".equals(statusParam) && user != null ? user.getUserId() : null;
 
+            GoodsIssue issue = goodsIssueDAO.getGoodsIssueById(issueId);
             boolean success = goodsIssueDAO.updateGoodsIssueStatus(issueId, statusParam, approvedBy);
 
-            if (success) {
-                response.sendRedirect(request.getContextPath() + "/goods-issue-list");
-                return;
-            } else {
-                response.sendRedirect(request.getContextPath() + "/goods-issue-list");
-                return;
+            if (success && "completed".equals(statusParam) && issue != null && issue.getReturnOrderId() != null) {
+                returnOrderDAO.completeReturnOrder(issue.getReturnOrderId());
             }
+
+            response.sendRedirect(request.getContextPath() + "/goods-issue-list");
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/goods-issue-list");
         }
