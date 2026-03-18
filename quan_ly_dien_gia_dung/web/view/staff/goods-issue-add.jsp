@@ -59,8 +59,8 @@
                                     <div class="col-md-4">
                                         <label class="form-label mb-1">Nguồn đơn</label>
                                         <select id="sourceType" class="form-select" style="height:40px">
-                                            <option value="">-- Chọn --</option>
-                                            <option value="purchase_order">Đơn đặt hàng (PO)</option>
+                                            <option value="">Chọn</option>
+                                            <option value="purchase_order">Đơn đặt hàng</option>
                                             <option value="return_order">Đơn trả hàng</option>
                                         </select>
                                     </div>
@@ -77,9 +77,6 @@
                                         <button type="button" class="btn btn-success w-100" style="height:40px" id="loadSourceBtn" disabled>Load</button>
                                     </div>
                                 </div>
-                                <small class="text-muted d-block mt-2">
-                                    Chọn nguồn đơn → chọn mã → bấm Load để tự đổ sản phẩm vào bảng bên dưới.
-                                </small>
                             </div>
 
                             <div class="bg-light rounded p-2 mb-3">
@@ -214,7 +211,7 @@
         <c:if test="${not empty productsJson}">
             <div id="goods-issue-add-products-json" style="display:none"><c:out value="${fn:replace(productsJson, '</', '&lt;/')}" escapeXml="false"/></div>
         </c:if>
-        <script src="${pageContext.request.contextPath}/js/goods-issue-add.js?v=1"></script>
+        <script src="${pageContext.request.contextPath}/js/goods-issue-add.js?v=2"></script>
 
         <!-- Modal Import Excel -->
         <div class="modal fade" id="importModal" tabindex="-1">
