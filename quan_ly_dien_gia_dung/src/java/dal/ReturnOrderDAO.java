@@ -349,7 +349,31 @@ public class ReturnOrderDAO extends DBContext {
         return false;
     }
 
-  
+    public boolean claimReturnOrder(int returnOrderId, int userId) {
+        String sql = "UPDATE return_orders SET received_by = ?, status = 'processing' "
+                + "WHERE return_order_id = ? AND status = 'pending' AND (received_by IS NULL OR received_by = 0)";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, returnOrderId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean cancelReturnOrder(int returnOrderId) {
+        String sql = "UPDATE return_orders SET status = 'cancelled' "
+                + "WHERE return_order_id = ? AND status IN ('pending', 'processing')";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, returnOrderId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     public String searchProductsForReturnJson(String keyword, Integer supplierId) {
         StringBuilder sql = new StringBuilder("""
                 SELECT pv.variant_id, pv.sku, pv.cost_price,

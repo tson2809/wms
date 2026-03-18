@@ -10,6 +10,7 @@
     String indexActive = currentURI.contains("/indexStaff") ? "active" : "";
     String goodsReceiptActive = (currentURI.contains("/goods-receipt-list") || currentURI.contains("/goods-receipt-detail") || currentURI.contains("/goods-receipt-add")) ? "active" : "";
     String goodsIssueActive = (currentURI.contains("/goods-issue-list") || currentURI.contains("/goods-issue-detail") || currentURI.contains("/goods-issue-add")) ? "active" : "";
+    String returnActive = (currentURI.contains("/return-order-list") || currentURI.contains("/return-add") || currentURI.contains("/return-view") || currentURI.contains("/return-edit")) ? "active" : "";
 %>
 
 <!-- Sidebar Start -->
@@ -31,7 +32,9 @@
                class="nav-item nav-link ${activePage == 'sheetList' ? 'active' : ''}">
                 <i class="fa fa-clipboard-list me-2"></i>
                 Quản lý sheet
-            </a>       
+            </a>
+            <a href="${pageContext.request.contextPath}/return-order-list"
+               class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả hàng</a>
         </div>        
     </nav>
 </div>

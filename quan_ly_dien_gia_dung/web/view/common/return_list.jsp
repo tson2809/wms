@@ -156,7 +156,7 @@ Author : laptop368
             }
 
             .return-list-section .action-col {
-                width: 100px;
+                width: 140px;
                 text-align: center;
             }
 
@@ -174,7 +174,17 @@ Author : laptop368
 
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+            <c:choose>
+                <c:when test="${sessionScope.user.role.roleId == 2}">
+                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+                </c:when>
+                <c:when test="${sessionScope.user.role.roleId == 3}">
+                    <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
+                </c:when>
+                <c:otherwise>
+                    <jsp:include page="/view/common/components/RoleSideBar.jsp" />
+                </c:otherwise>
+            </c:choose>
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -183,10 +193,12 @@ Author : laptop368
                         <div class="col-12 return-list-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0 fw-semibold">Danh sách đơn trả hàng</h5>
-                                <a href="${pageContext.request.contextPath}/return-add"
-                                   class="btn btn-primary">
-                                    <i class="fa fa-plus me-2"></i>Tạo đơn trả hàng
-                                </a>
+                                <c:if test="${sessionScope.user.role.roleId == 2}">
+                                    <a href="${pageContext.request.contextPath}/return-add"
+                                       class="btn btn-primary">
+                                        <i class="fa fa-plus me-2"></i>Tạo đơn trả hàng
+                                    </a>
+                                </c:if>
                             </div>
 
                             <!-- Filter Form -->
@@ -205,8 +217,7 @@ Author : laptop368
                                             <option value="">Tất cả</option>
                                             <c:forEach items="${suppliers}" var="sup">
                                                 <option value="${sup.supplierId}"
-                                                        ${supplierId==sup.supplierId.toString() ? 'selected'
-                                                          : '' }>${sup.supplierName}</option>
+                                                        ${supplierId==sup.supplierId.toString() ? 'selected': '' }>${sup.supplierName}</option>
                                             </c:forEach>
                                         </select>
                                     </div>
@@ -215,14 +226,10 @@ Author : laptop368
                                         <select name="orderStatus" class="form-select"
                                                 onchange="this.form.submit()">
                                             <option value="">Tất cả</option>
-                                            <option value="pending" ${orderStatus=='pending' ? 'selected'
-                                                                      : '' }>Chờ xử lý</option>
-                                            <option value="processing" ${orderStatus=='processing'
-                                                                         ? 'selected' : '' }>Đang xử lý</option>
-                                            <option value="completed" ${orderStatus=='completed'
-                                                                        ? 'selected' : '' }>Hoàn tất</option>
-                                            <option value="cancelled" ${orderStatus=='cancelled'
-                                                                        ? 'selected' : '' }>Đã hủy</option>
+                                            <option value="pending" ${orderStatus=='pending' ? 'selected': '' }>Chờ xử lý</option>
+                                            <option value="processing" ${orderStatus=='processing'? 'selected' : '' }>Đang xử lý</option>
+                                            <option value="completed" ${orderStatus=='completed'? 'selected' : '' }>Hoàn tất</option>
+                                            <option value="cancelled" ${orderStatus=='cancelled'? 'selected' : '' }>Đã hủy</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
@@ -230,10 +237,8 @@ Author : laptop368
                                         <select name="refundStatus" class="form-select"
                                                 onchange="this.form.submit()">
                                             <option value="">Tất cả</option>
-                                            <option value="not_refunded" ${refundStatus=='not_refunded'
-                                                                           ? 'selected' : '' }>Chưa hoàn</option>
-                                            <option value="refunded" ${refundStatus=='refunded' ? 'selected'
-                                                                       : '' }>Đã hoàn</option>
+                                            <option value="not_refunded" ${refundStatus=='not_refunded'? 'selected' : '' }>Chưa hoàn</option>
+                                            <option value="refunded" ${refundStatus=='refunded' ? 'selected': '' }>Đã hoàn</option>
                                         </select>
                                     </div>
                                     <div class="col-md-3">
@@ -255,9 +260,8 @@ Author : laptop368
                                         <th style="width: 120px;">Trạng thái đơn</th>
                                         <th style="width: 130px;">Trạng thái hoàn tiền</th>
                                         <th>Nhà cung cấp</th>
+                                        <th>Người tạo</th>
                                         <th>Nhân viên thực hiện</th>
-                                        <th style="width: 100px;" class="text-end">Số lượng</th>
-                                        <th style="width: 140px;" class="text-end">Giá trị hoàn trả</th>
                                         <th class="action-col">Thao tác</th>
                                     </tr>
                                 </thead>
@@ -265,7 +269,7 @@ Author : laptop368
                                     <c:choose>
                                         <c:when test="${empty returnOrders}">
                                             <tr>
-                                                <td colspan="9" class="text-center py-4">
+                                                <td colspan="8" class="text-center py-4">
                                                     <p class="mb-0">Không có đơn trả hàng nào</p>
                                                 </td>
                                             </tr>
@@ -329,44 +333,68 @@ Author : laptop368
                                                     </td>
                                                     <td>${ro.supplierName != null ? ro.supplierName : '—'}
                                                     </td>
-                                                    <td>
-                                                        <c:choose>
-                                                            <c:when
-                                                                test="${ro.receivedByUserName != null && !empty ro.receivedByUserName}">
-                                                                <div>${ro.receivedByUserName}</div>
-                                                                <div class="text-muted-small">Nhân viên
-                                                                </div>
-                                                            </c:when>
-                                                            <c:when
-                                                                test="${ro.createdByUserName != null && !empty ro.createdByUserName}">
-                                                                <div>${ro.createdByUserName}</div>
-                                                                <div class="text-muted-small">Người tạo
-                                                                </div>
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <div class="text-muted-small">Chưa có</div>
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </td>
-                                                    <td class="text-end">${ro.totalQuantity}</td>
-                                                    <td class="text-end">
-                                                        <c:choose>
-                                                            <c:when test="${ro.totalRefundAmount != null}">
-                                                                <fmt:formatNumber
-                                                                    value="${ro.totalRefundAmount}"
-                                                                    type="number" maxFractionDigits="0" /> ₫
-                                                            </c:when>
-                                                            <c:otherwise>—</c:otherwise>
-                                                        </c:choose>
-                                                    </td>
+                                                    <td>${ro.createdByUserName != null && !empty ro.createdByUserName ? ro.createdByUserName : '—'}</td>
+                                                    <td>${ro.receivedByUserName != null && !empty ro.receivedByUserName ? ro.receivedByUserName : '—'}</td>
                                                     <td class="action-col">
                                                         <div class="action-btn-group">
                                                             <a href="${pageContext.request.contextPath}/return-edit?id=${ro.returnOrderId}"
-                                                               class="action-btn action-view"
-                                                               title="Chỉnh sửa đơn trả hàng">
-                                                                <iconify-icon
-                                                                    icon="lucide:eye"></iconify-icon>
-                                                            </a>
+                                                                       class="action-btn action-view"
+                                                                       title="Chỉnh sửa đơn trả hàng">
+                                                                        <iconify-icon icon="lucide:edit-2"></iconify-icon>
+                                                                    </a>
+                                                            <c:choose>
+                                                                <c:when test="${sessionScope.user.role.roleId == 2}">
+                                                                    <c:if test="${ro.status == 'pending' || ro.status == 'processing'}">
+                                                                        <form action="${pageContext.request.contextPath}/return-order-list" method="post" class="d-inline"
+                                                                              onsubmit="return confirm('Bạn xác nhận hủy đơn trả hàng này?');">
+                                                                            <input type="hidden" name="action" value="cancel">
+                                                                            <input type="hidden" name="id" value="${ro.returnOrderId}">
+                                                                            <c:if test="${not empty search}"><input type="hidden" name="search" value="${search}"></c:if>
+                                                                            <c:if test="${not empty supplierId}"><input type="hidden" name="supplierId" value="${supplierId}"></c:if>
+                                                                            <c:if test="${not empty orderStatus}"><input type="hidden" name="orderStatus" value="${orderStatus}"></c:if>
+                                                                            <c:if test="${not empty refundStatus}"><input type="hidden" name="refundStatus" value="${refundStatus}"></c:if>
+                                                                            <c:if test="${currentPage > 1}"><input type="hidden" name="page" value="${currentPage}"></c:if>
+                                                                            <c:if test="${not empty numberPerPage}"><input type="hidden" name="numberPerPage" value="${numberPerPage}"></c:if>
+                                                                            <button type="submit" class="action-btn border-0 bg-transparent p-0" title="Hủy đơn"
+                                                                                    style="cursor:pointer;">
+                                                                                <iconify-icon icon="lucide:x-circle"></iconify-icon>
+                                                                            </button>
+                                                                        </form>
+                                                                    </c:if>
+                                                                    
+                                                                </c:when>
+                                                                <c:when test="${sessionScope.user.role.roleId == 3}">
+                                                                    <c:if test="${ro.status == 'pending' && ro.receivedBy == null}">
+                                                                        <form action="${pageContext.request.contextPath}/return-claim" method="post" class="d-inline"
+                                                                              onsubmit="return confirm('Bạn xác nhận nhận đơn trả hàng này để thực hiện?');">
+                                                                            <input type="hidden" name="id" value="${ro.returnOrderId}">
+                                                                            <button type="submit" class="action-btn border-0 bg-transparent p-0" title="Nhận đơn"
+                                                                                    style="cursor:pointer;">
+                                                                                <iconify-icon icon="lucide:user-check"></iconify-icon>
+                                                                            </button>
+                                                                        </form>
+                                                                    </c:if>
+                                                                    <c:if test="${ro.status == 'processing' && ro.receivedBy == sessionScope.user.userId}">
+                                                                        <a href="${pageContext.request.contextPath}/goods-issue-add?returnOrderId=${ro.returnOrderId}"
+                                                                           class="action-btn action-view"
+                                                                           title="Tạo phiếu xuất kho">
+                                                                            <iconify-icon icon="lucide:package-plus"></iconify-icon>
+                                                                        </a>
+                                                                    </c:if>
+                                                                    <a href="${pageContext.request.contextPath}/return-edit?id=${ro.returnOrderId}&view=1"
+                                                                       class="action-btn action-view"
+                                                                       title="Xem đơn trả hàng">
+                                                                        <iconify-icon icon="lucide:eye"></iconify-icon>
+                                                                    </a>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <a href="${pageContext.request.contextPath}/return-edit?id=${ro.returnOrderId}"
+                                                                       class="action-btn action-view"
+                                                                       title="Xem đơn trả hàng">
+                                                                        <iconify-icon icon="lucide:eye"></iconify-icon>
+                                                                    </a>
+                                                                </c:otherwise>
+                                                            </c:choose>
                                                         </div>
                                                     </td>
                                                 </tr>
