@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import model.PurchaseOrderDetail;
+import model.ReturnOrder;
 import model.ReturnOrderDetail;
 import model.ReturnOrderSerial;
 import model.GoodsIssueDetail;
@@ -42,7 +43,65 @@ public class GoodsIssueAddController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String returnOrderIdStr = request.getParameter("returnOrderId");
+        if (returnOrderIdStr != null && !returnOrderIdStr.trim().isEmpty()) {
+            try {
+                int returnOrderId = Integer.parseInt(returnOrderIdStr.trim());
+                ReturnOrder ro = returnOrderDAO.getReturnOrderById(returnOrderId);
+                User user = (User) request.getSession().getAttribute("user");
+                if (ro != null && user != null && user.getRole() != null && user.getRole().getRoleId() == 3
+                        && "processing".equalsIgnoreCase(ro.getStatus() != null ? ro.getStatus().trim() : "")
+                        && ro.getReceivedBy() != null && ro.getReceivedBy().equals(user.getUserId())) {
+                    List<Map<String, Object>> products = buildProductsFromReturnOrder(returnOrderId);
+                    if (!products.isEmpty()) {
+                        request.setAttribute("productsJson", gson.toJson(products));
+                        request.setAttribute("issueType", "return_supplier");
+                        request.setAttribute("returnOrderCode", ro.getReturnCode());
+                        request.setAttribute("returnOrderId", returnOrderId);
+                    }
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
         request.getRequestDispatcher("/view/staff/goods-issue-add.jsp").forward(request, response);
+    }
+
+    private List<Map<String, Object>> buildProductsFromReturnOrder(int returnOrderId) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        List<ReturnOrderDetail> details = returnOrderDAO.getReturnOrderDetailsByOrderId(returnOrderId);
+        List<Integer> variantIds = new ArrayList<>();
+        for (ReturnOrderDetail d : details) {
+            if (d != null && d.getVariantId() > 0 && !variantIds.contains(d.getVariantId())) {
+                variantIds.add(d.getVariantId());
+            }
+        }
+        var infoMap = goodsIssueDAO.getVariantInfoByIds(variantIds);
+        int id = 1;
+        for (ReturnOrderDetail d : details) {
+            if (d == null) continue;
+            GoodsIssueDAO.VariantInfo vi = infoMap.get(d.getVariantId());
+            if (vi == null) continue;
+            List<String> serialNumbers = new ArrayList<>();
+            if (d.getSerials() != null) {
+                for (ReturnOrderSerial s : d.getSerials()) {
+                    if (s != null && s.getSerialNumber() != null && !s.getSerialNumber().trim().isEmpty()) {
+                        serialNumbers.add(s.getSerialNumber().trim());
+                    }
+                }
+            }
+            List<String> inStockSerials = goodsIssueDAO.filterInStockSerialNumbers(vi.getVariantId(), serialNumbers);
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", id++);
+            m.put("variantId", vi.getVariantId());
+            m.put("code", vi.getSku());
+            m.put("name", vi.getProductName());
+            m.put("unit", vi.getUnitName());
+            m.put("stock", vi.getStock());
+            m.put("serials", inStockSerials);
+            m.put("quantity", inStockSerials.size());
+            out.add(m);
+        }
+        return out;
     }
 
     @Override
@@ -272,6 +331,10 @@ public class GoodsIssueAddController extends HttpServlet {
 
         if (hasErrors) {
             request.setAttribute("productsJson", productsJson);
+            String roIdParam = request.getParameter("returnOrderId");
+            if (roIdParam != null && !roIdParam.trim().isEmpty()) {
+                request.setAttribute("returnOrderId", roIdParam.trim());
+            }
             request.getRequestDispatcher("/view/staff/goods-issue-add.jsp").forward(request, response);
             return;
         }
@@ -279,11 +342,18 @@ public class GoodsIssueAddController extends HttpServlet {
         try {
             List<GoodsIssueDetail> details = parseProductsJson(productsJson);
             User user = (User) request.getSession().getAttribute("user");
+            Integer returnOrderId = null;
+            String roIdStr = request.getParameter("returnOrderId");
+            if (roIdStr != null && !roIdStr.trim().isEmpty()) {
+                try {
+                    returnOrderId = Integer.parseInt(roIdStr.trim());
+                } catch (NumberFormatException ignored) {}
+            }
 
             boolean success = goodsIssueDAO.createGoodsIssue(
                 issueCode.trim(), issueType, issueDate,
                 receiverName.trim(), department, notes,
-                user.getUserId(), details
+                user.getUserId(), details, returnOrderId
             );
 
             if (success) {
