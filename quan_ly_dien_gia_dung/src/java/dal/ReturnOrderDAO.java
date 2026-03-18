@@ -374,6 +374,19 @@ public class ReturnOrderDAO extends DBContext {
         return false;
     }
 
+    /** Đánh dấu đơn trả hàng hoàn thành (khi manager duyệt phiếu xuất kho liên kết). */
+    public boolean completeReturnOrder(int returnOrderId) {
+        String sql = "UPDATE return_orders SET status = 'completed' "
+                + "WHERE return_order_id = ? AND status = 'processing'";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, returnOrderId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     public String searchProductsForReturnJson(String keyword, Integer supplierId) {
         StringBuilder sql = new StringBuilder("""
                 SELECT pv.variant_id, pv.sku, pv.cost_price,

@@ -5,6 +5,7 @@
 package controller;
 
 import dal.GoodsIssueDAO;
+import dal.ReturnOrderDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,6 +25,7 @@ import model.User;
 @WebServlet(name = "GoodsIssueListController", urlPatterns = {"/goods-issue-list"})
 public class GoodsIssueListController extends HttpServlet {
     private GoodsIssueDAO goodsIssueDAO = new GoodsIssueDAO();
+    private ReturnOrderDAO returnOrderDAO = new ReturnOrderDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -38,9 +40,14 @@ public class GoodsIssueListController extends HttpServlet {
         String statusParam = request.getParameter("status");
         if (idParam != null && statusParam != null) {
             try {
+                int issueId = Integer.parseInt(idParam);
                 User user = (User) request.getSession().getAttribute("user");
                 Integer approvedBy = "completed".equals(statusParam) && user != null ? user.getUserId() : null;
-                goodsIssueDAO.updateGoodsIssueStatus(Integer.parseInt(idParam), statusParam, approvedBy);
+                GoodsIssue issue = goodsIssueDAO.getGoodsIssueById(issueId);
+                boolean success = goodsIssueDAO.updateGoodsIssueStatus(issueId, statusParam, approvedBy);
+                if (success && "completed".equals(statusParam) && issue != null && issue.getReturnOrderId() != null) {
+                    returnOrderDAO.completeReturnOrder(issue.getReturnOrderId());
+                }
             } catch (NumberFormatException e) {}
             response.sendRedirect(request.getContextPath() + "/goods-issue-list");
             return;

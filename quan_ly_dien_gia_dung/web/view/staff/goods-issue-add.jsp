@@ -51,6 +51,11 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <h5 class="mb-1">Tạo phiếu xuất kho</h5>
+                            <c:if test="${not empty returnOrderCode}">
+                                <div class="alert alert-info py-2 mb-0 small">
+                                    <i class="fa fa-info-circle me-1"></i>Đang tạo phiếu xuất từ đơn trả hàng: <strong>${returnOrderCode}</strong>
+                                </div>
+                            </c:if>
                         </div>
 
                         <div class="col-lg-9">
@@ -148,9 +153,9 @@
 
                                     <div class="mb-3">
                                         <label class="form-label">Loại xuất</label>
-                                        <select class="form-select" name="issueType">
-                                            <option value="sale"            ${param.issueType eq 'sale'            ? 'selected' : ''}>Bán hàng</option>
-                                            <option value="return_supplier" ${param.issueType eq 'return_supplier' ? 'selected' : ''}>Trả nhà cung cấp</option>
+                                        <select class="form-select" name="issueType" id="issueType">
+                                            <option value="sale"            ${(issueType ne 'return_supplier' || empty issueType) && (param.issueType ne 'return_supplier' || empty param.issueType) ? 'selected' : ''}>Bán hàng</option>
+                                            <option value="return_supplier" ${(issueType eq 'return_supplier' || param.issueType eq 'return_supplier') ? 'selected' : ''}>Trả nhà cung cấp</option>
                                             <option value="transfer"        ${param.issueType eq 'transfer'        ? 'selected' : ''}>Điều chuyển kho</option>
                                             <option value="disposal"        ${param.issueType eq 'disposal'        ? 'selected' : ''}>Hủy hàng</option>
                                             <option value="internal_use"    ${param.issueType eq 'internal_use'    ? 'selected' : ''}>Sử dụng nội bộ</option>
@@ -190,6 +195,9 @@
                                     </div>
 
                                     <input type="hidden" name="products" id="productsData">
+                                    <c:if test="${not empty returnOrderId}">
+                                        <input type="hidden" name="returnOrderId" value="${returnOrderId}">
+                                    </c:if>
                                 </form>
                             </div>
                         </div>
