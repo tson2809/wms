@@ -24,7 +24,17 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+            <c:choose>
+                <c:when test="${sessionScope.user.role.roleId == 2}">
+                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+                </c:when>
+                <c:when test="${sessionScope.user.role.roleId == 3}">
+                    <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
+                </c:when>
+                <c:otherwise>
+                    <jsp:include page="/view/common/components/RoleSideBar.jsp" />
+                </c:otherwise>
+            </c:choose>
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
                 <div class="container-fluid pt-4 px-4">
@@ -107,7 +117,6 @@
                                     </div>
                                     <c:if test="${not empty productsError}"><div class="alert alert-danger py-2 small">${productsError}</div></c:if>
                                     <c:if test="${not empty generalError}"><div class="alert alert-danger py-2 small">${generalError}</div></c:if>
-                                    <div id="viewOnlyMessage" class="alert alert-info py-2 small" style="display:none;">Đơn này không thể chỉnh sửa (chỉ xem).</div>
                                     <div class="d-flex gap-2">
                                         <a href="${pageContext.request.contextPath}/return-order-list" class="btn btn-secondary flex-fill">Quay lại</a>
                                         <button type="submit" class="btn btn-primary flex-fill" id="btnSubmit">Cập nhật đơn trả</button>
@@ -168,7 +177,8 @@
             var orderStatus = ('${returnOrder != null ? returnOrder.status : ""}').toLowerCase();
             var isPending = (orderStatus === 'pending');
             var isCompleted = (orderStatus === 'completed');
-            var isViewOnly = !isPending && !isCompleted;
+            var staffViewOnly = ${viewOnly == true ? 'true' : 'false'};
+            var isViewOnly = staffViewOnly || (!isPending && !isCompleted);
 
             function formatCurrency(n) {
                 return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n || 0);
@@ -195,7 +205,6 @@
                     $('#returnEditForm input, #returnEditForm select, #returnEditForm textarea').not('#returnOrderId').prop('readonly', true).prop('disabled', true);
                     $('#productSection input, #productSection button').prop('readonly', true).prop('disabled', true);
                     $('#btnSubmit').hide();
-                    $('#viewOnlyMessage').show();
                     return;
                 }
                 if (isCompleted) {

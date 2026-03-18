@@ -40,6 +40,12 @@ public class ReturnOrderEditController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/return-order-list");
             return;
         }
+        User user = (User) request.getSession().getAttribute("user");
+        boolean staffViewOnly = (user != null && user.getRole() != null && user.getRole().getRoleId() == 3)
+                || "1".equals(request.getParameter("view"));
+        if (staffViewOnly) {
+            request.setAttribute("viewOnly", true);
+        }
         List<ReturnOrderDetail> details = returnOrderDAO.getReturnOrderDetailsByOrderId(id);
         request.setAttribute("returnOrder", order);
         request.setAttribute("returnOrderDetails", details);
@@ -52,6 +58,11 @@ public class ReturnOrderEditController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        User user = (User) request.getSession().getAttribute("user");
+        if (user != null && user.getRole() != null && user.getRole().getRoleId() == 3) {
+            response.sendRedirect(request.getContextPath() + "/return-order-list");
+            return;
+        }
         String action = request.getParameter("action");
         if ("searchProduct".equals(action)) {
             handleSearchProduct(request, response);
