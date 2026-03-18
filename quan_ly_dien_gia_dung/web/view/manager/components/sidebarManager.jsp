@@ -30,7 +30,6 @@
             || currentURI.contains("/return-add")
             || currentURI.contains("/return-view")
             || currentURI.contains("/return-edit")
-            || currentURI.contains("/return_list.jsp")
             || currentURI.contains("/return_edit.jsp")) ? "active" : "";
     String productActive = (currentURI.contains("/product-list")
             || currentURI.contains("/product-add")
