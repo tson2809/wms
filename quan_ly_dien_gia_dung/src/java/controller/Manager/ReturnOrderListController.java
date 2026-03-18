@@ -8,9 +8,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 import model.ReturnOrder;
 import model.Supplier;
+import model.User;
 
 /**
  * Controller for return order list page with pagination and filtering
@@ -110,14 +113,55 @@ public class ReturnOrderListController extends HttpServlet {
         // Set suppliers for dropdown
         request.setAttribute("suppliers", suppliers);
 
-        request.getRequestDispatcher("/view/manager/return_list.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/common/return_list.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Redirect POST to GET
+        String action = request.getParameter("action");
+        if ("cancel".equals(action)) {
+            User user = (User) request.getSession().getAttribute("user");
+            if (user != null && user.getRole() != null && user.getRole().getRoleId() == 2) {
+                String idStr = request.getParameter("id");
+                Integer returnOrderId = parsePositiveInt(idStr);
+                if (returnOrderId != null) {
+                    ReturnOrderDAO dao = new ReturnOrderDAO();
+                    dao.cancelReturnOrder(returnOrderId);
+                }
+            }
+            response.sendRedirect(buildRedirectUrl(request));
+            return;
+        }
         doGet(request, response);
+    }
+
+    private String buildRedirectUrl(HttpServletRequest request) {
+        StringBuilder q = new StringBuilder(request.getContextPath() + "/return-order-list");
+        String[] params = {"search", "supplierId", "orderStatus", "refundStatus", "page", "numberPerPage"};
+        try {
+            boolean first = true;
+            for (String p : params) {
+                String v = request.getParameter(p);
+                if (v != null && !v.trim().isEmpty()) {
+                    q.append(first ? "?" : "&").append(p).append("=").append(URLEncoder.encode(v.trim(), "UTF-8"));
+                    first = false;
+                }
+            }
+        } catch (UnsupportedEncodingException e) {
+            // UTF-8 is always supported
+        }
+        return q.toString();
+    }
+
+    private Integer parsePositiveInt(String s) {
+        if (s == null || s.trim().isEmpty()) return null;
+        try {
+            int n = Integer.parseInt(s.trim());
+            return n > 0 ? n : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @Override
