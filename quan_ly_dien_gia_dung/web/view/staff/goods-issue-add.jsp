@@ -55,6 +55,31 @@
 
                         <div class="col-lg-9">
                             <div class="bg-light rounded p-2 mb-3">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-4">
+                                        <label class="form-label mb-1">Nguồn đơn</label>
+                                        <select id="sourceType" class="form-select" style="height:40px">
+                                            <option value="">Chọn</option>
+                                            <option value="purchase_order">Đơn đặt hàng</option>
+                                            <option value="return_order">Đơn trả hàng</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label mb-1">Mã đơn</label>
+                                        <div class="position-relative">
+                                            <input type="text" id="sourceCodeSearch" class="form-control" style="height:40px" placeholder="Nhập để tìm mã đơn..." disabled>
+                                            <div id="sourceCodeDropdown" class="dropdown-menu w-100" style="display:none;max-height:300px;overflow-y:auto"></div>
+                                            <input type="hidden" id="sourceId">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary w-100" style="height:40px" id="clearSourceBtn" disabled>Xóa</button>
+                                        <button type="button" class="btn btn-success w-100" style="height:40px" id="loadSourceBtn" disabled>Load</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-light rounded p-2 mb-3">
                                 <div class="d-flex gap-2 align-items-stretch position-relative">
                                     <div class="flex-grow-1 position-relative">
                                         <input type="text" id="searchProduct" class="form-control" style="height: 40px;" placeholder="Mã hàng, tên sản phẩm...">
@@ -186,7 +211,7 @@
         <c:if test="${not empty productsJson}">
             <div id="goods-issue-add-products-json" style="display:none"><c:out value="${fn:replace(productsJson, '</', '&lt;/')}" escapeXml="false"/></div>
         </c:if>
-        <script src="${pageContext.request.contextPath}/js/goods-issue-add.js?v=1"></script>
+        <script src="${pageContext.request.contextPath}/js/goods-issue-add.js?v=2"></script>
 
         <!-- Modal Import Excel -->
         <div class="modal fade" id="importModal" tabindex="-1">

@@ -13,6 +13,110 @@
     var searchTimeout;
     var currentProductId = -1;
     var availableSerials = [];
+    var sourceSearchTimeout;
+
+    // ── Load from source order ───────────────────────────────────────
+    function resetSource() {
+        $('#sourceId').val('');
+        $('#sourceCodeSearch').val('');
+        $('#sourceCodeDropdown').hide().empty();
+        $('#loadSourceBtn').prop('disabled', true);
+        $('#clearSourceBtn').prop('disabled', true);
+    }
+
+    function setSourceEnabled(enabled) {
+        // Make sure user can type to search codes
+        $('#sourceCodeSearch')
+            .prop('disabled', !enabled)
+            .prop('readonly', !enabled);
+        if (!enabled) resetSource();
+    }
+
+    function showSourceDropdown(list) {
+        var dd = $('#sourceCodeDropdown');
+        dd.empty();
+        if (!list || !list.length) {
+            dd.append('<div class="dropdown-item text-muted">Không tìm thấy đơn</div>');
+        } else {
+            list.forEach(function(o) {
+                var item = $('<a href="#" class="dropdown-item"></a>');
+                item.html('<strong>' + (o.code || '') + '</strong>' + (o.sub ? ('<div class="small text-muted">' + o.sub + '</div>') : ''));
+                item.on('click', function(e) {
+                    e.preventDefault();
+                    $('#sourceId').val(o.id);
+                    $('#sourceCodeSearch').val(o.code);
+                    dd.hide();
+                    $('#loadSourceBtn').prop('disabled', false);
+                    $('#clearSourceBtn').prop('disabled', false);
+                });
+                dd.append(item);
+            });
+        }
+        dd.show();
+    }
+
+    function fetchSourceOrders(keyword) {
+        var type = $('#sourceType').val();
+        if (!type) return;
+        $.ajax({
+            url: addUrl, type: 'POST',
+            data: { action: 'listSourceOrders', sourceType: type, search: keyword || '' },
+            dataType: 'json',
+            success: function(data) { showSourceDropdown(data); },
+            error: function() {
+                $('#sourceCodeDropdown').empty()
+                    .append('<div class="dropdown-item text-danger">Lỗi khi tải danh sách đơn</div>').show();
+            }
+        });
+    }
+
+    function loadFromSource() {
+        var type = $('#sourceType').val();
+        var id = $('#sourceId').val();
+        if (!type || !id) return;
+        $('#loadSourceBtn').prop('disabled', true).text('Đang load...');
+        $.ajax({
+            url: addUrl, type: 'POST',
+            data: { action: 'loadFromSource', sourceType: type, sourceId: id },
+            dataType: 'json',
+            success: function(items) {
+                if (!items || !items.length) {
+                    alert('Không có sản phẩm để load từ đơn này.');
+                    return;
+                }
+                items.forEach(function(p) {
+                    // Ensure unique variant
+                    var existing = products.find(function(x) { return x.variantId === p.variantId; });
+                    if (existing) {
+                        // Merge serials if provided
+                        if (p.serials && p.serials.length) {
+                            existing.serials = existing.serials || [];
+                            p.serials.forEach(function(sn) {
+                                if (existing.serials.indexOf(sn) === -1) existing.serials.push(sn);
+                            });
+                            existing.quantity = existing.serials.length;
+                            $('.quantity-display[data-id="' + existing.id + '"]').val(existing.quantity);
+                        }
+                        return;
+                    }
+                    p.id = productIdCounter++;
+                    p.quantity = p.quantity || 0;
+                    p.serials = p.serials || [];
+                    addProductRowFromData(p);
+                    products.push(p);
+                    $('.quantity-display[data-id="' + p.id + '"]').val(p.quantity);
+                });
+            },
+            error: function(xhr) {
+                var msg = 'Lỗi khi load sản phẩm từ đơn.';
+                if (xhr && xhr.responseText) msg += ' ' + xhr.responseText;
+                alert(msg);
+            },
+            complete: function() {
+                $('#loadSourceBtn').prop('disabled', false).text('Load');
+            }
+        });
+    }
 
     // ── Search dropdown ─────────────────────────────────────────────
     function loadProducts(searchValue) {
@@ -357,4 +461,35 @@
             });
         } catch (e) {}
     }
+
+    // ── Source order bindings ───────────────────────────────────────
+    $(function() {
+        setSourceEnabled(!!$('#sourceType').val());
+
+        $('#sourceType').on('change', function() {
+            var t = $(this).val();
+            setSourceEnabled(!!t);
+        });
+
+        $('#sourceCodeSearch').on('focus', function() { fetchSourceOrders($(this).val().trim()); });
+        $('#sourceCodeSearch').on('keyup', function() {
+            clearTimeout(sourceSearchTimeout);
+            var v = $(this).val().trim();
+            sourceSearchTimeout = setTimeout(function() { fetchSourceOrders(v); }, 300);
+        });
+
+        $(document).on('click', '#clearSourceBtn', function() {
+            resetSource();
+        });
+
+        $(document).on('click', '#loadSourceBtn', function() {
+            loadFromSource();
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#sourceCodeSearch, #sourceCodeDropdown').length) {
+                $('#sourceCodeDropdown').hide();
+            }
+        });
+    });
 })();
