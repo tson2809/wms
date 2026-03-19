@@ -31,6 +31,10 @@ import model.User;
 import modelDTO.ProductAddDTO;
 import modelDTO.ProductVariantSimpleDTO;
 
+/**
+ * 
+ * @author laptop368
+ */
 @WebServlet(name = "ProductEditController", urlPatterns = {"/product-edit"})
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 10)
 public class ProductEditController extends HttpServlet {

@@ -16,7 +16,6 @@ import model.Supplier;
 import model.User;
 
 /**
- * Controller for return order list page with pagination and filtering
  * 
  * @author laptop368
  */
