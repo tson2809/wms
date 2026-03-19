@@ -5,6 +5,7 @@
 package controller;
 
 import dal.GoodsReceiptDAO;
+import dal.SalesReturnDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,6 +25,7 @@ import model.User;
 @WebServlet(name = "GoodsReceiptListController", urlPatterns = {"/goods-receipt-list"})
 public class GoodsReceiptListController extends HttpServlet {
     private GoodsReceiptDAO goodsReceiptDAO = new GoodsReceiptDAO();
+    private SalesReturnDAO salesReturnDAO = new SalesReturnDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -40,7 +42,14 @@ public class GoodsReceiptListController extends HttpServlet {
             try {
                 User user = (User) request.getSession().getAttribute("user");
                 Integer approvedBy = "completed".equals(statusParam) && user != null ? user.getUserId() : null;
-                goodsReceiptDAO.updateGoodsReceiptStatus(Integer.parseInt(idParam), statusParam, approvedBy);
+                int receiptId = Integer.parseInt(idParam);
+                boolean success = goodsReceiptDAO.updateGoodsReceiptStatus(receiptId, statusParam, approvedBy);
+                if (success && "completed".equals(statusParam)) {
+                    GoodsReceipt receipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+                    if (receipt != null && receipt.getSalesReturnId() != null) {
+                        salesReturnDAO.completeSalesReturn(receipt.getSalesReturnId());
+                    }
+                }
             } catch (NumberFormatException e) {
             }
             response.sendRedirect(request.getContextPath() + "/goods-receipt-list");

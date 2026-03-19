@@ -130,7 +130,7 @@
                                     <div class="mb-3">
                                         <label class="form-label">Nguồn cung cấp</label>
                                         <select class="form-select" name="supplierId">
-                                            <option value="SALE" ${param.supplierId == 'SALE' ? 'selected' : ''}>Nhập từ sale</option>
+                                            <option value="SALE" ${(supplierIdValue == 'SALE' || param.supplierId == 'SALE' || empty param.supplierId) ? 'selected' : ''}>Nhập từ sale</option>
                                             <c:forEach items="${suppliers}" var="s">
                                                 <option value="${s.supplierId}" ${param.supplierId eq s.supplierId ? 'selected' : ''}>${s.supplierName}</option>
                                             </c:forEach>
@@ -158,7 +158,7 @@
                                     
                                     <div class="mb-3">
                                         <label class="form-label">Mã đơn hàng</label>
-                                        <input type="text" class="form-control" name="purchaseOrderCode" placeholder="Nhập mã đơn hàng (nếu có)" value="${param.purchaseOrderCode}">
+                                        <input type="text" class="form-control" name="purchaseOrderCode" placeholder="Nhập mã đơn hàng (nếu có)" value="${not empty purchaseOrderCodeValue ? purchaseOrderCodeValue : param.purchaseOrderCode}" ${not empty purchaseOrderCodeValue ? 'readonly' : ''}>
                                     </div>
                                     
                                     <div class="mb-3">
@@ -190,6 +190,9 @@
                                     </div>
                                     
                                     <input type="hidden" name="products" id="productsData">
+                                    <c:if test="${not empty salesReturnId}">
+                                        <input type="hidden" name="salesReturnId" value="${salesReturnId}">
+                                    </c:if>
                                 </form>
                             </div>
                         </div>

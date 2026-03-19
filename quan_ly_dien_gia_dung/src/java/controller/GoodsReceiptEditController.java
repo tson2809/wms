@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dal.SupplierDAO;
 import dal.GoodsReceiptDAO;
+import dal.SalesReturnDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -37,6 +38,7 @@ import modelDTO.GoodsReceiptProductDTO;
 public class GoodsReceiptEditController extends HttpServlet {
     private SupplierDAO supplierDAO = new SupplierDAO();
     private GoodsReceiptDAO goodsReceiptDAO = new GoodsReceiptDAO();
+    private SalesReturnDAO salesReturnDAO = new SalesReturnDAO();
     private static final Gson gson = new Gson();
 
     @Override
@@ -141,6 +143,12 @@ public class GoodsReceiptEditController extends HttpServlet {
             Integer approvedBy = "completed".equals(status) ? currentUser.getUserId() : null;
             boolean success = goodsReceiptDAO.updateGoodsReceiptStatus(receiptId, status, approvedBy);
             if (success) {
+                if ("completed".equals(status)) {
+                    GoodsReceipt approvedReceipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+                    if (approvedReceipt != null && approvedReceipt.getSalesReturnId() != null) {
+                        salesReturnDAO.completeSalesReturn(approvedReceipt.getSalesReturnId());
+                    }
+                }
                 response.sendRedirect(request.getContextPath() + "/goods-receipt-list");
             } else {
                 request.setAttribute("error", "Có lỗi xảy ra khi cập nhật trạng thái");
