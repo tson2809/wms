@@ -59,7 +59,7 @@
                         </div>
 
                         <div class="col-lg-9">
-                            <div class="bg-light rounded p-2 mb-3">
+<!--                            <div class="bg-light rounded p-2 mb-3">
                                 <div class="row g-2 align-items-end">
                                     <div class="col-md-4">
                                         <label class="form-label mb-1">Nguồn đơn</label>
@@ -82,7 +82,7 @@
                                         <button type="button" class="btn btn-success w-100" style="height:40px" id="loadSourceBtn" disabled>Load</button>
                                     </div>
                                 </div>
-                            </div>
+                            </div>-->
 
                             <div class="bg-light rounded p-2 mb-3">
                                 <div class="d-flex gap-2 align-items-stretch position-relative">
