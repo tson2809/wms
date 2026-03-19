@@ -92,8 +92,7 @@
                class="nav-item nav-link <%= goodsIssueActive %>"><i
                     class="fa fa-file-export me-2"></i>Phiếu xuất kho</a>
             <a href="${pageContext.request.contextPath}/return-order-list"
-               class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn
-                trả hàng</a>
+               class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả về NCC</a>
             <a href="${pageContext.request.contextPath}/product-list" class="nav-item nav-link <%= productActive %>"><i
                     class="fa fa-box me-2"></i>Sản phẩm</a>
 
