@@ -128,9 +128,9 @@
                                 <form id="receiptForm" method="post" action="${pageContext.request.contextPath}/goods-receipt-add">
                                     
                                     <div class="mb-3">
-                                        <label class="form-label">Nhà cung cấp</label>
+                                        <label class="form-label">Nguồn cung cấp</label>
                                         <select class="form-select" name="supplierId">
-                                            <option value="">Chọn nhà cung cấp</option>
+                                            <option value="SALE" ${param.supplierId == 'SALE' ? 'selected' : ''}>Nhập từ sale</option>
                                             <c:forEach items="${suppliers}" var="s">
                                                 <option value="${s.supplierId}" ${param.supplierId eq s.supplierId ? 'selected' : ''}>${s.supplierName}</option>
                                             </c:forEach>
