@@ -275,7 +275,7 @@ public class GoodsReceiptDAO extends DBContext {
         return false;
     }
     
-    public boolean createGoodsReceipt(String receiptCode, int supplierId, String receiptDate, double totalAmount, 
+    public boolean createGoodsReceipt(String receiptCode, Integer supplierId, String receiptDate, double totalAmount, 
                                      String notes, int createdBy, java.util.List<model.GoodsReceiptDetail> details) {
         java.sql.Connection conn = null;
         try {
@@ -307,7 +307,7 @@ public class GoodsReceiptDAO extends DBContext {
             int receiptId;
             try (PreparedStatement ps = conn.prepareStatement(sqlReceipt, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, receiptCode);
-                ps.setInt(2, supplierId);
+                ps.setObject(2, supplierId);
                 ps.setString(3, receiptDate);
                 ps.setDouble(4, totalAmount);
                 ps.setInt(5, createdBy);

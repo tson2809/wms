@@ -143,13 +143,19 @@
                                     <input type="hidden" name="receiptId" value="${receipt.receiptId}">
 
                                     <div class="mb-3">
-                                        <label class="form-label">Nhà cung cấp</label>
-                                        <select class="form-select" name="supplierId" ${(sessionScope.user.role.roleId == 2 or readOnly) ? 'disabled' : ''}>
-                                            <option value="">Chọn nhà cung cấp</option>
-                                            <c:forEach items="${suppliers}" var="s">
-                                                <option value="${s.supplierId}" ${receipt.supplier.supplierId eq s.supplierId ? 'selected' : ''}>${s.supplierName}</option>
-                                            </c:forEach>
-                                        </select>
+                                        <label class="form-label">Nguồn cung cấp</label>
+                                        <c:choose>
+                                            <c:when test="${empty receipt.supplier}">
+                                                <input type="text" class="form-control" value="Nhập từ sale" readonly>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <select class="form-select" name="supplierId" ${(sessionScope.user.role.roleId == 2 or readOnly) ? 'disabled' : ''}>
+                                                    <c:forEach items="${suppliers}" var="s">
+                                                        <option value="${s.supplierId}" ${receipt.supplier.supplierId eq s.supplierId ? 'selected' : ''}>${s.supplierName}</option>
+                                                    </c:forEach>
+                                                </select>
+                                            </c:otherwise>
+                                        </c:choose>
                                         <c:if test="${not empty supplierIdError}">
                                             <small class="text-danger">${supplierIdError}</small>
                                         </c:if>
