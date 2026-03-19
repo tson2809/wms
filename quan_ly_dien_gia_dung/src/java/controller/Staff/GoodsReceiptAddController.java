@@ -67,9 +67,16 @@ public class GoodsReceiptAddController extends HttpServlet {
         
         boolean hasErrors = false;
         
-        if (supplierId == null || supplierId.trim().isEmpty()) {
-            request.setAttribute("supplierIdError", "Vui lòng chọn nhà cung cấp");
-            hasErrors = true;
+        // Nguồn cung cấp:
+        // - Giá trị "SALE": Nhập từ sale -> supplier_id = NULL trong DB.
+        // - Giá trị số khác: ID nhà cung cấp.
+        // - Rỗng: không hợp lệ.
+        boolean isFromSale = "SALE".equalsIgnoreCase(supplierId != null ? supplierId.trim() : "");
+        if (!isFromSale) {
+            if (supplierId == null || supplierId.trim().isEmpty()) {
+                request.setAttribute("supplierIdError", "Vui lòng chọn nguồn cung cấp");
+                hasErrors = true;
+            }
         }
         
         if (receiptDate == null || receiptDate.trim().isEmpty()) {
@@ -102,7 +109,10 @@ public class GoodsReceiptAddController extends HttpServlet {
         }
         
         try {
-            int supplier_Id = Integer.parseInt(supplierId);
+            Integer supplier_Id = null;
+            if (!isFromSale) {
+                supplier_Id = Integer.parseInt(supplierId);
+            }
             String notes = request.getParameter("notes");
             if (notes == null) notes = "";
             
@@ -117,7 +127,7 @@ public class GoodsReceiptAddController extends HttpServlet {
             int createdBy = currentUser.getUserId();
             
             boolean success = goodsReceiptDAO.createGoodsReceipt(
-                receiptCode, supplier_Id, receiptDate, totalAmount.doubleValue(), 
+                receiptCode, supplier_Id, receiptDate, totalAmount.doubleValue(),
                 notes, createdBy, details
             );
             

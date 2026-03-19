@@ -198,7 +198,7 @@
                                         <tr>
                                             <th style="width: 80px;">ID</th>
                                             <th style="width: 140px;">Mã phiếu</th>
-                                            <th>Nhà cung cấp</th>
+                                            <th>Nguồn cung cấp</th>
                                             <th style="width: 130px;">Ngày nhập</th>
                                             <th style="width: 140px;" class="text-end">Tổng tiền</th>
                                             <th style="width: 120px;">Trạng thái</th>
@@ -212,7 +212,16 @@
                                             <tr>
                                                 <td>${gr.receiptId}</td>
                                                 <td><strong>${gr.receiptCode}</strong></td>
-                                                <td>${gr.supplier.supplierName}</td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${empty gr.supplier}">
+                                                            Nhập từ sale
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            ${gr.supplier.supplierName}
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
                                                 <td>
                                                     <fmt:formatDate value="${gr.receiptDate}" pattern="dd/MM/yyyy" />
                                                 </td>
