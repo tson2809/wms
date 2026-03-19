@@ -11,6 +11,7 @@
     String goodsReceiptActive = (currentURI.contains("/goods-receipt-list") || currentURI.contains("/goods-receipt-detail") || currentURI.contains("/goods-receipt-add")) ? "active" : "";
     String goodsIssueActive = (currentURI.contains("/goods-issue-list") || currentURI.contains("/goods-issue-detail") || currentURI.contains("/goods-issue-add")) ? "active" : "";
     String returnActive = (currentURI.contains("/return-order-list") || currentURI.contains("/return-add") || currentURI.contains("/return-view") || currentURI.contains("/return-edit")) ? "active" : "";
+    String salesReturnActive = currentURI.contains("/sales-return-list") ? "active" : "";
 %>
 
 <!-- Sidebar Start -->
@@ -34,7 +35,9 @@
                 Quản lý sheet
             </a>
             <a href="${pageContext.request.contextPath}/return-order-list"
-               class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả hàng</a>
+               class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả về NCC</a>
+            <a href="${pageContext.request.contextPath}/sales-return-list"
+               class="nav-item nav-link <%= salesReturnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả từ Sale</a>
         </div>        
     </nav>
 </div>

@@ -22,6 +22,7 @@ public class GoodsReceipt {
     private String notes;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private Integer salesReturnId;
     private Supplier supplier;
     private User createdByUser;
     private User approvedByUser;
@@ -117,6 +118,14 @@ public class GoodsReceipt {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Integer getSalesReturnId() {
+        return salesReturnId;
+    }
+
+    public void setSalesReturnId(Integer salesReturnId) {
+        this.salesReturnId = salesReturnId;
     }
 
     public Supplier getSupplier() {
