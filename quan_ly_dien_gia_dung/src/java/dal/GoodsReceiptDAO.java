@@ -121,6 +121,9 @@ public class GoodsReceiptDAO extends DBContext {
         gr.setReceiptDate(rs.getDate("receipt_date"));
         gr.setTotalAmount(rs.getBigDecimal("total_amount"));
         gr.setStatus(rs.getString("status"));
+        if (rs.getObject("sales_return_id") != null) {
+            gr.setSalesReturnId(rs.getInt("sales_return_id"));
+        }
         
         if (rs.getObject("created_by_id") != null) {
             User createdByUser = new User();
@@ -277,6 +280,12 @@ public class GoodsReceiptDAO extends DBContext {
     
     public boolean createGoodsReceipt(String receiptCode, Integer supplierId, String receiptDate, double totalAmount, 
                                      String notes, int createdBy, java.util.List<model.GoodsReceiptDetail> details) {
+        return createGoodsReceipt(receiptCode, supplierId, receiptDate, totalAmount, notes, createdBy, details, null);
+    }
+
+    public boolean createGoodsReceipt(String receiptCode, Integer supplierId, String receiptDate, double totalAmount, 
+                                     String notes, int createdBy, java.util.List<model.GoodsReceiptDetail> details,
+                                     Integer salesReturnId) {
         java.sql.Connection conn = null;
         try {
             conn = getConnection();
@@ -301,8 +310,8 @@ public class GoodsReceiptDAO extends DBContext {
             
             String sqlReceipt = """
                                INSERT INTO goods_receipts 
-                               (receipt_code, supplier_id, receipt_date, total_amount, status, created_by, notes)
-                               VALUES (?, ?, ?, ?, 'draft', ?, ?)
+                               (receipt_code, supplier_id, receipt_date, total_amount, status, created_by, notes, sales_return_id)
+                               VALUES (?, ?, ?, ?, 'draft', ?, ?, ?)
                                """;
             int receiptId;
             try (PreparedStatement ps = conn.prepareStatement(sqlReceipt, PreparedStatement.RETURN_GENERATED_KEYS)) {
@@ -312,6 +321,7 @@ public class GoodsReceiptDAO extends DBContext {
                 ps.setDouble(4, totalAmount);
                 ps.setInt(5, createdBy);
                 ps.setString(6, notes);
+                ps.setObject(7, salesReturnId);
                 ps.executeUpdate();
                 
                 ResultSet rs = ps.getGeneratedKeys();

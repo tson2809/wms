@@ -5,6 +5,10 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    String currentURI = request.getRequestURI();
+    String salesReturnActive = currentURI.contains("/sales-return-list") ? "active" : "";
+%>
 
 <!-- Sidebar Start -->
 <div class="sidebar pe-6 pb-5">
@@ -14,9 +18,10 @@
         </a>
         <div class="navbar-nav w-100">
             <a href="${pageContext.request.contextPath}/indexSale" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>Trang chủ</a>
-            
-            
-            
+            <a href="${pageContext.request.contextPath}/sales-return-list"
+               class="nav-item nav-link <%= salesReturnActive %>">
+                <i class="fa fa-undo me-2"></i>Trả hàng
+            </a>
         </div>
     </nav>
 </div>
