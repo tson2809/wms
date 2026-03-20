@@ -30,12 +30,24 @@
             <div class="container-fluid pt-4 px-4">
                 <div class="bg-light rounded p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h4 class="mb-0">Chỉnh sửa đơn đặt hàng: ${purchaseOrder.poCode}</h4>
+                        <h4 class="mb-0">
+                            <c:choose>
+                                <c:when test="${viewOnly}">Xem đơn đặt hàng: ${purchaseOrder.poCode}</c:when>
+                                <c:otherwise>Chỉnh sửa đơn đặt hàng: ${purchaseOrder.poCode}</c:otherwise>
+                            </c:choose>
+                        </h4>
                         <a href="${pageContext.request.contextPath}/purchase-order/list" 
                            class="btn btn-secondary">
                             <i class="fa fa-arrow-left me-2"></i>Quay lại
                         </a>
                     </div>
+
+                    <c:if test="${viewOnly}">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Đơn hàng đang ở trạng thái <strong>${purchaseOrder.status}</strong> — chỉ xem, không thể chỉnh sửa.
+                        </div>
+                    </c:if>
 
                     <c:if test="${not empty error}">
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -50,7 +62,7 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label class="form-label">Nhà cung cấp <span class="text-danger">*</span></label>
-                                <select class="form-select" name="supplierId" required>
+                                <select class="form-select" name="supplierId" required ${viewOnly ? 'disabled' : ''}>
                                     <option value="">-- Chọn nhà cung cấp --</option>
                                     <c:forEach items="${suppliers}" var="supplier">
                                         <option value="${supplier.supplierId}" 
@@ -63,27 +75,31 @@
                             <div class="col-md-3">
                                 <label class="form-label">Ngày đặt hàng <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" name="orderDate" 
-                                       value="<fmt:formatDate value='${purchaseOrder.orderDate}' pattern='yyyy-MM-dd'/>" required>
+                                       value="<fmt:formatDate value='${purchaseOrder.orderDate}' pattern='yyyy-MM-dd'/>" 
+                                       required ${viewOnly ? 'disabled' : ''}>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Ngày giao dự kiến</label>
                                 <input type="date" class="form-control" name="expectedDeliveryDate"
-                                       value="<fmt:formatDate value='${purchaseOrder.expectedDeliveryDate}' pattern='yyyy-MM-dd'/>">
+                                       value="<fmt:formatDate value='${purchaseOrder.expectedDeliveryDate}' pattern='yyyy-MM-dd'/>"
+                                       ${viewOnly ? 'disabled' : ''}>
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label">Ghi chú</label>
-                            <textarea class="form-control" name="notes" rows="3">${purchaseOrder.notes}</textarea>
+                        <textarea class="form-control" name="notes" rows="3" ${viewOnly ? 'disabled' : ''}>${purchaseOrder.notes}</textarea>
                         </div>
 
                         <hr>
 
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <h5>Chi tiết sản phẩm</h5>
-                            <button type="button" class="btn btn-success btn-sm" onclick="addProductRow()">
-                                <i class="fa fa-plus me-2"></i>Thêm sản phẩm
-                            </button>
+                            <c:if test="${not viewOnly}">
+                                <button type="button" class="btn btn-success btn-sm" onclick="addProductRow()">
+                                    <i class="fa fa-plus me-2"></i>Thêm sản phẩm
+                                </button>
+                            </c:if>
                         </div>
 
                         <div id="productContainer">
@@ -150,12 +166,16 @@
                         </div>
 
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fa fa-save me-2"></i>Cập nhật đơn đặt hàng
-                            </button>
+                            <c:choose>
+                                <c:when test="${not viewOnly}">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-save me-2"></i>Cập nhật đơn đặt hàng
+                                    </button>
+                                </c:when>
+                            </c:choose>
                             <a href="${pageContext.request.contextPath}/purchase-order/list" 
                                class="btn btn-secondary">
-                                Hủy
+                                Quay lại danh sách
                             </a>
                         </div>
                     </form>

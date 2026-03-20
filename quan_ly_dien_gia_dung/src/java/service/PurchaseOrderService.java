@@ -146,9 +146,8 @@ public class PurchaseOrderService {
         }
 
         String status = existingPO.getStatus();
-        if ("approved".equalsIgnoreCase(status) || "received".equalsIgnoreCase(status) 
-                || "cancelled".equalsIgnoreCase(status)) {
-            throw new SQLException("Không thể chỉnh sửa đơn hàng có trạng thái: " + status);
+        if (!"draft".equalsIgnoreCase(status)) {
+            throw new SQLException("Chỉ có thể chỉnh sửa đơn hàng ở trạng thái chờ xử lý (pending).");
         }
 
         Connection conn = null;
@@ -223,125 +222,23 @@ public class PurchaseOrderService {
         return detailDAO.getDetailsByPurchaseOrderId(purchaseOrderId);
     }
 
-    /**
-     * Cập nhật trạng thái đơn đặt hàng với validation nghiệp vụ chặt chẽ.
-     * 
-     * Quy tắc chuyển trạng thái cho Manager:
-     *   draft      → submitted, cancelled
-     *   submitted  → approved (ghi approved_by), cancelled
-     *   approved   → received, cancelled
-     *   received   → KHÔNG được thay đổi (đã hoàn thành)
-     *   cancelled  → KHÔNG được thay đổi (đã hủy vĩnh viễn)
-     *
-     * @param purchaseOrderId ID đơn đặt hàng
-     * @param newStatus       Trạng thái mới
-     * @param userId          ID người thực hiện (Manager)
-     * @return "SUCCESS" nếu thành công, hoặc chuỗi thông báo lỗi nghiệp vụ
-     */
-    public String updatePurchaseOrderStatus(int purchaseOrderId, String newStatus, int userId) {
-        // 1. Validate trạng thái mới có hợp lệ trong ENUM không
-        String[] validStatuses = {"draft", "submitted", "approved", "received", "cancelled"};
-        boolean isValidStatus = false;
-        for (String s : validStatuses) {
-            if (s.equalsIgnoreCase(newStatus)) {
-                isValidStatus = true;
-                newStatus = s; // chuẩn hóa lowercase
-                break;
-            }
-        }
-        if (!isValidStatus) {
-            return "Trạng thái \"" + newStatus + "\" không hợp lệ.";
-        }
-
-        // 2. Lấy đơn hàng hiện tại
-        PurchaseOrder currentPO = purchaseOrderDAO.getPurchaseOrderById(purchaseOrderId);
-        if (currentPO == null) {
-            return "Không tìm thấy đơn đặt hàng #" + purchaseOrderId + ".";
-        }
-
-        String currentStatus = currentPO.getStatus();
-
-        // 3. Không cho phép cập nhật nếu trạng thái không đổi
-        if (currentStatus.equalsIgnoreCase(newStatus)) {
-            return "Đơn hàng đã ở trạng thái này rồi.";
-        }
-
-        // 4. Validate quy tắc chuyển trạng thái (transition rules)
-        if (!isValidTransition(currentStatus, newStatus)) {
-            String currentLabel = getStatusLabel(currentStatus);
-            String newLabel = getStatusLabel(newStatus);
-            return "Không thể chuyển từ \"" + currentLabel + "\" sang \"" + newLabel + "\". "
-                    + getTransitionHint(currentStatus);
-        }
-
-        // 5. Xác định approved_by: chỉ ghi khi chuyển sang approved
-        Integer approvedBy = null;
-        if ("approved".equals(newStatus)) {
-            approvedBy = userId;
-        }
-
-        // 6. Thực hiện cập nhật
-        try {
-            boolean success = purchaseOrderDAO.updatePurchaseOrderStatus(purchaseOrderId, newStatus, approvedBy);
-            if (success) {
-                return "SUCCESS";
-            } else {
-                return "Không thể cập nhật trạng thái. Vui lòng thử lại.";
-            }
-        } catch (Exception e) {
-            Logger.getLogger(PurchaseOrderService.class.getName()).log(Level.SEVERE,
-                    "Error updating purchase order status", e);
-            return "Lỗi hệ thống khi cập nhật trạng thái: " + e.getMessage();
-        }
+    public boolean claimPurchaseOrder(int purchaseOrderId, int staffId) {
+        return purchaseOrderDAO.claimPurchaseOrder(purchaseOrderId, staffId);
     }
 
-    /**
-     * Kiểm tra chuyển trạng thái có hợp lệ không.
-     * Chỉ cho phép chuyển tiến, không nhảy cóc, không quay lại.
-     */
-    private boolean isValidTransition(String currentStatus, String newStatus) {
-        switch (currentStatus.toLowerCase()) {
-            case "draft":
-                return "submitted".equals(newStatus) || "cancelled".equals(newStatus);
-            case "submitted":
-                return "approved".equals(newStatus) || "cancelled".equals(newStatus);
-            case "approved":
-                return "received".equals(newStatus) || "cancelled".equals(newStatus);
-            case "received":
-                return false; // Đã hoàn thành, không thể thay đổi
-            case "cancelled":
-                return false; // Đã hủy, không thể thay đổi
-            default:
-                return false;
-        }
+    public boolean cancelPurchaseOrder(int purchaseOrderId) {
+        return purchaseOrderDAO.cancelPurchaseOrder(purchaseOrderId);
     }
 
-    /**
-     * Trả về gợi ý chuyển trạng thái hợp lệ cho trạng thái hiện tại.
-     */
-    private String getTransitionHint(String currentStatus) {
-        switch (currentStatus.toLowerCase()) {
-            case "draft":
-                return "Đơn nháp chỉ có thể chuyển sang \"Đã gửi\" hoặc \"Đã hủy\".";
-            case "submitted":
-                return "Đơn đã gửi chỉ có thể chuyển sang \"Đã duyệt\" hoặc \"Đã hủy\".";
-            case "approved":
-                return "Đơn đã duyệt chỉ có thể chuyển sang \"Đã nhận hàng\" hoặc \"Đã hủy\".";
-            case "received":
-                return "Đơn đã nhận hàng không thể thay đổi trạng thái.";
-            case "cancelled":
-                return "Đơn đã hủy không thể thay đổi trạng thái.";
-            default:
-                return "";
-        }
+    public boolean completePurchaseOrder(int purchaseOrderId) {
+        return purchaseOrderDAO.completePurchaseOrder(purchaseOrderId);
     }
 
     private String getStatusLabel(String status) {
         switch (status) {
-            case "draft": return "Nháp";
-            case "submitted": return "Đã gửi";
-            case "approved": return "Đã duyệt";
-            case "received": return "Đã nhận hàng";
+            case "pending": return "Chờ xử lý";
+            case "processing": return "Đang xử lý";
+            case "completed": return "Hoàn tất";
             case "cancelled": return "Đã hủy";
             default: return status;
         }

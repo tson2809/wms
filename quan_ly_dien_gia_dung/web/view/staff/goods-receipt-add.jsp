@@ -130,9 +130,12 @@
                                     <div class="mb-3">
                                         <label class="form-label">Nguồn cung cấp</label>
                                         <select class="form-select" name="supplierId">
-                                            <option value="SALE" ${(supplierIdValue == 'SALE' || param.supplierId == 'SALE' || empty param.supplierId) ? 'selected' : ''}>Nhập từ sale</option>
+                                            <option value="SALE" ${(supplierIdValue == 'SALE' || (empty poSupplierIdValue && empty param.supplierId)) ? 'selected' : ''}>Đầu vào từ Sale</option>
                                             <c:forEach items="${suppliers}" var="s">
-                                                <option value="${s.supplierId}" ${param.supplierId eq s.supplierId ? 'selected' : ''}>${s.supplierName}</option>
+                                                <option value="${s.supplierId}" 
+                                                    ${(not empty poSupplierIdValue && poSupplierIdValue == s.supplierId) || param.supplierId eq s.supplierId ? 'selected' : ''}>
+                                                    ${s.supplierName}
+                                                </option>
                                             </c:forEach>
                                         </select>
                                         <c:if test="${not empty supplierIdError}">
@@ -142,7 +145,8 @@
                                     
                                     <div class="mb-3">
                                         <label class="form-label">Ngày nhập</label>
-                                        <input type="date" class="form-control" name="receiptDate" id="receiptDate" value="${param.receiptDate}" required>
+                                        <input type="date" class="form-control" name="receiptDate" id="receiptDate" 
+                                               value="<c:choose><c:when test='${not empty poExpectedDeliveryDate}'><fmt:formatDate value='${poExpectedDeliveryDate}' pattern='yyyy-MM-dd'/></c:when><c:otherwise>${param.receiptDate}</c:otherwise></c:choose>" required>
                                         <c:if test="${not empty receiptDateError}">
                                             <small class="text-danger">${receiptDateError}</small>
                                         </c:if>
@@ -192,6 +196,9 @@
                                     <input type="hidden" name="products" id="productsData">
                                     <c:if test="${not empty salesReturnId}">
                                         <input type="hidden" name="salesReturnId" value="${salesReturnId}">
+                                    </c:if>
+                                    <c:if test="${not empty purchaseOrderId}">
+                                        <input type="hidden" name="purchaseOrderId" value="${purchaseOrderId}">
                                     </c:if>
                                 </form>
                             </div>

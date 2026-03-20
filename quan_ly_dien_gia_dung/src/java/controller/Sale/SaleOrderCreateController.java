@@ -1,9 +1,8 @@
-package controller.Manager;
+package controller.Sale;
 
 import dal.BrandDAO;
 import dal.CategoryDAO;
 import dal.ProductDAO;
-import dal.SupplierDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -13,21 +12,18 @@ import jakarta.servlet.http.HttpSession;
 import model.PurchaseOrder;
 import model.PurchaseOrderDetail;
 import model.ProductVariant;
-import model.Supplier;
 import model.User;
 import service.PurchaseOrderService;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet(name = "PurchaseOrderCreateController", urlPatterns = {"/purchase-order/create"})
-public class PurchaseOrderCreateController extends HttpServlet {
+@WebServlet(name = "SaleOrderCreateController", urlPatterns = {"/sale-order/create"})
+public class SaleOrderCreateController extends HttpServlet {
     private PurchaseOrderService purchaseOrderService;
-    private SupplierDAO supplierDAO;
     private ProductDAO productDAO;
     private CategoryDAO categoryDAO;
     private BrandDAO brandDAO;
@@ -35,7 +31,6 @@ public class PurchaseOrderCreateController extends HttpServlet {
     @Override
     public void init() throws ServletException {
         this.purchaseOrderService = new PurchaseOrderService();
-        this.supplierDAO = new SupplierDAO();
         this.productDAO = new ProductDAO();
         this.categoryDAO = new CategoryDAO();
         this.brandDAO = new BrandDAO();
@@ -49,20 +44,14 @@ public class PurchaseOrderCreateController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || user.getRole().getRoleId() != 2) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
+        if (user.getRole() == null || user.getRole().getRoleId() != 4) {
+            response.sendRedirect(request.getContextPath() + "/indexSale");
             return;
         }
-
-        List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
-
-        request.setAttribute("suppliers", suppliers);
         request.setAttribute("categories", categoryDAO.getActiveCategories());
         request.setAttribute("brands", brandDAO.getActiveBrands());
-
-        request.getRequestDispatcher("/view/manager/purchase_order_create.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/sale/sale_order_create.jsp").forward(request, response);
     }
 
     @Override
@@ -73,33 +62,29 @@ public class PurchaseOrderCreateController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || user.getRole().getRoleId() != 2) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
+        if (user.getRole() == null || user.getRole().getRoleId() != 4) {
+            response.sendRedirect(request.getContextPath() + "/indexSale");
             return;
         }
 
         try {
-            String supplierIdParam = request.getParameter("supplierId");
             String orderDateParam = request.getParameter("orderDate");
             String expectedDeliveryDateParam = request.getParameter("expectedDeliveryDate");
             String notes = request.getParameter("notes");
 
-            int supplierId = Integer.parseInt(supplierIdParam);
             Date orderDate = Date.valueOf(orderDateParam);
             Date expectedDeliveryDate = null;
             if (expectedDeliveryDateParam != null && !expectedDeliveryDateParam.trim().isEmpty()) {
                 expectedDeliveryDate = Date.valueOf(expectedDeliveryDateParam);
             }
 
-            String[] variantIds = request.getParameterValues("variantIds[]");
-            String[] quantities = request.getParameterValues("quantities[]");
-            String[] unitPrices = request.getParameterValues("unitPrices[]");
-            String[] detailNotes = request.getParameterValues("detailNotes[]");
+            String[] variantIds    = request.getParameterValues("variantIds[]");
+            String[] quantities    = request.getParameterValues("quantities[]");
+            String[] unitPrices    = request.getParameterValues("unitPrices[]");
+            String[] detailNotes   = request.getParameterValues("detailNotes[]");
 
-            if (variantIds == null || quantities == null || unitPrices == null 
-                    || variantIds.length == 0) {
+            if (variantIds == null || quantities == null || unitPrices == null || variantIds.length == 0) {
                 request.setAttribute("error", "Phải có ít nhất một sản phẩm trong đơn hàng");
                 doGet(request, response);
                 return;
@@ -107,29 +92,21 @@ public class PurchaseOrderCreateController extends HttpServlet {
 
             List<PurchaseOrderDetail> details = new ArrayList<>();
             for (int i = 0; i < variantIds.length; i++) {
-                PurchaseOrderDetail detail = new PurchaseOrderDetail();
-                detail.setVariantId(Integer.parseInt(variantIds[i]));
-                detail.setQuantity(Integer.parseInt(quantities[i]));
-                detail.setUnitPrice(new BigDecimal(unitPrices[i]));
-                if (detailNotes != null && i < detailNotes.length) {
-                    detail.setNotes(detailNotes[i]);
-                }
-                details.add(detail);
+                PurchaseOrderDetail d = new PurchaseOrderDetail();
+                d.setVariantId(Integer.parseInt(variantIds[i]));
+                d.setQuantity(Integer.parseInt(quantities[i]));
+                d.setUnitPrice(new BigDecimal(unitPrices[i]));
+                if (detailNotes != null && i < detailNotes.length) d.setNotes(detailNotes[i]);
+                details.add(d);
             }
 
+            // supplierId = 0 → insertPurchaseOrder sẽ set NULL
             PurchaseOrder po = new PurchaseOrder();
-            po.setSupplierId(supplierId);
+            po.setSupplierId(0);
             po.setOrderDate(orderDate);
             po.setExpectedDeliveryDate(expectedDeliveryDate);
             po.setNotes(notes);
             po.setCreatedBy(user.getUserId());
-
-            StringBuilder errorMsg = new StringBuilder();
-            if (!purchaseOrderService.validatePurchaseOrder(po, details, errorMsg)) {
-                request.setAttribute("error", errorMsg.toString());
-                doGet(request, response);
-                return;
-            }
 
             int poId = purchaseOrderService.createPurchaseOrder(po, details);
             if (poId > 0) {
@@ -139,18 +116,8 @@ public class PurchaseOrderCreateController extends HttpServlet {
                 request.setAttribute("error", "Không thể tạo đơn đặt hàng");
                 doGet(request, response);
             }
-
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
-            doGet(request, response);
-        } catch (IllegalArgumentException e) {
-            request.setAttribute("error", "Định dạng ngày không hợp lệ");
-            doGet(request, response);
-        } catch (SQLException e) {
-            request.setAttribute("error", "Lỗi cơ sở dữ liệu: " + e.getMessage());
-            doGet(request, response);
         } catch (Exception e) {
-            request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
+            request.setAttribute("error", "Lỗi: " + e.getMessage());
             doGet(request, response);
         }
     }

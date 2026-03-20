@@ -1341,4 +1341,49 @@ AND v.status = 'active'
 
         return list;
     }
+
+    /**
+     * Tìm kiếm product variants theo keyword (product_name hoặc SKU), categoryId, brandId.
+     * Dùng cho AJAX filter trong form tạo đơn đặt hàng.
+     */
+    public List<ProductInventory> searchVariants(String keyword, Integer categoryId, Integer brandId) {
+        List<ProductInventory> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+            "SELECT pv.variant_id, pv.sku, pv.cost_price, p.product_name " +
+            "FROM product_variants pv " +
+            "JOIN products p ON pv.product_id = p.product_id " +
+            "WHERE pv.status = 'active' AND p.status = 'active' "
+        );
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (p.product_name LIKE ? OR pv.sku LIKE ?)");
+            String kw = "%" + keyword.trim() + "%";
+            params.add(kw); params.add(kw);
+        }
+        if (categoryId != null) {
+            sql.append(" AND p.category_id = ?");
+            params.add(categoryId);
+        }
+        if (brandId != null) {
+            sql.append(" AND p.brand_id = ?");
+            params.add(brandId);
+        }
+        sql.append(" ORDER BY p.product_name, pv.sku LIMIT 50");
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ProductInventory v = new ProductInventory();
+                v.setVariantId(rs.getInt("variant_id"));
+                v.setSku(rs.getString("sku"));
+                v.setCostPrice(rs.getDouble("cost_price"));
+                v.setProductName(rs.getString("product_name"));
+                list.add(v);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
