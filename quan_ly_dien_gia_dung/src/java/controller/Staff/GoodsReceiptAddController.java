@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dal.SupplierDAO;
 import dal.GoodsReceiptDAO;
+import dal.PurchaseOrderDAO;
 import dal.SalesReturnDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -22,11 +23,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import model.GoodsReceiptDetail;
+import model.PurchaseOrder;
+import model.PurchaseOrderDetail;
 import model.SalesReturn;
 import model.SalesReturnDetail;
 import model.Supplier;
 import model.User;
 import modelDTO.GoodsReceiptProductDTO;
+import service.PurchaseOrderService;
 
 /**
  *
@@ -37,6 +41,8 @@ public class GoodsReceiptAddController extends HttpServlet {
     private SupplierDAO supplierDAO = new SupplierDAO();
     private GoodsReceiptDAO goodsReceiptDAO = new GoodsReceiptDAO();
     private SalesReturnDAO salesReturnDAO = new SalesReturnDAO();
+    private PurchaseOrderDAO purchaseOrderDAO = new PurchaseOrderDAO();
+    private PurchaseOrderService purchaseOrderService = new PurchaseOrderService();
     private static final Gson gson = new Gson();
 
     @Override
@@ -61,6 +67,32 @@ public class GoodsReceiptAddController extends HttpServlet {
                         request.setAttribute("purchaseOrderCodeValue", sr.getSrCode());
                         request.setAttribute("supplierIdValue", "SALE");
                         request.setAttribute("salesReturnId", salesReturnId);
+                    }
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        // Pre-fill từ PO khi Staff nhấn "Tạo phiếu nhập kho"
+        String purchaseOrderIdStr = request.getParameter("purchaseOrderId");
+        if (purchaseOrderIdStr != null && !purchaseOrderIdStr.trim().isEmpty()) {
+            try {
+                int poId = Integer.parseInt(purchaseOrderIdStr.trim());
+                User user = (User) request.getSession().getAttribute("user");
+                PurchaseOrder po = purchaseOrderDAO.getPurchaseOrderById(poId);
+
+                if (po != null && user != null && user.getRole() != null && user.getRole().getRoleId() == 3
+                        && "submitted".equalsIgnoreCase(po.getStatus())
+                        && po.getApprovedBy() != null && po.getApprovedBy() == user.getUserId()) {
+
+                    List<PurchaseOrderDetail> poDetails = purchaseOrderService.getPurchaseOrderDetails(poId);
+                    List<Map<String, Object>> products = buildProductsFromPO(poDetails);
+
+                    request.setAttribute("purchaseOrderId", poId);
+                    request.setAttribute("poSupplierIdValue", po.getSupplierId());
+                    request.setAttribute("poExpectedDeliveryDate", po.getExpectedDeliveryDate());
+                    if (!products.isEmpty()) {
+                        request.setAttribute("productsJson", gson.toJson(products));
                     }
                 }
             } catch (NumberFormatException ignored) {
@@ -160,6 +192,14 @@ public class GoodsReceiptAddController extends HttpServlet {
                 } catch (NumberFormatException ignored) {
                 }
             }
+            Integer purchaseOrderId = null;
+            String purchaseOrderIdRaw = request.getParameter("purchaseOrderId");
+            if (purchaseOrderIdRaw != null && !purchaseOrderIdRaw.trim().isEmpty()) {
+                try {
+                    purchaseOrderId = Integer.parseInt(purchaseOrderIdRaw.trim());
+                } catch (NumberFormatException ignored) {
+                }
+            }
             String notes = request.getParameter("notes");
             if (notes == null) notes = "";
             
@@ -175,7 +215,7 @@ public class GoodsReceiptAddController extends HttpServlet {
             
             boolean success = goodsReceiptDAO.createGoodsReceipt(
                 receiptCode, supplier_Id, receiptDate, totalAmount.doubleValue(),
-                notes, createdBy, details, salesReturnId
+                notes, createdBy, details, salesReturnId, purchaseOrderId
             );
             
             if (success) {
@@ -283,6 +323,28 @@ public class GoodsReceiptAddController extends HttpServlet {
             m.put("price", d.getRefundPrice() != null ? d.getRefundPrice() : BigDecimal.ZERO);
             // Không tự fill số lượng khi load từ sales return; staff sẽ nhập/scan sau.
             m.put("quantity", 0);
+            m.put("serials", new ArrayList<>());
+            out.add(m);
+        }
+        return out;
+    }
+
+    private List<Map<String, Object>> buildProductsFromPO(List<PurchaseOrderDetail> details) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        if (details == null || details.isEmpty()) return out;
+
+        int id = 1;
+        for (PurchaseOrderDetail d : details) {
+            if (d == null) continue;
+
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", id++);
+            m.put("variantId", d.getVariantId());
+            m.put("code", d.getSku() != null ? d.getSku() : "");
+            m.put("name", d.getProductName() != null ? d.getProductName() : "");
+            m.put("unit", "");
+            m.put("price", d.getUnitPrice() != null ? d.getUnitPrice() : BigDecimal.ZERO);
+            m.put("quantity", d.getQuantity());
             m.put("serials", new ArrayList<>());
             out.add(m);
         }
