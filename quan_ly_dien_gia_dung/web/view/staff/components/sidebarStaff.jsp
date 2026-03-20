@@ -12,6 +12,7 @@
     String goodsIssueActive = (currentURI.contains("/goods-issue-list") || currentURI.contains("/goods-issue-detail") || currentURI.contains("/goods-issue-add")) ? "active" : "";
     String returnActive = (currentURI.contains("/return-order-list") || currentURI.contains("/return-add") || currentURI.contains("/return-view") || currentURI.contains("/return-edit")) ? "active" : "";
     String salesReturnActive = currentURI.contains("/sales-return-list") ? "active" : "";
+    String purchaseOrderActive = currentURI.contains("/purchase-order") ? "active" : "";
 %>
 
 <!-- Sidebar Start -->
@@ -38,6 +39,8 @@
                class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả về NCC</a>
             <a href="${pageContext.request.contextPath}/sales-return-list"
                class="nav-item nav-link <%= salesReturnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả từ Sale</a>
+            <a href="${pageContext.request.contextPath}/purchase-order/list"
+               class="nav-item nav-link <%= purchaseOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
         </div>        
     </nav>
 </div>

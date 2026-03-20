@@ -18,7 +18,6 @@ import service.PurchaseOrderService;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,8 +44,8 @@ public class PurchaseOrderEditController extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || !"Manager".equalsIgnoreCase(user.getRole().getRoleName())) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
+        if (user.getRole() == null || user.getRole().getRoleId() != 2) {
+            response.sendRedirect(request.getContextPath() + "/purchase-order/list");
             return;
         }
 
@@ -70,10 +69,14 @@ public class PurchaseOrderEditController extends HttpServlet {
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             List<ProductVariant> variants = productDAO.getAllActiveProductVariants();
 
+            // Chỉ cho sửa khi pending, còn lại view-only
+            boolean viewOnly = !"draft".equalsIgnoreCase(po.getStatus());
+
             request.setAttribute("purchaseOrder", po);
             request.setAttribute("details", details);
             request.setAttribute("suppliers", suppliers);
             request.setAttribute("variants", variants);
+            request.setAttribute("viewOnly", viewOnly);
 
             request.getRequestDispatcher("/view/manager/purchase_order_edit.jsp").forward(request, response);
 
@@ -92,8 +95,8 @@ public class PurchaseOrderEditController extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || !"Manager".equalsIgnoreCase(user.getRole().getRoleName())) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
+        if (user.getRole() == null || user.getRole().getRoleId() != 2) {
+            response.sendRedirect(request.getContextPath() + "/purchase-order/list");
             return;
         }
 
@@ -144,19 +147,18 @@ public class PurchaseOrderEditController extends HttpServlet {
             po.setExpectedDeliveryDate(expectedDeliveryDate);
             po.setNotes(notes);
 
-            StringBuilder errorMsg = new StringBuilder();
-            if (!purchaseOrderService.validatePurchaseOrder(po, details, errorMsg)) {
-                request.setAttribute("error", errorMsg.toString());
-                doGet(request, response);
-                return;
-            }
-
-            boolean success = purchaseOrderService.updatePurchaseOrder(po, details);
-            if (success) {
-                session.setAttribute("successMessage", "Cập nhật đơn đặt hàng thành công!");
-                response.sendRedirect(request.getContextPath() + "/purchase-order/list");
-            } else {
-                request.setAttribute("error", "Không thể cập nhật đơn đặt hàng");
+            // Chỉ cho sửa khi status = 'pending'
+            try {
+                boolean success = purchaseOrderService.updatePurchaseOrder(po, details);
+                if (success) {
+                    session.setAttribute("successMessage", "Cập nhật đơn đặt hàng thành công!");
+                    response.sendRedirect(request.getContextPath() + "/purchase-order/list");
+                } else {
+                    request.setAttribute("error", "Không thể cập nhật đơn đặt hàng");
+                    doGet(request, response);
+                }
+            } catch (Exception e) {
+                request.setAttribute("error", e.getMessage());
                 doGet(request, response);
             }
 
@@ -165,9 +167,6 @@ public class PurchaseOrderEditController extends HttpServlet {
             doGet(request, response);
         } catch (IllegalArgumentException e) {
             request.setAttribute("error", "Định dạng ngày không hợp lệ");
-            doGet(request, response);
-        } catch (SQLException e) {
-            request.setAttribute("error", e.getMessage());
             doGet(request, response);
         } catch (Exception e) {
             request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());

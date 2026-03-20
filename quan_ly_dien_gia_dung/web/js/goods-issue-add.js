@@ -441,9 +441,11 @@
         if (!$(e.target).closest('#searchProduct, #searchDropdown').length) $('#searchDropdown').hide();
     });
 
-    // ── Init date ────────────────────────────────────────────────────
-    var dateEl = document.getElementById('issueDate');
-    if (dateEl && !dateEl.value) { dateEl.valueAsDate = new Date(); }
+    // ── Init date (DOMContentLoaded để inline script của JSP pre-fill trước) ─
+    document.addEventListener('DOMContentLoaded', function() {
+        var dateEl = document.getElementById('issueDate');
+        if (dateEl && !dateEl.value) { dateEl.valueAsDate = new Date(); }
+    });
 
     // ── Restore from server (validation error) ───────────────────────
     var jsonEl = document.getElementById('goods-issue-add-products-json');

@@ -56,6 +56,11 @@
                                     <i class="fa fa-info-circle me-1"></i>Đang tạo phiếu xuất từ đơn trả hàng: <strong>${returnOrderCode}</strong>
                                 </div>
                             </c:if>
+                            <c:if test="${not empty purchaseOrderCode}">
+                                <div class="alert alert-warning py-2 mb-0 small mt-1">
+                                    <i class="fa fa-shopping-cart me-1"></i>Đang tạo phiếu xuất từ đơn Sale: <strong>${purchaseOrderCode}</strong>
+                                </div>
+                            </c:if>
                         </div>
 
                         <div class="col-lg-9">
@@ -198,6 +203,9 @@
                                     <c:if test="${not empty returnOrderId}">
                                         <input type="hidden" name="returnOrderId" value="${returnOrderId}">
                                     </c:if>
+                                    <c:if test="${not empty purchaseOrderId}">
+                                        <input type="hidden" name="purchaseOrderId" value="${purchaseOrderId}">
+                                    </c:if>
                                 </form>
                             </div>
                         </div>
@@ -218,6 +226,14 @@
         </script>
         <c:if test="${not empty productsJson}">
             <div id="goods-issue-add-products-json" style="display:none"><c:out value="${fn:replace(productsJson, '</', '&lt;/')}" escapeXml="false"/></div>
+        </c:if>
+        <c:if test="${not empty poExpectedDate}">
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var d = document.getElementById('issueDate');
+                    if (d && !d.value) d.value = '${poExpectedDate}';
+                });
+            </script>
         </c:if>
         <script src="${pageContext.request.contextPath}/js/goods-issue-add.js?v=2"></script>
 
