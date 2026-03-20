@@ -121,9 +121,7 @@ public class GoodsReceiptDAO extends DBContext {
         gr.setReceiptDate(rs.getDate("receipt_date"));
         gr.setTotalAmount(rs.getBigDecimal("total_amount"));
         gr.setStatus(rs.getString("status"));
-        if (rs.getObject("sales_return_id") != null) {
-            gr.setSalesReturnId(rs.getInt("sales_return_id"));
-        }
+        // sales_return_id column does not exist in this DB schema - skipped
         
         if (rs.getObject("created_by_id") != null) {
             User createdByUser = new User();
@@ -280,12 +278,18 @@ public class GoodsReceiptDAO extends DBContext {
     
     public boolean createGoodsReceipt(String receiptCode, Integer supplierId, String receiptDate, double totalAmount, 
                                      String notes, int createdBy, java.util.List<model.GoodsReceiptDetail> details) {
-        return createGoodsReceipt(receiptCode, supplierId, receiptDate, totalAmount, notes, createdBy, details, null);
+        return createGoodsReceipt(receiptCode, supplierId, receiptDate, totalAmount, notes, createdBy, details, null, null);
     }
 
     public boolean createGoodsReceipt(String receiptCode, Integer supplierId, String receiptDate, double totalAmount, 
                                      String notes, int createdBy, java.util.List<model.GoodsReceiptDetail> details,
                                      Integer salesReturnId) {
+        return createGoodsReceipt(receiptCode, supplierId, receiptDate, totalAmount, notes, createdBy, details, salesReturnId, null);
+    }
+
+    public boolean createGoodsReceipt(String receiptCode, Integer supplierId, String receiptDate, double totalAmount, 
+                                     String notes, int createdBy, java.util.List<model.GoodsReceiptDetail> details,
+                                     Integer salesReturnId, Integer purchaseOrderId) {
         java.sql.Connection conn = null;
         try {
             conn = getConnection();
@@ -308,22 +312,35 @@ public class GoodsReceiptDAO extends DBContext {
                 }
             }
             
-            String sqlReceipt = """
-                               INSERT INTO goods_receipts 
-                               (receipt_code, supplier_id, receipt_date, total_amount, status, created_by, notes, sales_return_id)
-                               VALUES (?, ?, ?, ?, 'draft', ?, ?, ?)
-                               """;
-            int receiptId;
-            try (PreparedStatement ps = conn.prepareStatement(sqlReceipt, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            String sqlReceipt;
+            PreparedStatement ps;
+            if (purchaseOrderId != null) {
+                sqlReceipt = "INSERT INTO goods_receipts " +
+                             "(receipt_code, supplier_id, receipt_date, total_amount, status, created_by, notes, purchase_order_id) " +
+                             "VALUES (?, ?, ?, ?, 'draft', ?, ?, ?)";
+                ps = conn.prepareStatement(sqlReceipt, PreparedStatement.RETURN_GENERATED_KEYS);
                 ps.setString(1, receiptCode);
                 ps.setObject(2, supplierId);
                 ps.setString(3, receiptDate);
                 ps.setDouble(4, totalAmount);
                 ps.setInt(5, createdBy);
                 ps.setString(6, notes);
-                ps.setObject(7, salesReturnId);
+                ps.setObject(7, purchaseOrderId);
+            } else {
+                sqlReceipt = "INSERT INTO goods_receipts " +
+                             "(receipt_code, supplier_id, receipt_date, total_amount, status, created_by, notes) " +
+                             "VALUES (?, ?, ?, ?, 'draft', ?, ?)";
+                ps = conn.prepareStatement(sqlReceipt, PreparedStatement.RETURN_GENERATED_KEYS);
+                ps.setString(1, receiptCode);
+                ps.setObject(2, supplierId);
+                ps.setString(3, receiptDate);
+                ps.setDouble(4, totalAmount);
+                ps.setInt(5, createdBy);
+                ps.setString(6, notes);
+            }
+            int receiptId;
+            try (ps) {
                 ps.executeUpdate();
-                
                 ResultSet rs = ps.getGeneratedKeys();
                 if (rs.next()) {
                     receiptId = rs.getInt(1);
