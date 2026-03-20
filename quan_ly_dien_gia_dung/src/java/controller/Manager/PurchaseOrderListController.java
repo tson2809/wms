@@ -1,5 +1,6 @@
 package controller.Manager;
 
+import dal.PurchaseOrderDAO;
 import dal.SupplierDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,15 +17,17 @@ import java.io.IOException;
 import java.sql.Date;
 import java.util.List;
 
-@WebServlet(name = "PurchaseOrderListController", urlPatterns = {"/purchase-order/list"})
+@WebServlet(name = "PurchaseOrderListController", urlPatterns = { "/purchase-order/list" })
 public class PurchaseOrderListController extends HttpServlet {
     private PurchaseOrderService purchaseOrderService;
     private SupplierDAO supplierDAO;
+    private PurchaseOrderDAO purchaseOrderDAO;
 
     @Override
     public void init() throws ServletException {
         this.purchaseOrderService = new PurchaseOrderService();
         this.supplierDAO = new SupplierDAO();
+        this.purchaseOrderDAO = new PurchaseOrderDAO();
     }
 
     @Override
@@ -36,11 +39,13 @@ public class PurchaseOrderListController extends HttpServlet {
             return;
         }
 
-//        User user = (User) session.getAttribute("user");
-//        if (!"Manager".equalsIgnoreCase(user.getRoleName())) {
-//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
-//            return;
-//        }
+        User user = (User) session.getAttribute("user");
+        int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
+        // Manager (2), Staff (3), Sale (4)
+        if (roleId != 2 && roleId != 3 && roleId != 4) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         String status = request.getParameter("status");
         String supplierIdParam = request.getParameter("supplierId");
@@ -78,7 +83,8 @@ public class PurchaseOrderListController extends HttpServlet {
         if (pageParam != null && !pageParam.trim().isEmpty()) {
             try {
                 page = Integer.parseInt(pageParam);
-                if (page < 1) page = 1;
+                if (page < 1)
+                    page = 1;
             } catch (NumberFormatException e) {
             }
         }
@@ -87,19 +93,36 @@ public class PurchaseOrderListController extends HttpServlet {
         if (pageSizeParam != null && !pageSizeParam.trim().isEmpty()) {
             try {
                 pageSize = Integer.parseInt(pageSizeParam);
-                if (pageSize < 5 || pageSize > 100) pageSize = 10;
+                if (pageSize < 5 || pageSize > 100)
+                    pageSize = 10;
             } catch (NumberFormatException e) {
             }
         }
 
-        List<PurchaseOrder> purchaseOrders = purchaseOrderService.getPurchaseOrdersWithPagination(
-                status, supplierId, fromDate, toDate, keyword, page, pageSize);
+        List<PurchaseOrder> purchaseOrders;
+        int totalRecords;
+        boolean isSaleOrderView = false;
 
-        int totalRecords = purchaseOrderService.countPurchaseOrders(
-                status, supplierId, fromDate, toDate, keyword);
+        if (roleId == 4) {
+            // Sale: chỉ thấy đơn do mình tạo (supplier_id IS NULL)
+            isSaleOrderView = true;
+            purchaseOrders = purchaseOrderDAO.getSaleOrdersByCreator(
+                    user.getUserId(), status,
+                    (page - 1) * pageSize, pageSize);
+            totalRecords = purchaseOrderDAO.countSaleOrdersByCreator(user.getUserId(), status);
+        } else if (roleId == 3) {
+            // Staff: xem tất cả đơn (cả PO có NCC lẫn Sale orders) trong một bảng
+            purchaseOrders = purchaseOrderDAO.getAllOrdersForStaff(status, keyword, (page - 1) * pageSize, pageSize);
+            totalRecords = purchaseOrderDAO.countAllOrdersForStaff(status, keyword);
+        } else {
+            // Manager: chỉ xem PO có NCC
+            purchaseOrders = purchaseOrderService.getPurchaseOrdersWithPagination(
+                    status, supplierId, fromDate, toDate, keyword, page, pageSize);
+            totalRecords = purchaseOrderService.countPurchaseOrders(
+                    status, supplierId, fromDate, toDate, keyword);
+        }
 
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
-
         List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
 
         request.setAttribute("purchaseOrders", purchaseOrders);
@@ -113,13 +136,62 @@ public class PurchaseOrderListController extends HttpServlet {
         request.setAttribute("pageSize", pageSize);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalRecords", totalRecords);
+        request.setAttribute("roleId", roleId);
+        request.setAttribute("currentUserId", user.getUserId());
+        request.setAttribute("isSaleOrderView", isSaleOrderView);
 
-        request.getRequestDispatcher("/view/manager/purchase_order_list.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/common/purchase_order_list.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doGet(request, response);
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        User user = (User) session.getAttribute("user");
+        int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
+
+        String action = request.getParameter("action");
+
+        if ("cancel".equals(action) && (roleId == 2 || roleId == 4)) {
+            // Manager và Sale có thể hủy đơn
+            String idParam = request.getParameter("id");
+            if (idParam != null && !idParam.trim().isEmpty()) {
+                try {
+                    int poId = Integer.parseInt(idParam);
+                    boolean ok = purchaseOrderDAO.cancelPurchaseOrder(poId);
+                    if (ok) {
+                        session.setAttribute("successMessage", "Đã hủy đơn đặt hàng thành công.");
+                    } else {
+                        session.setAttribute("errorMessage",
+                                "Không thể hủy đơn. Đơn hàng chỉ có thể hủy khi đang chờ xử lý hoặc đang xử lý.");
+                    }
+                } catch (NumberFormatException e) {
+                    session.setAttribute("errorMessage", "Mã đơn hàng không hợp lệ.");
+                }
+            }
+        }
+
+        // Redirect về list, giữ lại các filter params
+        String redirectUrl = buildRedirectUrl(request);
+        response.sendRedirect(redirectUrl);
+    }
+
+    private String buildRedirectUrl(HttpServletRequest request) {
+        StringBuilder url = new StringBuilder(request.getContextPath() + "/purchase-order/list");
+        boolean first = true;
+        String[] params = { "status", "supplierId", "fromDate", "toDate", "keyword", "page", "pageSize" };
+        for (String p : params) {
+            String v = request.getParameter(p);
+            if (v != null && !v.trim().isEmpty()) {
+                url.append(first ? "?" : "&").append(p).append("=").append(v);
+                first = false;
+            }
+        }
+        return url.toString();
     }
 }

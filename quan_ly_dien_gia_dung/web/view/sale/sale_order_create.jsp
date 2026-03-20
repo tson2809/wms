@@ -11,7 +11,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/css/bootstrap.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
     <style>
@@ -25,22 +24,20 @@
         }
         .pf-dd-item { padding: 8px 14px; cursor: pointer; font-size: .9rem; }
         .pf-dd-item:hover { background: #e8f4ff; }
-        #productContainer:empty::after { content: 'Chưa có sản phẩm. Dùng bộ lọc bên trên để thêm.'; color:#aaa; font-size:.9rem; }
     </style>
 </head>
 <body>
     <div class="container-fluid position-relative bg-white d-flex p-0">
-        <jsp:include page="components/sidebarManager.jsp" />
-        
+        <jsp:include page="/view/sale/components/sidebarSale.jsp"/>
+
         <div class="content">
-            <jsp:include page="../common/components/navbar.jsp" />
-            
+            <jsp:include page="/view/common/components/navbar.jsp"/>
+
             <div class="container-fluid pt-4 px-4">
                 <div class="bg-light rounded p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h4 class="mb-0">Tạo đơn đặt hàng mới</h4>
-                        <a href="${pageContext.request.contextPath}/purchase-order/list" 
-                           class="btn btn-secondary">
+                        <a href="${pageContext.request.contextPath}/purchase-order/list" class="btn btn-secondary">
                             <i class="fa fa-arrow-left me-2"></i>Quay lại
                         </a>
                     </div>
@@ -52,22 +49,13 @@
                         </div>
                     </c:if>
 
-                    <form method="post" action="${pageContext.request.contextPath}/purchase-order/create" id="poForm">
+                    <form method="post" action="${pageContext.request.contextPath}/sale-order/create" id="poForm">
                         <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label">Nhà cung cấp <span class="text-danger">*</span></label>
-                                <select class="form-select" name="supplierId" required>
-                                    <option value="">-- Chọn nhà cung cấp --</option>
-                                    <c:forEach items="${suppliers}" var="supplier">
-                                        <option value="${supplier.supplierId}">${supplier.supplierName}</option>
-                                    </c:forEach>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label">Ngày đặt hàng <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" name="orderDate" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label">Ngày giao dự kiến</label>
                                 <input type="date" class="form-control" name="expectedDeliveryDate">
                             </div>
@@ -75,7 +63,7 @@
 
                         <div class="mb-4">
                             <label class="form-label">Ghi chú</label>
-                            <textarea class="form-control" name="notes" rows="3"></textarea>
+                            <textarea class="form-control" name="notes" rows="2"></textarea>
                         </div>
 
                         <hr>
@@ -111,7 +99,7 @@
                             </div>
                         </div>
 
-                        <%-- Product rows (added dynamically) --%>
+                        <%-- Product rows (added dynamically via JS) --%>
                         <div id="productContainer"></div>
 
                         <div class="row mt-4">
@@ -130,10 +118,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa fa-save me-2"></i>Tạo đơn đặt hàng
                             </button>
-                            <a href="${pageContext.request.contextPath}/purchase-order/list" 
-                               class="btn btn-secondary">
-                                Hủy
-                            </a>
+                            <a href="${pageContext.request.contextPath}/purchase-order/list" class="btn btn-secondary">Hủy</a>
                         </div>
                     </form>
                 </div>
@@ -141,8 +126,8 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="${pageContext.request.contextPath}/js/jquery-3.6.0.min.js"></script>
+    <script src="${pageContext.request.contextPath}/js/bootstrap.bundle.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     <script>
         window.PO_FILTER = { contextPath: '${pageContext.request.contextPath}' };
@@ -150,11 +135,8 @@
     <script src="${pageContext.request.contextPath}/js/purchase-order-product-filter.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var today = new Date().toISOString().split('T')[0];
-            document.querySelector('input[name="orderDate"]').value = today;
+            document.querySelector('input[name="orderDate"]').value = new Date().toISOString().split('T')[0];
         });
-
-        // Prevent submit if no products
         document.getElementById('poForm').addEventListener('submit', function(e) {
             if (!document.querySelector('#productContainer .product-row')) {
                 e.preventDefault();

@@ -43,6 +43,7 @@ public class GoodsIssueAddController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Pre-fill từ return order
         String returnOrderIdStr = request.getParameter("returnOrderId");
         if (returnOrderIdStr != null && !returnOrderIdStr.trim().isEmpty()) {
             try {
@@ -63,7 +64,65 @@ public class GoodsIssueAddController extends HttpServlet {
             } catch (NumberFormatException ignored) {
             }
         }
+
+        // Pre-fill từ purchase order (Sale orders - supplier_id IS NULL)
+        String purchaseOrderIdStr = request.getParameter("purchaseOrderId");
+        if (purchaseOrderIdStr != null && !purchaseOrderIdStr.trim().isEmpty()) {
+            try {
+                int purchaseOrderId = Integer.parseInt(purchaseOrderIdStr.trim());
+                User user = (User) request.getSession().getAttribute("user");
+                if (user != null && user.getRole() != null && user.getRole().getRoleId() == 3) {
+                    var po = purchaseOrderDAO.getPurchaseOrderById(purchaseOrderId);
+                    // Fix: dùng intValue() thay vì == để so sánh Integer với int
+                    boolean isStaffOwner = po != null && po.getApprovedBy() != null
+                            && po.getApprovedBy().intValue() == user.getUserId();
+                    if (po != null && "submitted".equals(po.getStatus()) && isStaffOwner) {
+                        List<Map<String, Object>> products = buildProductsFromPurchaseOrder(purchaseOrderId);
+                        if (!products.isEmpty()) {
+                            request.setAttribute("productsJson", gson.toJson(products));
+                        }
+                        request.setAttribute("issueType", "sale");
+                        request.setAttribute("purchaseOrderId", purchaseOrderId);
+                        request.setAttribute("purchaseOrderCode", po.getPoCode());
+                        if (po.getExpectedDeliveryDate() != null) {
+                            request.setAttribute("poExpectedDate", po.getExpectedDeliveryDate().toString());
+                        }
+                    }
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         request.getRequestDispatcher("/view/staff/goods-issue-add.jsp").forward(request, response);
+    }
+
+    private List<Map<String, Object>> buildProductsFromPurchaseOrder(int purchaseOrderId) {
+        List<Map<String, Object>> out = new java.util.ArrayList<>();
+        List<PurchaseOrderDetail> details = purchaseOrderDetailDAO.getDetailsByPurchaseOrderId(purchaseOrderId);
+        List<Integer> variantIds = new java.util.ArrayList<>();
+        for (PurchaseOrderDetail d : details) {
+            if (d != null && d.getVariantId() > 0 && !variantIds.contains(d.getVariantId())) {
+                variantIds.add(d.getVariantId());
+            }
+        }
+        var infoMap = goodsIssueDAO.getVariantInfoByIds(variantIds);
+        int id = 1;
+        for (PurchaseOrderDetail d : details) {
+            if (d == null) continue;
+            GoodsIssueDAO.VariantInfo vi = infoMap.get(d.getVariantId());
+            if (vi == null) continue;
+            Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("id", id++);
+            m.put("variantId", vi.getVariantId());
+            m.put("code", vi.getSku());
+            m.put("name", vi.getProductName());
+            m.put("unit", vi.getUnitName());
+            m.put("stock", vi.getStock());
+            m.put("serials", new java.util.ArrayList<>());
+            m.put("quantity", d.getQuantity());
+            out.add(m);
+        }
+        return out;
     }
 
     private List<Map<String, Object>> buildProductsFromReturnOrder(int returnOrderId) {
@@ -345,9 +404,12 @@ public class GoodsIssueAddController extends HttpServlet {
             Integer returnOrderId = null;
             String roIdStr = request.getParameter("returnOrderId");
             if (roIdStr != null && !roIdStr.trim().isEmpty()) {
-                try {
-                    returnOrderId = Integer.parseInt(roIdStr.trim());
-                } catch (NumberFormatException ignored) {}
+                try { returnOrderId = Integer.parseInt(roIdStr.trim()); } catch (NumberFormatException ignored) {}
+            }
+            Integer purchaseOrderId = null;
+            String poIdStr = request.getParameter("purchaseOrderId");
+            if (poIdStr != null && !poIdStr.trim().isEmpty()) {
+                try { purchaseOrderId = Integer.parseInt(poIdStr.trim()); } catch (NumberFormatException ignored) {}
             }
 
             boolean success = goodsIssueDAO.createGoodsIssue(
@@ -357,6 +419,10 @@ public class GoodsIssueAddController extends HttpServlet {
             );
 
             if (success) {
+                // Nếu tạo phiếu xuất từ Sale order, update PO -> received
+                if (purchaseOrderId != null) {
+                    purchaseOrderDAO.completePurchaseOrder(purchaseOrderId);
+                }
                 request.getSession().setAttribute("successMessage", "Tạo phiếu xuất kho thành công!");
                 response.sendRedirect(request.getContextPath() + "/goods-issue-list");
             } else {

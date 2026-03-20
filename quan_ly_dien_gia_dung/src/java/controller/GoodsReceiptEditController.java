@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dal.SupplierDAO;
 import dal.GoodsReceiptDAO;
+import dal.PurchaseOrderDAO;
 import dal.SalesReturnDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -39,6 +40,7 @@ public class GoodsReceiptEditController extends HttpServlet {
     private SupplierDAO supplierDAO = new SupplierDAO();
     private GoodsReceiptDAO goodsReceiptDAO = new GoodsReceiptDAO();
     private SalesReturnDAO salesReturnDAO = new SalesReturnDAO();
+    private PurchaseOrderDAO purchaseOrderDAO = new PurchaseOrderDAO();
     private static final Gson gson = new Gson();
 
     @Override
@@ -145,8 +147,15 @@ public class GoodsReceiptEditController extends HttpServlet {
             if (success) {
                 if ("completed".equals(status)) {
                     GoodsReceipt approvedReceipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
-                    if (approvedReceipt != null && approvedReceipt.getSalesReturnId() != null) {
-                        salesReturnDAO.completeSalesReturn(approvedReceipt.getSalesReturnId());
+                    if (approvedReceipt != null) {
+                        // Nếu receipt liên kết với sales return → complete sales return
+                        if (approvedReceipt.getSalesReturnId() != null) {
+                            salesReturnDAO.completeSalesReturn(approvedReceipt.getSalesReturnId());
+                        }
+                        // Nếu receipt liên kết với purchase order → complete PO
+                        if (approvedReceipt.getPurchaseOrderId() != null) {
+                            purchaseOrderDAO.completePurchaseOrder(approvedReceipt.getPurchaseOrderId());
+                        }
                     }
                 }
                 response.sendRedirect(request.getContextPath() + "/goods-receipt-list");
