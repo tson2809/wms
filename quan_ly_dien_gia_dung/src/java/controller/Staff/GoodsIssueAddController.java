@@ -32,7 +32,7 @@ import model.User;
  *
  * @author thais
  */
-@WebServlet(name = "GoodsIssueAddController", urlPatterns = {"/goods-issue-add"})
+@WebServlet(name = "GoodsIssueAddController", urlPatterns = { "/goods-issue-add" })
 public class GoodsIssueAddController extends HttpServlet {
     private GoodsIssueDAO goodsIssueDAO = new GoodsIssueDAO();
     private PurchaseOrderDAO purchaseOrderDAO = new PurchaseOrderDAO();
@@ -108,9 +108,11 @@ public class GoodsIssueAddController extends HttpServlet {
         var infoMap = goodsIssueDAO.getVariantInfoByIds(variantIds);
         int id = 1;
         for (PurchaseOrderDetail d : details) {
-            if (d == null) continue;
+            if (d == null)
+                continue;
             GoodsIssueDAO.VariantInfo vi = infoMap.get(d.getVariantId());
-            if (vi == null) continue;
+            if (vi == null)
+                continue;
             Map<String, Object> m = new java.util.LinkedHashMap<>();
             m.put("id", id++);
             m.put("variantId", vi.getVariantId());
@@ -137,9 +139,11 @@ public class GoodsIssueAddController extends HttpServlet {
         var infoMap = goodsIssueDAO.getVariantInfoByIds(variantIds);
         int id = 1;
         for (ReturnOrderDetail d : details) {
-            if (d == null) continue;
+            if (d == null)
+                continue;
             GoodsIssueDAO.VariantInfo vi = infoMap.get(d.getVariantId());
-            if (vi == null) continue;
+            if (vi == null)
+                continue;
             List<String> serialNumbers = new ArrayList<>();
             if (d.getSerials() != null) {
                 for (ReturnOrderSerial s : d.getSerials()) {
@@ -220,13 +224,13 @@ public class GoodsIssueAddController extends HttpServlet {
         if ("purchase_order".equals(sourceType)) {
             // Exclude completed flows (received) and cancelled orders from selectable list
             String sql = """
-                         SELECT purchase_order_id, po_code, status
-                         FROM purchase_orders
-                         WHERE po_code LIKE ?
-                           AND COALESCE(status, '') NOT IN ('received', 'completed', 'cancelled')
-                         ORDER BY created_at DESC
-                         LIMIT 20
-                         """;
+                    SELECT purchase_order_id, po_code, status
+                    FROM purchase_orders
+                    WHERE po_code LIKE ?
+                      AND COALESCE(status, '') NOT IN ('received', 'completed', 'cancelled')
+                    ORDER BY created_at DESC
+                    LIMIT 20
+                    """;
             try (var ps = purchaseOrderDAO.getConnection().prepareStatement(sql)) {
                 ps.setString(1, pattern);
                 var rs = ps.executeQuery();
@@ -243,13 +247,13 @@ public class GoodsIssueAddController extends HttpServlet {
         } else if ("return_order".equals(sourceType)) {
             // Exclude completed/cancelled return orders from selectable list
             String sql = """
-                         SELECT return_order_id, return_code, status
-                         FROM return_orders
-                         WHERE return_code LIKE ?
-                           AND COALESCE(status, '') NOT IN ('completed', 'cancelled')
-                         ORDER BY created_at DESC
-                         LIMIT 20
-                         """;
+                    SELECT return_order_id, return_code, status
+                    FROM return_orders
+                    WHERE return_code LIKE ?
+                      AND COALESCE(status, '') NOT IN ('completed', 'cancelled')
+                    ORDER BY created_at DESC
+                    LIMIT 20
+                    """;
             try (var ps = returnOrderDAO.getConnection().prepareStatement(sql)) {
                 ps.setString(1, pattern);
                 var rs = ps.executeQuery();
@@ -296,9 +300,11 @@ public class GoodsIssueAddController extends HttpServlet {
 
             var infoMap = goodsIssueDAO.getVariantInfoByIds(variantIds);
             for (PurchaseOrderDetail d : details) {
-                if (d == null) continue;
+                if (d == null)
+                    continue;
                 GoodsIssueDAO.VariantInfo vi = infoMap.get(d.getVariantId());
-                if (vi == null) continue;
+                if (vi == null)
+                    continue;
 
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("variantId", vi.getVariantId());
@@ -321,9 +327,11 @@ public class GoodsIssueAddController extends HttpServlet {
 
             var infoMap = goodsIssueDAO.getVariantInfoByIds(variantIds);
             for (ReturnOrderDetail d : details) {
-                if (d == null) continue;
+                if (d == null)
+                    continue;
                 GoodsIssueDAO.VariantInfo vi = infoMap.get(d.getVariantId());
-                if (vi == null) continue;
+                if (vi == null)
+                    continue;
 
                 List<String> serialNumbers = new ArrayList<>();
                 if (d.getSerials() != null) {
@@ -334,7 +342,8 @@ public class GoodsIssueAddController extends HttpServlet {
                     }
                 }
 
-                List<String> inStockSerials = goodsIssueDAO.filterInStockSerialNumbers(vi.getVariantId(), serialNumbers);
+                List<String> inStockSerials = goodsIssueDAO.filterInStockSerialNumbers(vi.getVariantId(),
+                        serialNumbers);
 
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("variantId", vi.getVariantId());
@@ -394,6 +403,10 @@ public class GoodsIssueAddController extends HttpServlet {
             if (roIdParam != null && !roIdParam.trim().isEmpty()) {
                 request.setAttribute("returnOrderId", roIdParam.trim());
             }
+            String poIdParam = request.getParameter("purchaseOrderId");
+            if (poIdParam != null && !poIdParam.trim().isEmpty()) {
+                request.setAttribute("purchaseOrderId", poIdParam.trim());
+            }
             request.getRequestDispatcher("/view/staff/goods-issue-add.jsp").forward(request, response);
             return;
         }
@@ -404,49 +417,69 @@ public class GoodsIssueAddController extends HttpServlet {
             Integer returnOrderId = null;
             String roIdStr = request.getParameter("returnOrderId");
             if (roIdStr != null && !roIdStr.trim().isEmpty()) {
-                try { returnOrderId = Integer.parseInt(roIdStr.trim()); } catch (NumberFormatException ignored) {}
+                try {
+                    returnOrderId = Integer.parseInt(roIdStr.trim());
+                } catch (NumberFormatException ignored) {
+                }
             }
             Integer purchaseOrderId = null;
             String poIdStr = request.getParameter("purchaseOrderId");
             if (poIdStr != null && !poIdStr.trim().isEmpty()) {
-                try { purchaseOrderId = Integer.parseInt(poIdStr.trim()); } catch (NumberFormatException ignored) {}
+                try {
+                    purchaseOrderId = Integer.parseInt(poIdStr.trim());
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
+            String notesWithPo = notes != null ? notes : "";
+            if (purchaseOrderId != null) {
+                notesWithPo = notesWithPo + "\n[PO_ID:" + purchaseOrderId + "]";
             }
 
             boolean success = goodsIssueDAO.createGoodsIssue(
-                issueCode.trim(), issueType, issueDate,
-                receiverName.trim(), department, notes,
-                user.getUserId(), details, returnOrderId
-            );
+                    issueCode.trim(), issueType, issueDate,
+                    receiverName.trim(), department, notesWithPo.trim(),
+                    user.getUserId(), details, returnOrderId);
 
             if (success) {
-                // Nếu tạo phiếu xuất từ Sale order, update PO -> received
-                if (purchaseOrderId != null) {
-                    purchaseOrderDAO.completePurchaseOrder(purchaseOrderId);
-                }
                 request.getSession().setAttribute("successMessage", "Tạo phiếu xuất kho thành công!");
                 response.sendRedirect(request.getContextPath() + "/goods-issue-list");
             } else {
                 request.setAttribute("generalError", "Có lỗi xảy ra khi tạo phiếu xuất. Vui lòng thử lại!");
                 request.setAttribute("productsJson", productsJson);
+                if (returnOrderId != null) request.setAttribute("returnOrderId", returnOrderId);
+                if (purchaseOrderId != null) request.setAttribute("purchaseOrderId", purchaseOrderId);
                 request.getRequestDispatcher("/view/staff/goods-issue-add.jsp").forward(request, response);
             }
         } catch (Exception ex) {
             request.setAttribute("generalError", "Có lỗi xảy ra: " + ex.getMessage());
-            request.setAttribute("productsJson", productsJson);
+            request.setAttribute("productsJson", request.getParameter("products"));
+            String roIdParam = request.getParameter("returnOrderId");
+            if (roIdParam != null && !roIdParam.trim().isEmpty()) {
+                request.setAttribute("returnOrderId", roIdParam.trim());
+            }
+            String poIdParam = request.getParameter("purchaseOrderId");
+            if (poIdParam != null && !poIdParam.trim().isEmpty()) {
+                request.setAttribute("purchaseOrderId", poIdParam.trim());
+            }
             request.getRequestDispatcher("/view/staff/goods-issue-add.jsp").forward(request, response);
         }
     }
 
     private List<GoodsIssueDetail> parseProductsJson(String json) {
         List<GoodsIssueDetail> details = new ArrayList<>();
-        if (json == null || json.trim().isEmpty()) return details;
+        if (json == null || json.trim().isEmpty())
+            return details;
 
-        Type listType = new TypeToken<List<java.util.Map<String, Object>>>() {}.getType();
+        Type listType = new TypeToken<List<java.util.Map<String, Object>>>() {
+        }.getType();
         List<java.util.Map<String, Object>> items = gson.fromJson(json, listType);
-        if (items == null) return details;
+        if (items == null)
+            return details;
 
         for (java.util.Map<String, Object> item : items) {
-            if (item == null) continue;
+            if (item == null)
+                continue;
             GoodsIssueDetail d = new GoodsIssueDetail();
             d.setVariantId(((Number) item.get("variantId")).intValue());
             d.setQuantity(((Number) item.get("quantity")).intValue());
@@ -455,7 +488,8 @@ public class GoodsIssueAddController extends HttpServlet {
             if (serialsObj instanceof List) {
                 List<String> serials = new ArrayList<>();
                 for (Object s : (List<?>) serialsObj) {
-                    if (s != null) serials.add(s.toString());
+                    if (s != null)
+                        serials.add(s.toString());
                 }
                 d.setSerials(serials);
             }

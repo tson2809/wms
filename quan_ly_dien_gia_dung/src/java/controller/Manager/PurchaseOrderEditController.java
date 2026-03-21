@@ -44,7 +44,12 @@ public class PurchaseOrderEditController extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || user.getRole().getRoleId() != 2) {
+        if (user.getRole() == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        int roleId = user.getRole().getRoleId();
+        if (roleId != 2 && roleId != 3 && roleId != 4) {
             response.sendRedirect(request.getContextPath() + "/purchase-order/list");
             return;
         }
@@ -69,9 +74,11 @@ public class PurchaseOrderEditController extends HttpServlet {
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             List<ProductVariant> variants = productDAO.getAllActiveProductVariants();
 
-            // Chỉ cho sửa khi pending, còn lại view-only
-            boolean viewOnly = !"draft".equalsIgnoreCase(po.getStatus());
-
+            // Chỉ Manager mới được sửa khi draft, các role khác chỉ được xem
+            boolean viewOnly = true;
+            if (roleId == 2) {
+                viewOnly = !"draft".equalsIgnoreCase(po.getStatus());
+            }
             request.setAttribute("purchaseOrder", po);
             request.setAttribute("details", details);
             request.setAttribute("suppliers", suppliers);
