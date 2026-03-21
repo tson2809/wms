@@ -121,7 +121,7 @@ public class GoodsReceiptDAO extends DBContext {
         gr.setReceiptDate(rs.getDate("receipt_date"));
         gr.setTotalAmount(rs.getBigDecimal("total_amount"));
         gr.setStatus(rs.getString("status"));
-        // sales_return_id column does not exist in this DB schema - skipped
+        gr.setSalesReturnId((Integer) rs.getObject("sales_return_id"));
         
         if (rs.getObject("created_by_id") != null) {
             User createdByUser = new User();
@@ -316,8 +316,8 @@ public class GoodsReceiptDAO extends DBContext {
             PreparedStatement ps;
             if (purchaseOrderId != null) {
                 sqlReceipt = "INSERT INTO goods_receipts " +
-                             "(receipt_code, supplier_id, receipt_date, total_amount, status, created_by, notes, purchase_order_id) " +
-                             "VALUES (?, ?, ?, ?, 'draft', ?, ?, ?)";
+                             "(receipt_code, supplier_id, receipt_date, total_amount, status, created_by, notes, purchase_order_id, sales_return_id) " +
+                             "VALUES (?, ?, ?, ?, 'draft', ?, ?, ?, ?)";
                 ps = conn.prepareStatement(sqlReceipt, PreparedStatement.RETURN_GENERATED_KEYS);
                 ps.setString(1, receiptCode);
                 ps.setObject(2, supplierId);
@@ -326,10 +326,11 @@ public class GoodsReceiptDAO extends DBContext {
                 ps.setInt(5, createdBy);
                 ps.setString(6, notes);
                 ps.setObject(7, purchaseOrderId);
+                ps.setObject(8, salesReturnId);
             } else {
                 sqlReceipt = "INSERT INTO goods_receipts " +
-                             "(receipt_code, supplier_id, receipt_date, total_amount, status, created_by, notes) " +
-                             "VALUES (?, ?, ?, ?, 'draft', ?, ?)";
+                             "(receipt_code, supplier_id, receipt_date, total_amount, status, created_by, notes, sales_return_id) " +
+                             "VALUES (?, ?, ?, ?, 'draft', ?, ?, ?)";
                 ps = conn.prepareStatement(sqlReceipt, PreparedStatement.RETURN_GENERATED_KEYS);
                 ps.setString(1, receiptCode);
                 ps.setObject(2, supplierId);
@@ -337,6 +338,7 @@ public class GoodsReceiptDAO extends DBContext {
                 ps.setDouble(4, totalAmount);
                 ps.setInt(5, createdBy);
                 ps.setString(6, notes);
+                ps.setObject(7, salesReturnId);
             }
             int receiptId;
             try (ps) {
