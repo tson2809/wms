@@ -75,16 +75,16 @@ public class GoodsIssueDAO extends DBContext {
     public List<GoodsIssue> getAllGoodsIssues() {
         List<GoodsIssue> list = new ArrayList<>();
         String sql = """
-                     SELECT gi.*,
-                            u1.user_id as created_by_id, u1.username as created_by_username, u1.full_name as created_by_name, u1.email as created_by_email, u1.phone as created_by_phone, u1.address as created_by_address, u1.avatar as created_by_avatar, u1.is_active as created_by_active, u1.created_at as created_by_created_at,
-                            u2.user_id as approved_by_id, u2.username as approved_by_username, u2.full_name as approved_by_name, u2.email as approved_by_email, u2.phone as approved_by_phone, u2.address as approved_by_address, u2.avatar as approved_by_avatar, u2.is_active as approved_by_active, u2.created_at as approved_by_created_at
-                     FROM goods_issues gi
-                     LEFT JOIN users u1 ON gi.created_by = u1.user_id
-                     LEFT JOIN users u2 ON gi.approved_by = u2.user_id
-                     ORDER BY gi.issue_id DESC
-                     """;
+                SELECT gi.*,
+                       u1.user_id as created_by_id, u1.username as created_by_username, u1.full_name as created_by_name, u1.email as created_by_email, u1.phone as created_by_phone, u1.address as created_by_address, u1.avatar as created_by_avatar, u1.is_active as created_by_active, u1.created_at as created_by_created_at,
+                       u2.user_id as approved_by_id, u2.username as approved_by_username, u2.full_name as approved_by_name, u2.email as approved_by_email, u2.phone as approved_by_phone, u2.address as approved_by_address, u2.avatar as approved_by_avatar, u2.is_active as approved_by_active, u2.created_at as approved_by_created_at
+                FROM goods_issues gi
+                LEFT JOIN users u1 ON gi.created_by = u1.user_id
+                LEFT JOIN users u2 ON gi.approved_by = u2.user_id
+                ORDER BY gi.issue_id DESC
+                """;
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql);
-             ResultSet rs = pre.executeQuery()) {
+                ResultSet rs = pre.executeQuery()) {
             while (rs.next()) {
                 list.add(extractGoodsIssue(rs));
             }
@@ -97,15 +97,15 @@ public class GoodsIssueDAO extends DBContext {
     public List<GoodsIssue> searchGoodsIssues(String search) {
         List<GoodsIssue> list = new ArrayList<>();
         String sql = """
-                     SELECT gi.*,
-                            u1.user_id as created_by_id, u1.username as created_by_username, u1.full_name as created_by_name, u1.email as created_by_email, u1.phone as created_by_phone, u1.address as created_by_address, u1.avatar as created_by_avatar, u1.is_active as created_by_active, u1.created_at as created_by_created_at,
-                            u2.user_id as approved_by_id, u2.username as approved_by_username, u2.full_name as approved_by_name, u2.email as approved_by_email, u2.phone as approved_by_phone, u2.address as approved_by_address, u2.avatar as approved_by_avatar, u2.is_active as approved_by_active, u2.created_at as approved_by_created_at
-                     FROM goods_issues gi
-                     LEFT JOIN users u1 ON gi.created_by = u1.user_id
-                     LEFT JOIN users u2 ON gi.approved_by = u2.user_id
-                     WHERE gi.issue_code LIKE ? OR gi.receiver_name LIKE ? OR gi.notes LIKE ?
-                     ORDER BY gi.issue_id DESC
-                     """;
+                SELECT gi.*,
+                       u1.user_id as created_by_id, u1.username as created_by_username, u1.full_name as created_by_name, u1.email as created_by_email, u1.phone as created_by_phone, u1.address as created_by_address, u1.avatar as created_by_avatar, u1.is_active as created_by_active, u1.created_at as created_by_created_at,
+                       u2.user_id as approved_by_id, u2.username as approved_by_username, u2.full_name as approved_by_name, u2.email as approved_by_email, u2.phone as approved_by_phone, u2.address as approved_by_address, u2.avatar as approved_by_avatar, u2.is_active as approved_by_active, u2.created_at as approved_by_created_at
+                FROM goods_issues gi
+                LEFT JOIN users u1 ON gi.created_by = u1.user_id
+                LEFT JOIN users u2 ON gi.approved_by = u2.user_id
+                WHERE gi.issue_code LIKE ? OR gi.receiver_name LIKE ? OR gi.notes LIKE ?
+                ORDER BY gi.issue_id DESC
+                """;
         String pattern = "%" + search.trim() + "%";
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
             pre.setString(1, pattern);
@@ -123,14 +123,14 @@ public class GoodsIssueDAO extends DBContext {
 
     public GoodsIssue getGoodsIssueById(int issueId) {
         String sql = """
-                     SELECT gi.*,
-                            u1.user_id as created_by_id, u1.username as created_by_username, u1.full_name as created_by_name, u1.email as created_by_email, u1.phone as created_by_phone, u1.address as created_by_address, u1.avatar as created_by_avatar, u1.is_active as created_by_active, u1.created_at as created_by_created_at,
-                            u2.user_id as approved_by_id, u2.username as approved_by_username, u2.full_name as approved_by_name, u2.email as approved_by_email, u2.phone as approved_by_phone, u2.address as approved_by_address, u2.avatar as approved_by_avatar, u2.is_active as approved_by_active, u2.created_at as approved_by_created_at
-                     FROM goods_issues gi
-                     LEFT JOIN users u1 ON gi.created_by = u1.user_id
-                     LEFT JOIN users u2 ON gi.approved_by = u2.user_id
-                     WHERE gi.issue_id = ?
-                     """;
+                SELECT gi.*,
+                       u1.user_id as created_by_id, u1.username as created_by_username, u1.full_name as created_by_name, u1.email as created_by_email, u1.phone as created_by_phone, u1.address as created_by_address, u1.avatar as created_by_avatar, u1.is_active as created_by_active, u1.created_at as created_by_created_at,
+                       u2.user_id as approved_by_id, u2.username as approved_by_username, u2.full_name as approved_by_name, u2.email as approved_by_email, u2.phone as approved_by_phone, u2.address as approved_by_address, u2.avatar as approved_by_avatar, u2.is_active as approved_by_active, u2.created_at as approved_by_created_at
+                FROM goods_issues gi
+                LEFT JOIN users u1 ON gi.created_by = u1.user_id
+                LEFT JOIN users u2 ON gi.approved_by = u2.user_id
+                WHERE gi.issue_id = ?
+                """;
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
             pre.setInt(1, issueId);
             ResultSet rs = pre.executeQuery();
@@ -195,33 +195,38 @@ public class GoodsIssueDAO extends DBContext {
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
             pre.setString(1, issueCode);
             ResultSet rs = pre.executeQuery();
-            if (rs.next()) return rs.getInt(1) > 0;
+            if (rs.next())
+                return rs.getInt(1) > 0;
         } catch (SQLException ex) {
             Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
 
-    /** Lấy danh sách serial in_stock của một variant (cho dropdown chọn serial khi xuất). */
+    /**
+     * Lấy danh sách serial in_stock của một variant (cho dropdown chọn serial khi
+     * xuất).
+     */
     public String getAvailableSerialsJson(int variantId) {
         String sql = """
-                     SELECT serial_id, serial_number
-                     FROM product_serials
-                     WHERE variant_id = ? AND status = 'in_stock'
-                     ORDER BY serial_number
-                     """;
+                SELECT serial_id, serial_number
+                FROM product_serials
+                WHERE variant_id = ? AND status = 'in_stock'
+                ORDER BY serial_number
+                """;
         StringBuilder json = new StringBuilder("[");
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, variantId);
             ResultSet rs = ps.executeQuery();
             boolean first = true;
             while (rs.next()) {
-                if (!first) json.append(",");
+                if (!first)
+                    json.append(",");
                 first = false;
                 json.append("{")
-                    .append("\"serialId\":").append(rs.getInt("serial_id")).append(",")
-                    .append("\"serialNumber\":\"").append(escapeJson(rs.getString("serial_number"))).append("\"")
-                    .append("}");
+                        .append("\"serialId\":").append(rs.getInt("serial_id")).append(",")
+                        .append("\"serialNumber\":\"").append(escapeJson(rs.getString("serial_number"))).append("\"")
+                        .append("}");
             }
         } catch (SQLException e) {
             Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, e);
@@ -230,25 +235,30 @@ public class GoodsIssueDAO extends DBContext {
         return json.toString();
     }
 
-    /** Lấy thông tin variant (sku, name, unit, tồn) theo danh sách variantId (không filter quantity). */
+    /**
+     * Lấy thông tin variant (sku, name, unit, tồn) theo danh sách variantId (không
+     * filter quantity).
+     */
     public Map<Integer, VariantInfo> getVariantInfoByIds(List<Integer> variantIds) {
         Map<Integer, VariantInfo> map = new HashMap<>();
-        if (variantIds == null || variantIds.isEmpty()) return map;
+        if (variantIds == null || variantIds.isEmpty())
+            return map;
 
         StringBuilder in = new StringBuilder();
         for (int i = 0; i < variantIds.size(); i++) {
-            if (i > 0) in.append(",");
+            if (i > 0)
+                in.append(",");
             in.append("?");
         }
 
         String sql = """
-                     SELECT pv.variant_id, pv.sku, pv.quantity,
-                            p.product_name, u.unit_name
-                     FROM product_variants pv
-                     INNER JOIN products p ON pv.product_id = p.product_id
-                     LEFT JOIN units u ON p.unit_id = u.unit_id
-                     WHERE pv.variant_id IN (%s)
-                     """.formatted(in.toString());
+                SELECT pv.variant_id, pv.sku, pv.quantity,
+                       p.product_name, u.unit_name
+                FROM product_variants pv
+                INNER JOIN products p ON pv.product_id = p.product_id
+                LEFT JOIN units u ON p.unit_id = u.unit_id
+                WHERE pv.variant_id IN (%s)
+                """.formatted(in.toString());
 
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             for (int i = 0; i < variantIds.size(); i++) {
@@ -273,19 +283,21 @@ public class GoodsIssueDAO extends DBContext {
     /** Lọc các serialNumber thuộc variant và đang in_stock. */
     public List<String> filterInStockSerialNumbers(int variantId, List<String> serialNumbers) {
         List<String> result = new ArrayList<>();
-        if (serialNumbers == null || serialNumbers.isEmpty()) return result;
+        if (serialNumbers == null || serialNumbers.isEmpty())
+            return result;
 
         StringBuilder in = new StringBuilder();
         for (int i = 0; i < serialNumbers.size(); i++) {
-            if (i > 0) in.append(",");
+            if (i > 0)
+                in.append(",");
             in.append("?");
         }
 
         String sql = """
-                     SELECT serial_number
-                     FROM product_serials
-                     WHERE variant_id = ? AND status = 'in_stock' AND serial_number IN (%s)
-                     """.formatted(in.toString());
+                SELECT serial_number
+                FROM product_serials
+                WHERE variant_id = ? AND status = 'in_stock' AND serial_number IN (%s)
+                """.formatted(in.toString());
 
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, variantId);
@@ -305,14 +317,14 @@ public class GoodsIssueDAO extends DBContext {
     /** Tìm kiếm sản phẩm có tồn kho (quantity > 0) để xuất kho. */
     public String searchProductsForIssueJson(String keyword) {
         String sql = """
-                     SELECT pv.variant_id, pv.sku, pv.quantity, pv.sale_price,
-                            p.product_name, u.unit_name
-                     FROM product_variants pv
-                     INNER JOIN products p ON pv.product_id = p.product_id
-                     LEFT JOIN units u ON p.unit_id = u.unit_id
-                     WHERE pv.status = 'active' AND p.status = 'active' AND pv.quantity > 0
-                     AND (pv.sku LIKE ? OR p.product_name LIKE ?)
-                     """;
+                SELECT pv.variant_id, pv.sku, pv.quantity, pv.sale_price,
+                       p.product_name, u.unit_name
+                FROM product_variants pv
+                INNER JOIN products p ON pv.product_id = p.product_id
+                LEFT JOIN units u ON p.unit_id = u.unit_id
+                WHERE pv.status = 'active' AND p.status = 'active' AND pv.quantity > 0
+                AND (pv.sku LIKE ? OR p.product_name LIKE ?)
+                """;
         StringBuilder json = new StringBuilder("[");
         String pattern = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword.trim() + "%" : "%";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -321,16 +333,17 @@ public class GoodsIssueDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             boolean first = true;
             while (rs.next()) {
-                if (!first) json.append(",");
+                if (!first)
+                    json.append(",");
                 first = false;
                 json.append("{")
-                    .append("\"variantId\":").append(rs.getInt("variant_id")).append(",")
-                    .append("\"code\":\"").append(escapeJson(rs.getString("sku"))).append("\",")
-                    .append("\"name\":\"").append(escapeJson(rs.getString("product_name"))).append("\",")
-                    .append("\"unit\":\"").append(escapeJson(rs.getString("unit_name"))).append("\",")
-                    .append("\"stock\":").append(rs.getInt("quantity")).append(",")
-                    .append("\"price\":").append(rs.getBigDecimal("sale_price"))
-                    .append("}");
+                        .append("\"variantId\":").append(rs.getInt("variant_id")).append(",")
+                        .append("\"code\":\"").append(escapeJson(rs.getString("sku"))).append("\",")
+                        .append("\"name\":\"").append(escapeJson(rs.getString("product_name"))).append("\",")
+                        .append("\"unit\":\"").append(escapeJson(rs.getString("unit_name"))).append("\",")
+                        .append("\"stock\":").append(rs.getInt("quantity")).append(",")
+                        .append("\"price\":").append(rs.getBigDecimal("sale_price"))
+                        .append("}");
             }
         } catch (SQLException e) {
             Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, e);
@@ -341,27 +354,27 @@ public class GoodsIssueDAO extends DBContext {
 
     public String searchProductBySKUJson(String sku) {
         String sql = """
-                     SELECT pv.variant_id, pv.sku, pv.quantity, pv.sale_price,
-                            p.product_name, u.unit_name
-                     FROM product_variants pv
-                     INNER JOIN products p ON pv.product_id = p.product_id
-                     LEFT JOIN units u ON p.unit_id = u.unit_id
-                     WHERE pv.status = 'active' AND p.status = 'active' AND pv.quantity > 0
-                     AND pv.sku = ?
-                     LIMIT 1
-                     """;
+                SELECT pv.variant_id, pv.sku, pv.quantity, pv.sale_price,
+                       p.product_name, u.unit_name
+                FROM product_variants pv
+                INNER JOIN products p ON pv.product_id = p.product_id
+                LEFT JOIN units u ON p.unit_id = u.unit_id
+                WHERE pv.status = 'active' AND p.status = 'active' AND pv.quantity > 0
+                AND pv.sku = ?
+                LIMIT 1
+                """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, sku != null ? sku.trim() : "");
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return "{" +
-                    "\"variantId\":" + rs.getInt("variant_id") + "," +
-                    "\"code\":\"" + escapeJson(rs.getString("sku")) + "\"," +
-                    "\"name\":\"" + escapeJson(rs.getString("product_name")) + "\"," +
-                    "\"unit\":\"" + escapeJson(rs.getString("unit_name")) + "\"," +
-                    "\"stock\":" + rs.getInt("quantity") + "," +
-                    "\"price\":" + rs.getBigDecimal("sale_price") +
-                    "}";
+                        "\"variantId\":" + rs.getInt("variant_id") + "," +
+                        "\"code\":\"" + escapeJson(rs.getString("sku")) + "\"," +
+                        "\"name\":\"" + escapeJson(rs.getString("product_name")) + "\"," +
+                        "\"unit\":\"" + escapeJson(rs.getString("unit_name")) + "\"," +
+                        "\"stock\":" + rs.getInt("quantity") + "," +
+                        "\"price\":" + rs.getBigDecimal("sale_price") +
+                        "}";
             }
         } catch (SQLException e) {
             Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, e);
@@ -369,27 +382,31 @@ public class GoodsIssueDAO extends DBContext {
         return "{}";
     }
 
-    /** Tạo phiếu xuất kho (status = draft). Tồn kho chỉ giảm khi Manager duyệt (completed). */
+    /**
+     * Tạo phiếu xuất kho (status = draft). Tồn kho chỉ giảm khi Manager duyệt
+     * (completed).
+     */
     public boolean createGoodsIssue(String issueCode, String issueType, String issueDate,
-                                    String receiverName, String department, String notes,
-                                    int createdBy, List<GoodsIssueDetail> details) {
-        return createGoodsIssue(issueCode, issueType, issueDate, receiverName, department, notes, createdBy, details, null);
+            String receiverName, String department, String notes,
+            int createdBy, List<GoodsIssueDetail> details) {
+        return createGoodsIssue(issueCode, issueType, issueDate, receiverName, department, notes, createdBy, details,
+                null);
     }
 
     /** Tạo phiếu xuất kho với return_order_id (khi tạo từ đơn trả hàng). */
     public boolean createGoodsIssue(String issueCode, String issueType, String issueDate,
-                                    String receiverName, String department, String notes,
-                                    int createdBy, List<GoodsIssueDetail> details, Integer returnOrderId) {
+            String receiverName, String department, String notes,
+            int createdBy, List<GoodsIssueDetail> details, Integer returnOrderId) {
         Connection conn = null;
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
 
             String sqlIssue = """
-                              INSERT INTO goods_issues
-                              (issue_code, issue_type, issue_date, receiver_name, department, status, created_by, notes, return_order_id)
-                              VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?)
-                              """;
+                    INSERT INTO goods_issues
+                    (issue_code, issue_type, issue_date, receiver_name, department, status, created_by, notes, return_order_id)
+                    VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?)
+                    """;
             int issueId;
             try (PreparedStatement ps = conn.prepareStatement(sqlIssue, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, issueCode);
@@ -402,15 +419,18 @@ public class GoodsIssueDAO extends DBContext {
                 ps.setObject(8, returnOrderId);
                 ps.executeUpdate();
                 ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) issueId = rs.getInt(1);
-                else throw new SQLException("Không lấy được issue_id");
+                if (rs.next())
+                    issueId = rs.getInt(1);
+                else
+                    throw new SQLException("Không lấy được issue_id");
             }
 
             String sqlDetail = "INSERT INTO goods_issue_details (issue_id, variant_id, quantity, notes) VALUES (?, ?, ?, ?)";
             String sqlSerial = "INSERT INTO issue_serials (issue_detail_id, serial_id) VALUES (?, ?)";
             String sqlGetSerial = "SELECT serial_id FROM product_serials WHERE serial_number = ? AND status = 'in_stock' AND variant_id = ?";
 
-            try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail,
+                    PreparedStatement.RETURN_GENERATED_KEYS)) {
                 for (GoodsIssueDetail detail : details) {
                     psDetail.setInt(1, issueId);
                     psDetail.setInt(2, detail.getVariantId());
@@ -420,8 +440,10 @@ public class GoodsIssueDAO extends DBContext {
 
                     int detailId;
                     try (ResultSet rs = psDetail.getGeneratedKeys()) {
-                        if (rs.next()) detailId = rs.getInt(1);
-                        else throw new SQLException("Không lấy được issue_detail_id");
+                        if (rs.next())
+                            detailId = rs.getInt(1);
+                        else
+                            throw new SQLException("Không lấy được issue_detail_id");
                     }
 
                     if (detail.getSerials() != null) {
@@ -431,8 +453,10 @@ public class GoodsIssueDAO extends DBContext {
                                 psGet.setString(1, serialNumber);
                                 psGet.setInt(2, detail.getVariantId());
                                 ResultSet rs = psGet.executeQuery();
-                                if (rs.next()) serialId = rs.getInt("serial_id");
-                                else throw new SQLException("Serial '" + serialNumber + "' không hợp lệ hoặc đã xuất");
+                                if (rs.next())
+                                    serialId = rs.getInt("serial_id");
+                                else
+                                    throw new SQLException("Serial '" + serialNumber + "' không hợp lệ hoặc đã xuất");
                             }
                             try (PreparedStatement psSerial = conn.prepareStatement(sqlSerial)) {
                                 psSerial.setInt(1, detailId);
@@ -447,15 +471,26 @@ public class GoodsIssueDAO extends DBContext {
             conn.commit();
             return true;
         } catch (Exception ex) {
-            if (conn != null) try { conn.rollback(); } catch (SQLException e) {}
+            if (conn != null)
+                try {
+                    conn.rollback();
+                } catch (SQLException e) {
+                }
             Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         } finally {
-            if (conn != null) try { conn.setAutoCommit(true); } catch (SQLException ex) {}
+            if (conn != null)
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ex) {
+                }
         }
     }
 
-    /** Cập nhật trạng thái phiếu xuất. Khi completed: giảm tồn kho + cập nhật serial status. */
+    /**
+     * Cập nhật trạng thái phiếu xuất. Khi completed: giảm tồn kho + cập nhật serial
+     * status.
+     */
     public boolean updateGoodsIssueStatus(int issueId, String status, Integer approvedBy) {
         Connection conn = null;
         try {
@@ -463,7 +498,8 @@ public class GoodsIssueDAO extends DBContext {
             conn.setAutoCommit(false);
 
             GoodsIssue issue = getGoodsIssueById(issueId);
-            if (issue == null) return false;
+            if (issue == null)
+                return false;
 
             if ("completed".equals(status) && !"completed".equals(issue.getStatus())) {
                 applyIssueToInventory(conn, issueId, issue.getIssueType(), approvedBy != null ? approvedBy : 0);
@@ -480,31 +516,43 @@ public class GoodsIssueDAO extends DBContext {
             conn.commit();
             return true;
         } catch (SQLException ex) {
-            if (conn != null) try { conn.rollback(); } catch (SQLException e) {}
+            if (conn != null)
+                try {
+                    conn.rollback();
+                } catch (SQLException e) {
+                }
             Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         } finally {
-            if (conn != null) try { conn.setAutoCommit(true); } catch (SQLException ex) {}
+            if (conn != null)
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ex) {
+                }
         }
     }
 
-    /** Giảm tồn kho, cập nhật serial status, ghi inventory_transactions khi duyệt phiếu xuất. */
-    private void applyIssueToInventory(Connection conn, int issueId, String issueType, int approvedBy) throws SQLException {
+    /**
+     * Giảm tồn kho, cập nhật serial status, ghi inventory_transactions khi duyệt
+     * phiếu xuất.
+     */
+    private void applyIssueToInventory(Connection conn, int issueId, String issueType, int approvedBy)
+            throws SQLException {
         List<GoodsIssueDetail> details = getGoodsIssueDetails(issueId);
 
         String sqlSerialStatus = "UPDATE product_serials SET status = ? WHERE serial_id = ?";
         String sqlGetSerials = """
-                               SELECT ps.serial_id FROM issue_serials isl
-                               INNER JOIN product_serials ps ON isl.serial_id = ps.serial_id
-                               WHERE isl.issue_detail_id = ?
-                               """;
+                SELECT ps.serial_id FROM issue_serials isl
+                INNER JOIN product_serials ps ON isl.serial_id = ps.serial_id
+                WHERE isl.issue_detail_id = ?
+                """;
         String sqlQty = "SELECT quantity FROM product_variants WHERE variant_id = ?";
         String sqlUpdateQty = "UPDATE product_variants SET quantity = quantity - ? WHERE variant_id = ?";
         String sqlTrx = """
-                        INSERT INTO inventory_transactions
-                        (variant_id, transaction_type, reference_type, reference_id, quantity_change, quantity_before, quantity_after, created_by)
-                        VALUES (?, 'export', 'goods_issue', ?, ?, ?, ?, ?)
-                        """;
+                INSERT INTO inventory_transactions
+                (variant_id, transaction_type, reference_type, reference_id, quantity_change, quantity_before, quantity_after, created_by)
+                VALUES (?, 'export', 'goods_issue', ?, ?, ?, ?, ?)
+                """;
 
         String serialStatus = "sale".equals(issueType) ? "sold" : "shipped";
 
@@ -513,7 +561,8 @@ public class GoodsIssueDAO extends DBContext {
             try (PreparedStatement ps = conn.prepareStatement(sqlQty)) {
                 ps.setInt(1, d.getVariantId());
                 ResultSet rs = ps.executeQuery();
-                if (rs.next()) qtyBefore = rs.getInt("quantity");
+                if (rs.next())
+                    qtyBefore = rs.getInt("quantity");
             }
 
             try (PreparedStatement ps = conn.prepareStatement(sqlUpdateQty)) {
@@ -550,13 +599,13 @@ public class GoodsIssueDAO extends DBContext {
     public List<GoodsIssueDetail> getGoodsIssueDetails(int issueId) {
         List<GoodsIssueDetail> details = new ArrayList<>();
         String sql = """
-                     SELECT gid.*, pv.sku, p.product_name, u.unit_name
-                     FROM goods_issue_details gid
-                     INNER JOIN product_variants pv ON gid.variant_id = pv.variant_id
-                     INNER JOIN products p ON pv.product_id = p.product_id
-                     LEFT JOIN units u ON p.unit_id = u.unit_id
-                     WHERE gid.issue_id = ?
-                     """;
+                SELECT gid.*, pv.sku, p.product_name, u.unit_name
+                FROM goods_issue_details gid
+                INNER JOIN product_variants pv ON gid.variant_id = pv.variant_id
+                INNER JOIN products p ON pv.product_id = p.product_id
+                LEFT JOIN units u ON p.unit_id = u.unit_id
+                WHERE gid.issue_id = ?
+                """;
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
             pre.setInt(1, issueId);
             ResultSet rs = pre.executeQuery();
@@ -582,16 +631,17 @@ public class GoodsIssueDAO extends DBContext {
     private List<String> getSerialsForIssueDetail(int issueDetailId) {
         List<String> serials = new ArrayList<>();
         String sql = """
-                     SELECT ps.serial_number
-                     FROM issue_serials isl
-                     INNER JOIN product_serials ps ON isl.serial_id = ps.serial_id
-                     WHERE isl.issue_detail_id = ?
-                     ORDER BY ps.serial_number
-                     """;
+                SELECT ps.serial_number
+                FROM issue_serials isl
+                INNER JOIN product_serials ps ON isl.serial_id = ps.serial_id
+                WHERE isl.issue_detail_id = ?
+                ORDER BY ps.serial_number
+                """;
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
             pre.setInt(1, issueDetailId);
             ResultSet rs = pre.executeQuery();
-            while (rs.next()) serials.add(rs.getString("serial_number"));
+            while (rs.next())
+                serials.add(rs.getString("serial_number"));
         } catch (SQLException ex) {
             Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -599,7 +649,9 @@ public class GoodsIssueDAO extends DBContext {
     }
 
     private String escapeJson(String s) {
-        if (s == null) return "";
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+        if (s == null)
+            return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t",
+                "\\t");
     }
 }

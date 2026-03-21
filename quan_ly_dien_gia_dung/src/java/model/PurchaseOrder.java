@@ -20,6 +20,7 @@ public class PurchaseOrder {
     private String notes;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String goodsIssueApprovedByName;
 
     public PurchaseOrder() {
     }
@@ -163,6 +164,14 @@ public class PurchaseOrder {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getGoodsIssueApprovedByName() {
+        return goodsIssueApprovedByName;
+    }
+
+    public void setGoodsIssueApprovedByName(String goodsIssueApprovedByName) {
+        this.goodsIssueApprovedByName = goodsIssueApprovedByName;
     }
 
     @Override

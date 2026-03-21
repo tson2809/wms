@@ -37,7 +37,36 @@
         .po-list-section .page-btn:hover    { background-color:#f3f4f6; }
         .po-list-section .page-btn.disabled { pointer-events:none; color:#9ca3af; border-color:#e5e7eb; }
         .po-list-section .page-btn.active   { background-color:#4f46e5; color:#fff; border-color:#4f46e5; }
+        .po-list-section .action-btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .po-list-section .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #e5e7eb;
+            background-color: #fff;
+            color: #374151;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            text-decoration: none;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            cursor: pointer;
+            padding: 0;
+        }
+        .po-list-section .action-btn.action-view:hover { background-color: #eef2ff; color: #4338ca; }
+        .po-list-section .action-btn.action-edit:hover { background-color: #eff6ff; color: #1d4ed8; }
+        .po-list-section .action-btn.action-cancel:hover { background-color: #fee2e2; color: #991b1b; }
+        .po-list-section .action-btn.action-approve:hover { background-color: #dcfce7; color: #15803d; }
+        .po-list-section .action-btn.action-receipt:hover { background-color: #e0f2fe; color: #0369a1; }
+        .po-list-section .action-btn.action-issue:hover { background-color: #fef3c7; color: #b45309; }
     </style>
+    <!-- Add Iconify -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 </head>
 <body>
     <div class="container-fluid position-relative d-flex p-0">
@@ -98,10 +127,9 @@
 
 
                 <!-- Filter form -->
+                <!-- Filter form -->
                 <div class="bg-white rounded p-4 mb-4 shadow-sm">
                     <form method="GET" action="${pageContext.request.contextPath}/purchase-order/list" class="product-filter-form">
-                        <%-- Giữ lại tab của Staff --%>
-                        <c:if test="${roleId == 3 and orderType == 'sale'}"><input type="hidden" name="orderType" value="sale"></c:if>
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <label class="form-label fw-semibold">Trạng thái</label>
@@ -156,11 +184,20 @@
                                     <c:if test="${roleId == 3}">
                                         <th>Loại</th>
                                     </c:if>
-                                    <th>Nhà cung cấp</th>
+                                    <c:if test="${roleId != 4}">
+                                        <th>Nhà cung cấp</th>
+                                    </c:if>
                                     <th>Ngày đặt</th>
                                     <th>Tổng tiền</th>
                                     <th>Trạng thái</th>
-                                    <th>NV phụ trách</th>
+                                    <c:choose>
+                                        <c:when test="${roleId == 3}">
+                                            <th>Người tạo đơn</th>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <th>NV phụ trách</th>
+                                        </c:otherwise>
+                                    </c:choose>
                                     <th class="text-center">Thao tác</th>
                                 </tr>
                             </thead>
@@ -190,7 +227,9 @@
                                                 </c:choose>
                                             </td>
                                         </c:if>
-                                        <td>${po.supplierName}</td>
+                                        <c:if test="${roleId != 4}">
+                                            <td>${po.supplierName}</td>
+                                        </c:if>
                                         <td>
                                             <fmt:formatDate value="${po.orderDate}" pattern="dd/MM/yyyy"/>
                                         </td>
@@ -206,35 +245,46 @@
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${not empty po.approvedByName}">${po.approvedByName}</c:when>
-                                                <c:otherwise><span class="text-muted">—</span></c:otherwise>
+                                                <c:when test="${roleId == 3}">
+                                                    ${not empty po.createdByName ? po.createdByName : '-'}
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:choose>
+                                                        <c:when test="${empty po.supplierName and not empty po.goodsIssueApprovedByName}">
+                                                            ${po.goodsIssueApprovedByName}
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            ${not empty po.approvedByName ? po.approvedByName : '-'}
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td class="text-center">
-                                            <div class="d-flex gap-1 justify-content-center flex-wrap">
+                                            <div class="action-btn-group">
 
                                                 <!-- Xem chi tiết (luôn hiện) -->
                                                 <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
-                                                   class="btn btn-sm btn-outline-info" title="Xem chi tiết">
-                                                    <i class="fas fa-eye"></i>
+                                                   class="action-btn action-view" title="Xem chi tiết">
+                                                    <iconify-icon icon="lucide:eye"></iconify-icon>
                                                 </a>
 
                                                 <!-- Manager: Sửa (chỉ khi draft) -->
                                                 <c:if test="${roleId == 2 and po.status == 'draft'}">
                                                     <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
-                                                       class="btn btn-sm btn-outline-primary" title="Chỉnh sửa">
-                                                        <i class="fas fa-edit"></i>
+                                                       class="action-btn action-edit" title="Chỉnh sửa">
+                                                        <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
                                                 </c:if>
 
                                                 <!-- Manager: Hủy (draft hoặc submitted) -->
                                                 <c:if test="${roleId == 2 and (po.status == 'draft' or po.status == 'submitted')}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/list"
-                                                          onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                                                          onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');" style="display:inline">
                                                         <input type="hidden" name="action" value="cancel">
                                                         <input type="hidden" name="id" value="${po.purchaseOrderId}">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hủy đơn">
-                                                            <i class="fas fa-times"></i>
+                                                        <button type="submit" class="action-btn action-cancel" title="Hủy đơn">
+                                                            <iconify-icon icon="lucide:x"></iconify-icon>
                                                         </button>
                                                     </form>
                                                 </c:if>
@@ -242,11 +292,10 @@
                                                 <%-- Staff: Nhận đơn (chỉ draft, chưa có người nhận) --%>
                                                 <c:if test="${roleId == 3 and po.status == 'draft' and empty po.approvedByName}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/claim"
-                                                          onsubmit="return confirm('Bạn muốn nhận đơn đặt hàng này?');">
+                                                          onsubmit="return confirm('Bạn muốn nhận đơn đặt hàng này?');" style="display:inline">
                                                         <input type="hidden" name="id" value="${po.purchaseOrderId}">
-                                                        
-                                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Nhận đơn">
-                                                            <i class="fas fa-hand-paper"></i>
+                                                        <button type="submit" class="action-btn action-approve" title="Nhận đơn">
+                                                            <iconify-icon icon="lucide:check"></iconify-icon>
                                                         </button>
                                                     </form>
                                                 </c:if>
@@ -254,27 +303,27 @@
                                                 <%-- Staff: Tạo phiếu nhập kho (PO có NCC, submitted, là người phụ trách) --%>
                                                 <c:if test="${roleId == 3 and not empty po.supplierName and po.status == 'submitted' and po.approvedBy == currentUserId}">
                                                     <a href="${pageContext.request.contextPath}/goods-receipt-add?purchaseOrderId=${po.purchaseOrderId}"
-                                                       class="btn btn-sm btn-outline-primary" title="Tạo phiếu nhập kho">
-                                                        <i class="fas fa-warehouse"></i>
+                                                       class="action-btn action-receipt" title="Tạo phiếu nhập kho">
+                                                        <iconify-icon icon="lucide:package-plus"></iconify-icon>
                                                     </a>
                                                 </c:if>
 
                                                 <%-- Staff: Tạo phiếu xuất (Sale order, submitted, là người phụ trách) --%>
                                                 <c:if test="${roleId == 3 and empty po.supplierName and po.status == 'submitted' and po.approvedBy == currentUserId}">
                                                     <a href="${pageContext.request.contextPath}/goods-issue-add?purchaseOrderId=${po.purchaseOrderId}"
-                                                       class="btn btn-sm btn-outline-warning" title="Tạo phiếu xuất hàng">
-                                                        <i class="fas fa-truck"></i>
+                                                       class="action-btn action-issue" title="Tạo phiếu xuất hàng">
+                                                        <iconify-icon icon="lucide:package-minus"></iconify-icon>
                                                     </a>
                                                 </c:if>
 
                                                 <%-- Sale: Hủy đơn (chỉ khi draft) --%>
                                                 <c:if test="${roleId == 4 and po.status == 'draft'}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/list"
-                                                          onsubmit="return confirm('Bạn có chắc muốn hủy đơn này?');">
+                                                          onsubmit="return confirm('Bạn có chắc muốn hủy đơn này?');" style="display:inline">
                                                         <input type="hidden" name="action" value="cancel">
                                                         <input type="hidden" name="id" value="${po.purchaseOrderId}">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hủy đơn">
-                                                            <i class="fas fa-times"></i>
+                                                        <button type="submit" class="action-btn action-cancel" title="Hủy đơn">
+                                                            <iconify-icon icon="lucide:x"></iconify-icon>
                                                         </button>
                                                     </form>
                                                 </c:if>

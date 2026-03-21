@@ -14,7 +14,8 @@ public class PurchaseOrderDAO extends DBContext {
         List<PurchaseOrder> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT po.*, s.supplier_name, ")
-                .append("u1.full_name as created_by_name, u2.full_name as approved_by_name ")
+                .append("u1.full_name as created_by_name, u2.full_name as approved_by_name, ")
+                .append("(SELECT u_gi.full_name FROM goods_issues gi JOIN users u_gi ON gi.approved_by = u_gi.user_id WHERE gi.issue_type = 'sale' AND gi.notes LIKE CONCAT('%[PO_ID:', po.purchase_order_id, ']%') ORDER BY gi.issue_id DESC LIMIT 1) as gi_approved_by_name ")
                 .append("FROM purchase_orders po ")
                 .append("LEFT JOIN suppliers s ON po.supplier_id = s.supplier_id ")
                 .append("LEFT JOIN users u1 ON po.created_by = u1.user_id ")
@@ -74,7 +75,8 @@ public class PurchaseOrderDAO extends DBContext {
         List<PurchaseOrder> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT po.*, NULL as supplier_name, ")
-                .append("u1.full_name as created_by_name, u2.full_name as approved_by_name ")
+                .append("u1.full_name as created_by_name, u2.full_name as approved_by_name, ")
+                .append("(SELECT u_gi.full_name FROM goods_issues gi JOIN users u_gi ON gi.approved_by = u_gi.user_id WHERE gi.issue_type = 'sale' AND gi.notes LIKE CONCAT('%[PO_ID:', po.purchase_order_id, ']%') ORDER BY gi.issue_id DESC LIMIT 1) as gi_approved_by_name ")
                 .append("FROM purchase_orders po ")
                 .append("LEFT JOIN users u1 ON po.created_by = u1.user_id ")
                 .append("LEFT JOIN users u2 ON po.approved_by = u2.user_id ")
@@ -129,7 +131,8 @@ public class PurchaseOrderDAO extends DBContext {
     public List<PurchaseOrder> getSaleOrdersByCreator(int userId, String status, int offset, int limit) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT po.*, NULL as supplier_name, ")
-                .append("u1.full_name as created_by_name, u2.full_name as approved_by_name ")
+                .append("u1.full_name as created_by_name, u2.full_name as approved_by_name, ")
+                .append("(SELECT u_gi.full_name FROM goods_issues gi JOIN users u_gi ON gi.approved_by = u_gi.user_id WHERE gi.issue_type = 'sale' AND gi.notes LIKE CONCAT('%[PO_ID:', po.purchase_order_id, ']%') ORDER BY gi.issue_id DESC LIMIT 1) as gi_approved_by_name ")
                 .append("FROM purchase_orders po ")
                 .append("LEFT JOIN users u1 ON po.created_by = u1.user_id ")
                 .append("LEFT JOIN users u2 ON po.approved_by = u2.user_id ")
@@ -226,7 +229,8 @@ public class PurchaseOrderDAO extends DBContext {
     public PurchaseOrder getPurchaseOrderById(int purchaseOrderId) {
         // Dùng LEFT JOIN để không bỏ qua Sale Orders có supplier_id = NULL
         String sql = "SELECT po.*, s.supplier_name, " +
-                "u1.full_name as created_by_name, u2.full_name as approved_by_name " +
+                "u1.full_name as created_by_name, u2.full_name as approved_by_name, " +
+                "(SELECT u_gi.full_name FROM goods_issues gi JOIN users u_gi ON gi.approved_by = u_gi.user_id WHERE gi.issue_type = 'sale' AND gi.notes LIKE CONCAT('%[PO_ID:', po.purchase_order_id, ']%') ORDER BY gi.issue_id DESC LIMIT 1) as gi_approved_by_name " +
                 "FROM purchase_orders po " +
                 "LEFT JOIN suppliers s ON po.supplier_id = s.supplier_id " +
                 "LEFT JOIN users u1 ON po.created_by = u1.user_id " +
@@ -341,7 +345,8 @@ public class PurchaseOrderDAO extends DBContext {
         List<PurchaseOrder> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
             "SELECT po.*, s.supplier_name, " +
-            "u1.full_name as created_by_name, u2.full_name as approved_by_name " +
+            "u1.full_name as created_by_name, u2.full_name as approved_by_name, " +
+            "(SELECT u_gi.full_name FROM goods_issues gi JOIN users u_gi ON gi.approved_by = u_gi.user_id WHERE gi.issue_type = 'sale' AND gi.notes LIKE CONCAT('%[PO_ID:', po.purchase_order_id, ']%') ORDER BY gi.issue_id DESC LIMIT 1) as gi_approved_by_name " +
             "FROM purchase_orders po " +
             "LEFT JOIN suppliers s ON po.supplier_id = s.supplier_id " +
             "LEFT JOIN users u1 ON po.created_by = u1.user_id " +
@@ -410,6 +415,13 @@ public class PurchaseOrderDAO extends DBContext {
         }
 
         po.setNotes(rs.getString("notes"));
+        
+        try {
+            po.setGoodsIssueApprovedByName(rs.getString("gi_approved_by_name"));
+        } catch (SQLException e) {
+            // Ignore if not queried
+        }
+
         po.setCreatedAt(rs.getTimestamp("created_at"));
         po.setUpdatedAt(rs.getTimestamp("updated_at"));
         return po;
