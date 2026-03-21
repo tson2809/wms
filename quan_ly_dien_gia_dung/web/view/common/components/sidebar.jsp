@@ -8,7 +8,7 @@
     }
 
     java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-    if (currentUser != null) {
+    if (currentUser != null && userPermissions == null) {
         try {
             dal.RoleDAO roleDAO = new dal.RoleDAO();
             java.util.List<String> permissionNames = roleDAO.getRolePermissionNames(currentUser.getRoleId());
@@ -99,6 +99,7 @@
             || currentURI.contains("/sheet-create.jsp")
             || currentURI.contains("/sheet-view.jsp")
             || currentURI.contains("/sheet-edit.jsp")) ? "active" : "";
+    String managerReportActive = currentURI.contains("/manager-report") ? "active" : "";
 
         String salesReturnActive = (currentURI.contains("/sales-return-list")
             || currentURI.contains("/sales-return-add")
@@ -157,10 +158,11 @@
                 <% } %>
             </div>
         <% } else if ("manager".equals(roleName)) { %>
-            <a href="${pageContext.request.contextPath}/inventory-list" class="navbar-brand mx-4 mb-3">
+            <a href="${pageContext.request.contextPath}/manager-report" class="navbar-brand mx-4 mb-3">
                 <h3 class="text-primary">WMS_HA</h3>
             </a>
             <div class="navbar-nav w-100">
+                <a href="${pageContext.request.contextPath}/manager-report" class="nav-item nav-link <%= managerReportActive %>"><i class="fa fa-chart-pie me-2"></i>Báo cáo thống kê</a>
                 <% if (canViewInventory) { %>
                 <a href="${pageContext.request.contextPath}/inventory-list" class="nav-item nav-link <%= inventoryListActive %>"><i class="fa fa-boxes me-2"></i>Tồn kho</a>
                 <% } %>

@@ -188,9 +188,10 @@ public class ProductDAO extends DBContext {
             ps.setObject(4, keyword);
             ps.setString(5, keyword == null ? null : "%" + keyword + "%");
             ps.setString(6, keyword == null ? null : "%" + keyword + "%");
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                total = rs.getInt(1);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    total = rs.getInt(1);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

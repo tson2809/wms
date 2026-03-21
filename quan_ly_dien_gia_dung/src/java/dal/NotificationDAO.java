@@ -4,6 +4,7 @@
  */
 package dal;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,9 +27,9 @@ public class NotificationDAO extends DBContext {
         String sql = """
                 SELECT * FROM notifications ORDER BY notification_id desc
                 """;
-        try {
-            PreparedStatement pre = this.getConnection().prepareStatement(sql);
-            ResultSet rs = pre.executeQuery();
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql);
+             ResultSet rs = pre.executeQuery()) {
             while (rs.next()) {
                 int notificationId = rs.getInt("notification_id");
                 int creatorId = rs.getInt("creator_id");
@@ -53,12 +54,12 @@ public class NotificationDAO extends DBContext {
                 WHERE title LIKE ? OR content LIKE ?
                 ORDER BY notification_id DESC
                 """;
-        try {
-            PreparedStatement pre = this.getConnection().prepareStatement(sql);
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql)) {
             String pattern = "%" + keyword + "%";
             pre.setString(1, pattern);
             pre.setString(2, pattern);
-            ResultSet rs = pre.executeQuery();
+            try (ResultSet rs = pre.executeQuery()) {
             while (rs.next()) {
                 int notificationId = rs.getInt("notification_id");
                 int creatorId = rs.getInt("creator_id");
@@ -70,6 +71,7 @@ public class NotificationDAO extends DBContext {
                         notificationType, title, content, createdAt);
                 list.add(n);
             }
+            }
         } catch (SQLException ex) {
             Logger.getLogger(NotificationDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -80,18 +82,19 @@ public class NotificationDAO extends DBContext {
         String sql = """
                 SELECT * FROM notifications WHERE notification_id = ?
                 """;
-        try {
-            PreparedStatement pre = this.getConnection().prepareStatement(sql);
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql)) {
             pre.setInt(1, notificationId);
-            ResultSet rs = pre.executeQuery();
-            if (rs.next()) {
-                int id = rs.getInt("notification_id");
-                int creatorId = rs.getInt("creator_id");
-                String notificationType = rs.getString("notification_type");
-                String title = rs.getString("title");
-                String content = rs.getString("content");
-                Timestamp createdAt = rs.getTimestamp("created_at");
-                return new Notification(id, creatorId, notificationType, title, content, createdAt);
+            try (ResultSet rs = pre.executeQuery()) {
+                if (rs.next()) {
+                    int id = rs.getInt("notification_id");
+                    int creatorId = rs.getInt("creator_id");
+                    String notificationType = rs.getString("notification_type");
+                    String title = rs.getString("title");
+                    String content = rs.getString("content");
+                    Timestamp createdAt = rs.getTimestamp("created_at");
+                    return new Notification(id, creatorId, notificationType, title, content, createdAt);
+                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(NotificationDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -105,16 +108,18 @@ public class NotificationDAO extends DBContext {
                 INSERT INTO notifications (creator_id, notification_type, title, content)
                 VALUES (?, ?, ?, ?)
                 """;
-        try (PreparedStatement pre = this.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pre.setInt(1, s.getCreatorId());
             pre.setString(2, s.getNotificationType());
             pre.setString(3, s.getTitle());
             pre.setString(4, s.getContent());
             n = pre.executeUpdate();
             if (n > 0) {
-                ResultSet keys = pre.getGeneratedKeys();
-                if (keys.next()) {
-                    return keys.getInt(1);
+                try (ResultSet keys = pre.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        return keys.getInt(1);
+                    }
                 }
             }
         } catch (SQLException ex) {
@@ -129,7 +134,8 @@ public class NotificationDAO extends DBContext {
                 UPDATE notifications SET creator_id = ?, notification_type = ?, title = ?, content = ?
                 WHERE notification_id = ?
                 """;
-        try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql)) {
             pre.setInt(1, s.getCreatorId());
             pre.setString(2, s.getNotificationType());
             pre.setString(3, s.getTitle());
@@ -148,9 +154,9 @@ public class NotificationDAO extends DBContext {
                  SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_NAME = 'notifications' 
                  AND COLUMN_NAME = 'notification_type'
                  """;
-        try {
-            PreparedStatement st = this.getConnection().prepareStatement(sql);
-            ResultSet rs = st.executeQuery();
+        try (Connection conn = this.getConnection();
+             PreparedStatement st = conn.prepareStatement(sql);
+             ResultSet rs = st.executeQuery()) {
             if (rs.next()) {
                 String columnType = rs.getString("COLUMN_TYPE");
                 columnType = columnType.substring(5, columnType.length() - 1);
@@ -170,7 +176,8 @@ public class NotificationDAO extends DBContext {
         String sql = """
                      delete from notifications where notification_id = ?
                      """;
-        try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql)) {
             pre.setInt(1, notificationId);
             n = pre.executeUpdate();
         } catch (SQLException ex) {
