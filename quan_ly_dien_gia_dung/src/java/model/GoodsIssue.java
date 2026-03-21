@@ -25,44 +25,110 @@ public class GoodsIssue {
     private User approvedByUser;
     private Integer returnOrderId;
 
-    public GoodsIssue() {}
+    public GoodsIssue() {
+    }
 
-    public int getIssueId() { return issueId; }
-    public void setIssueId(int issueId) { this.issueId = issueId; }
+    public int getIssueId() {
+        return issueId;
+    }
 
-    public String getIssueCode() { return issueCode; }
-    public void setIssueCode(String issueCode) { this.issueCode = issueCode; }
+    public void setIssueId(int issueId) {
+        this.issueId = issueId;
+    }
 
-    public String getIssueType() { return issueType; }
-    public void setIssueType(String issueType) { this.issueType = issueType; }
+    public String getIssueCode() {
+        return issueCode;
+    }
 
-    public Timestamp getIssueDate() { return issueDate; }
-    public void setIssueDate(Timestamp issueDate) { this.issueDate = issueDate; }
+    public void setIssueCode(String issueCode) {
+        this.issueCode = issueCode;
+    }
 
-    public String getReceiverName() { return receiverName; }
-    public void setReceiverName(String receiverName) { this.receiverName = receiverName; }
+    public String getIssueType() {
+        return issueType;
+    }
 
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
+    public void setIssueType(String issueType) {
+        this.issueType = issueType;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public Timestamp getIssueDate() {
+        return issueDate;
+    }
 
-    public String getNotes() { return notes; }
-    public void setNotes(String notes) { this.notes = notes; }
+    public void setIssueDate(Timestamp issueDate) {
+        this.issueDate = issueDate;
+    }
 
-    public Timestamp getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    public String getReceiverName() {
+        return receiverName;
+    }
 
-    public Timestamp getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
+    }
 
-    public User getCreatedByUser() { return createdByUser; }
-    public void setCreatedByUser(User createdByUser) { this.createdByUser = createdByUser; }
+    public String getDepartment() {
+        return department;
+    }
 
-    public User getApprovedByUser() { return approvedByUser; }
-    public void setApprovedByUser(User approvedByUser) { this.approvedByUser = approvedByUser; }
+    public void setDepartment(String department) {
+        this.department = department;
+    }
 
-    public Integer getReturnOrderId() { return returnOrderId; }
-    public void setReturnOrderId(Integer returnOrderId) { this.returnOrderId = returnOrderId; }
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public User getCreatedByUser() {
+        return createdByUser;
+    }
+
+    public void setCreatedByUser(User createdByUser) {
+        this.createdByUser = createdByUser;
+    }
+
+    public User getApprovedByUser() {
+        return approvedByUser;
+    }
+
+    public void setApprovedByUser(User approvedByUser) {
+        this.approvedByUser = approvedByUser;
+    }
+
+    public Integer getReturnOrderId() {
+        return returnOrderId;
+    }
+
+    public void setReturnOrderId(Integer returnOrderId) {
+        this.returnOrderId = returnOrderId;
+    }
 }

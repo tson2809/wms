@@ -21,11 +21,20 @@
     </style>
 </head>
 <body>
-    <div class="container-xxl position-relative bg-white d-flex p-0">
-        <jsp:include page="components/sidebarManager.jsp" />
-        
+    <div class="container-fluid position-relative d-flex p-0">
+        <c:choose>
+            <c:when test="${sessionScope.user.role.roleId == 2}">
+                <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+            </c:when>
+            <c:when test="${sessionScope.user.role.roleId == 3}">
+                <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
+            </c:when>
+            <c:otherwise>
+                <jsp:include page="/view/sale/components/sidebarSale.jsp" />
+            </c:otherwise>
+        </c:choose>
         <div class="content">
-            <jsp:include page="../common/components/navbar.jsp" />
+            <jsp:include page="/view/common/components/navbar.jsp" />
             
             <div class="container-fluid pt-4 px-4">
                 <div class="bg-light rounded p-4">

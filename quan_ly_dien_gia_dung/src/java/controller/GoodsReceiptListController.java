@@ -5,6 +5,7 @@
 package controller;
 
 import dal.GoodsReceiptDAO;
+import dal.PurchaseOrderDAO;
 import dal.SalesReturnDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -26,6 +27,7 @@ import model.User;
 public class GoodsReceiptListController extends HttpServlet {
     private GoodsReceiptDAO goodsReceiptDAO = new GoodsReceiptDAO();
     private SalesReturnDAO salesReturnDAO = new SalesReturnDAO();
+    private PurchaseOrderDAO purchaseOrderDAO = new PurchaseOrderDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -44,10 +46,23 @@ public class GoodsReceiptListController extends HttpServlet {
                 Integer approvedBy = "completed".equals(statusParam) && user != null ? user.getUserId() : null;
                 int receiptId = Integer.parseInt(idParam);
                 boolean success = goodsReceiptDAO.updateGoodsReceiptStatus(receiptId, statusParam, approvedBy);
-                if (success && "completed".equals(statusParam)) {
-                    GoodsReceipt receipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
-                    if (receipt != null && receipt.getSalesReturnId() != null) {
-                        salesReturnDAO.completeSalesReturn(receipt.getSalesReturnId());
+                if (success) {
+                    if ("completed".equals(statusParam) || "cancelled".equals(statusParam)) {
+                        GoodsReceipt receipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+                        if (receipt != null) {
+                            if ("completed".equals(statusParam)) {
+                                if (receipt.getSalesReturnId() != null) {
+                                    salesReturnDAO.completeSalesReturn(receipt.getSalesReturnId());
+                                }
+                                if (receipt.getPurchaseOrderId() != null) {
+                                    purchaseOrderDAO.completePurchaseOrder(receipt.getPurchaseOrderId());
+                                }
+                            } else if ("cancelled".equals(statusParam)) {
+                                if (receipt.getPurchaseOrderId() != null) {
+                                    purchaseOrderDAO.cancelPurchaseOrder(receipt.getPurchaseOrderId());
+                                }
+                            }
+                        }
                     }
                 }
             } catch (NumberFormatException e) {

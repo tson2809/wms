@@ -29,7 +29,7 @@
     </style>
 </head>
 <body>
-    <div class="container-fluid position-relative bg-white d-flex p-0">
+    <div class="container-fluid position-relative d-flex p-0">
         <jsp:include page="components/sidebarManager.jsp" />
         
         <div class="content">
