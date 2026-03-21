@@ -77,7 +77,7 @@ public class InventorySheetApproveController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         User user = (User) request.getSession().getAttribute("user");
-        if (user == null || user.getRoleId() != 2) {
+        if (user == null) {
             response.sendRedirect(request.getContextPath() + "/inventory-sheet-list");
             return;
         }

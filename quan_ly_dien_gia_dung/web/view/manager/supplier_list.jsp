@@ -6,6 +6,12 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%
+    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+    boolean canCreateSupplier = userPermissions != null && userPermissions.contains("create supplier");
+    boolean canEditSupplier = userPermissions != null && userPermissions.contains("edit supplier");
+    boolean canDeactivateSupplier = userPermissions != null && userPermissions.contains("deactivate supplier");
+%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -121,7 +127,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -130,7 +136,9 @@
                         <div class="col-12 supplier-list-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0 fw-semibold">Danh sách nhà cung cấp</h5>
+                                <% if (canCreateSupplier) { %>
                                 <a href="${pageContext.request.contextPath}/supplier-add" class="btn btn-primary">Thêm nhà cung cấp</a>
+                                <% } %>
                             </div>
                             <form action="${pageContext.request.contextPath}/supplier-list" method="post" class="mb-3 supplier-filter-form">
                                 <input type="hidden" name="numberPerPage" value="${numberPerPage}">
@@ -195,10 +203,13 @@
                                             </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
+                                                    <% if (canEditSupplier) { %>
                                                     <a href="${pageContext.request.contextPath}/supplier-detail?id=${s.supplierId}"
                                                        class="action-btn action-edit" title="Chỉnh sửa">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
+                                                    <% } %>
+                                                    <% if (canDeactivateSupplier) { %>
                                                     <c:choose>
                                                         <c:when test="${s.status == 'active'}">
                                                             <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn deactive nhà cung cấp này?')">
@@ -219,6 +230,10 @@
                                                             </form>
                                                         </c:otherwise>
                                                     </c:choose>
+                                                    <% } %>
+                                                    <% if (!canEditSupplier && !canDeactivateSupplier) { %>
+                                                        <span class="text-muted small">-</span>
+                                                    <% } %>
                                                 </div>
                                             </td>
                                         </tr>

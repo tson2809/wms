@@ -10,31 +10,14 @@ import java.net.URLEncoder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import model.User;
 
 @WebServlet(name = "UnitAddController", urlPatterns = {"/unit-add"})
 public class UnitAddController extends HttpServlet {
     private final UnitDAO unitDAO = new UnitDAO();
 
-    private boolean checkManager(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        User user = (session != null) ? (User) session.getAttribute("user") : null;
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return false;
-        }
-        if (user.getRole() == null || !"Manager".equalsIgnoreCase(user.getRole().getRoleName())) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
-            return false;
-        }
-        return true;
-    }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!checkManager(request, response)) return;
         request.setAttribute("mode", "add");
         request.getRequestDispatcher("/view/manager/unit_detail.jsp").forward(request, response);
     }
@@ -42,8 +25,6 @@ public class UnitAddController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!checkManager(request, response)) return;
-
         request.setCharacterEncoding("UTF-8");
         String unitName = request.getParameter("unitName");
 

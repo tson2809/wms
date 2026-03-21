@@ -6,45 +6,17 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import model.Brand;
-import model.User;
 
 @WebServlet(name = "BrandAddController", urlPatterns = {"/brand-add"})
 public class BrandAddController extends HttpServlet {
 
     private final BrandDAO brandDAO = new BrandDAO();
 
-    private boolean hasRole(HttpServletRequest request, String... roles) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return false;
-        }
-        Object u = session.getAttribute("user");
-        if (!(u instanceof User)) {
-            return false;
-        }
-        User user = (User) u;
-        if (user.getRole() == null || user.getRole().getRoleName() == null) {
-            return false;
-        }
-        String roleName = user.getRole().getRoleName().toLowerCase();
-        for (String r : roles) {
-            if (r != null && roleName.equals(r.toLowerCase())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!hasRole(request, "manager")) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
         request.getRequestDispatcher("/view/admin/brand-add.jsp").forward(request, response);
     }
 
@@ -52,11 +24,6 @@ public class BrandAddController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-
-        if (!hasRole(request, "manager")) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
 
         String brandName = request.getParameter("brandName");
         String description = request.getParameter("description");

@@ -49,12 +49,7 @@ public class PurchaseOrderCreateController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || user.getRole().getRoleId() != 2) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
-            return;
-        }
 
         List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
 
@@ -75,10 +70,6 @@ public class PurchaseOrderCreateController extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || user.getRole().getRoleId() != 2) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
-            return;
-        }
 
         try {
             String supplierIdParam = request.getParameter("supplierId");
