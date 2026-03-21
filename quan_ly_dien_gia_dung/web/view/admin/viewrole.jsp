@@ -60,7 +60,7 @@
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
             <!-- Sidebar Container -->
-            <jsp:include page="/view/admin/components/sidebarAdmin.jsp" />
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <!-- Content Start -->
             <div class="content">

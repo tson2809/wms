@@ -560,6 +560,30 @@ public class UserDAO extends DBContext {
         return false;
     }
 
+    public boolean existsEmail(String email, Integer excludeUserId) {
+        if (email == null) {
+            return false;
+        }
+
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM users WHERE email = ?");
+        if (excludeUserId != null) {
+            sql.append(" AND user_id <> ?");
+        }
+        sql.append(" LIMIT 1");
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql.toString())) {
+            ps.setString(1, email.trim());
+            if (excludeUserId != null) {
+                ps.setInt(2, excludeUserId);
+            }
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public int insert(User user) {
         String sql = """
         INSERT INTO users (username, email, password_hash, full_name, phone, address, avatar, role_id, is_active)

@@ -41,13 +41,13 @@
         <div class="container-fluid position-relative bg-white d-flex p-0">
            <c:choose>
                 <c:when test="${sessionScope.user.role.roleId == 2}">
-                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
                 </c:when>
                 <c:when test="${sessionScope.user.role.roleId == 3}">
-                    <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
                 </c:when>
                 <c:otherwise>
-                    <jsp:include page="/view/common/components/RoleSideBar.jsp" />
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
                 </c:otherwise>
             </c:choose>
             <div class="content">

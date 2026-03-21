@@ -12,9 +12,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import model.Supplier;
-import model.User;
 
 /**
  *
@@ -28,18 +26,6 @@ public class SupplierDetailController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        User loggedUser = (session != null) ? (User) session.getAttribute("user") : null;
-
-        if (loggedUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        if (loggedUser.getRole() == null || !"Manager".equalsIgnoreCase(loggedUser.getRole().getRoleName())) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
-            return;
-        }
-
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/supplier-list");
@@ -62,18 +48,6 @@ public class SupplierDetailController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        User loggedUser = (session != null) ? (User) session.getAttribute("user") : null;
-
-        if (loggedUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        if (loggedUser.getRole() == null || !"Manager".equalsIgnoreCase(loggedUser.getRole().getRoleName())) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
-            return;
-        }
-
         request.setCharacterEncoding("UTF-8");
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.isEmpty()) {

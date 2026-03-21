@@ -30,11 +30,6 @@ public class PurchaseOrderClaimController extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || user.getRole().getRoleId() != 3) {
-            session.setAttribute("errorMessage", "Bạn không có quyền thực hiện thao tác này.");
-            response.sendRedirect(request.getContextPath() + "/purchase-order/list");
-            return;
-        }
 
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.trim().isEmpty()) {

@@ -69,17 +69,24 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 </head>
 <body>
+    <%
+        java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+        boolean canCreatePurchaseOrder = userPermissions != null && userPermissions.contains("create purchase order");
+        boolean canEditPurchaseOrder = userPermissions != null && userPermissions.contains("edit purchase order");
+        boolean canCancelPurchaseOrder = userPermissions != null && userPermissions.contains("cancel purchase order");
+        boolean canClaimPurchaseOrder = userPermissions != null && userPermissions.contains("claim purchase order");
+    %>
     <div class="container-fluid position-relative d-flex p-0">
         <!-- Sidebar -->
         <c:choose>
             <c:when test="${roleId == 2}">
-                <jsp:include page="/view/manager/components/sidebarManager.jsp"/>
+                <jsp:include page="/view/common/components/sidebar.jsp"/>
             </c:when>
             <c:when test="${roleId == 4}">
-                <jsp:include page="/view/sale/components/sidebarSale.jsp"/>
+                <jsp:include page="/view/common/components/sidebar.jsp"/>
             </c:when>
             <c:otherwise>
-                <jsp:include page="/view/staff/components/sidebarStaff.jsp"/>
+                <jsp:include page="/view/common/components/sidebar.jsp"/>
             </c:otherwise>
         </c:choose>
 
@@ -112,14 +119,18 @@
                     </h5>
                     <div class="d-flex gap-2">
                         <c:if test="${roleId == 2}">
+                            <% if (canCreatePurchaseOrder) { %>
                             <a href="${pageContext.request.contextPath}/purchase-order/create" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i> Tạo đơn đặt hàng
                             </a>
+                            <% } %>
                         </c:if>
                         <c:if test="${roleId == 4}">
+                            <% if (canCreatePurchaseOrder) { %>
                             <a href="${pageContext.request.contextPath}/sale-order/create" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i> Tạo đơn đặt hàng
                             </a>
+                            <% } %>
                         </c:if>
                     </div>
                 </div>
@@ -270,15 +281,18 @@
                                                 </a>
 
                                                 <!-- Manager: Sửa (chỉ khi draft) -->
-                                                <c:if test="${roleId == 2 and po.status == 'draft'}">
+                                                <% if (canEditPurchaseOrder) { %>
+                                                <c:if test="${po.status == 'draft'}">
                                                     <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
                                                        class="action-btn action-edit" title="Chỉnh sửa">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
                                                 </c:if>
+                                                <% } %>
 
-                                                <!-- Manager: Hủy (draft hoặc submitted) -->
-                                                <c:if test="${roleId == 2 and (po.status == 'draft' or po.status == 'submitted')}">
+                                                                                                <!-- Non-Sale: Hủy (draft hoặc submitted) -->
+                                                <% if (canCancelPurchaseOrder) { %>
+                                                                                                <c:if test="${roleId != 4 and (po.status == 'draft' or po.status == 'submitted')}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/list"
                                                           onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');" style="display:inline">
                                                         <input type="hidden" name="action" value="cancel">
@@ -288,9 +302,11 @@
                                                         </button>
                                                     </form>
                                                 </c:if>
+                                                <% } %>
 
                                                 <%-- Staff: Nhận đơn (chỉ draft, chưa có người nhận) --%>
-                                                <c:if test="${roleId == 3 and po.status == 'draft' and empty po.approvedByName}">
+                                                <% if (canClaimPurchaseOrder) { %>
+                                                <c:if test="${po.status == 'draft' and empty po.approvedByName}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/claim"
                                                           onsubmit="return confirm('Bạn muốn nhận đơn đặt hàng này?');" style="display:inline">
                                                         <input type="hidden" name="id" value="${po.purchaseOrderId}">
@@ -299,6 +315,7 @@
                                                         </button>
                                                     </form>
                                                 </c:if>
+                                                <% } %>
 
                                                 <%-- Staff: Tạo phiếu nhập kho (PO có NCC, submitted, là người phụ trách) --%>
                                                 <c:if test="${roleId == 3 and not empty po.supplierName and po.status == 'submitted' and po.approvedBy == currentUserId}">
@@ -316,8 +333,9 @@
                                                     </a>
                                                 </c:if>
 
-                                                <%-- Sale: Hủy đơn (chỉ khi draft) --%>
-                                                <c:if test="${roleId == 4 and po.status == 'draft'}">
+                                                                                                <%-- Sale: Hủy đơn (chỉ khi draft) --%>
+                                                                                                <% if (canCancelPurchaseOrder) { %>
+                                                                                                <c:if test="${roleId == 4 and po.status == 'draft'}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/list"
                                                           onsubmit="return confirm('Bạn có chắc muốn hủy đơn này?');" style="display:inline">
                                                         <input type="hidden" name="action" value="cancel">
@@ -327,6 +345,7 @@
                                                         </button>
                                                     </form>
                                                 </c:if>
+                                                <% } %>
 
                                             </div>
                                         </td>
@@ -365,14 +384,14 @@
         </div><!-- /.content -->
     </div><!-- /.container-fluid -->
 
-    <script src="${pageContext.request.contextPath}/js/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/chart/chart.min.js"></script>
-    <script src="${pageContext.request.contextPath}/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/easing/easing.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/waypoints/waypoints.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/owlcarousel/owl.carousel.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment.min.js"></script>
-    <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.js"></script>
+    <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
 </body>

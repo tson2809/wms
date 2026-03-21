@@ -27,7 +27,6 @@ import jakarta.servlet.http.Part;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import model.User;
 import modelDTO.ProductAddDTO;
 import modelDTO.ProductVariantSimpleDTO;
 
@@ -52,24 +51,14 @@ public class ProductEditController extends HttpServlet {
         request.setAttribute("units", unitDAO.getAllUnits());
     }
 
-    private boolean checkManager(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        HttpSession session = request.getSession(false);
-        User user = (session != null) ? (User) session.getAttribute("user") : null;
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return false;
-        }
-        if (user.getRole() == null || !"Manager".equalsIgnoreCase(user.getRole().getRoleName())) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
-            return false;
-        }
-        return true;
-    }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!checkManager(request, response)) return;
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.isBlank()) {
@@ -106,7 +95,11 @@ public class ProductEditController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!checkManager(request, response)) return;
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         request.setCharacterEncoding("UTF-8");
         loadDropdownData(request);

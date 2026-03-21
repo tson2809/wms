@@ -27,7 +27,7 @@
             <body>
                 <div class="container-fluid position-relative bg-white d-flex p-0">
                     <!-- Sidebar -->
-                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
 
                     <!-- Content Start -->
                     <div class="content">

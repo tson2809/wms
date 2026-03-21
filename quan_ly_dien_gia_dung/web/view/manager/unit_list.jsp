@@ -93,8 +93,14 @@
         </style>
     </head>
     <body>
+        <%
+            java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+            boolean canCreateUnit = userPermissions != null && userPermissions.contains("create unit");
+            boolean canEditUnit = userPermissions != null && userPermissions.contains("edit unit");
+            boolean canDeleteUnit = userPermissions != null && userPermissions.contains("delete unit");
+        %>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -104,7 +110,9 @@
                         <div class="col-12 unit-list-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0 fw-semibold">Danh sách đơn vị tính</h5>
+                                <% if (canCreateUnit) { %>
                                 <a href="${pageContext.request.contextPath}/unit-add" class="btn btn-primary">Thêm đơn vị</a>
+                                <% } %>
                             </div>
 
                             <c:if test="${not empty message}">
@@ -147,10 +155,13 @@
                                             <td>${u.unitName}</td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
+                                                    <% if (canEditUnit) { %>
                                                     <a href="${pageContext.request.contextPath}/unit-edit?id=${u.unitId}"
                                                        class="action-btn action-edit" title="Chỉnh sửa">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
+                                                    <% } %>
+                                                    <% if (canDeleteUnit) { %>
                                                     <button type="button"
                                                             class="action-btn action-delete btn-delete"
                                                             data-id="${u.unitId}"
@@ -158,6 +169,10 @@
                                                             title="Xóa">
                                                         <iconify-icon icon="lucide:trash-2"></iconify-icon>
                                                     </button>
+                                                    <% } %>
+                                                    <% if (!canEditUnit && !canDeleteUnit) { %>
+                                                        <span class="text-muted small">-</span>
+                                                    <% } %>
                                                 </div>
                                             </td>
                                         </tr>
