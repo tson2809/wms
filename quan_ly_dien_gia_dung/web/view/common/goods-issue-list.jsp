@@ -45,10 +45,6 @@
                 background-color: #fef3c7;
                 color: #92400e;
             }
-            .issue-list-section .status-confirmed {
-                background-color: #dbeafe;
-                color: #1e40af;
-            }
             .issue-list-section .status-completed {
                 background-color: #d1fae5;
                 color: #065f46;
@@ -174,7 +170,6 @@
                                         <select name="status" class="form-select" onchange="this.form.submit()">
                                             <option value="">Tất cả</option>
                                             <option value="draft"     ${status == 'draft'     ? 'selected' : ''}>Nháp</option>
-                                            <option value="confirmed" ${status == 'confirmed' ? 'selected' : ''}>Đã xác nhận</option>
                                             <option value="completed" ${status == 'completed' ? 'selected' : ''}>Hoàn thành</option>
                                             <option value="cancelled" ${status == 'cancelled' ? 'selected' : ''}>Đã hủy</option>
                                         </select>
@@ -196,7 +191,6 @@
                                             <th style="width: 140px;">Mã phiếu</th>
                                             <th style="width: 130px;">Loại xuất</th>
                                             <th>Người nhận</th>
-                                            <th>Bộ phận</th>
                                             <th style="width: 130px;">Ngày xuất</th>
                                             <th style="width: 120px;">Trạng thái</th>
                                             <th style="width: 150px;">Người tạo</th>
@@ -212,14 +206,11 @@
                                                     <c:choose>
                                                         <c:when test="${gi.issueType eq 'sale'}">Bán hàng</c:when>
                                                         <c:when test="${gi.issueType eq 'return_supplier'}">Trả NCC</c:when>
-                                                        <c:when test="${gi.issueType eq 'transfer'}">Điều chuyển</c:when>
-                                                        <c:when test="${gi.issueType eq 'disposal'}">Hủy hàng</c:when>
-                                                        <c:when test="${gi.issueType eq 'internal_use'}">Nội bộ</c:when>
+                                                        <c:when test="${gi.issueType eq 'other'}">Khác</c:when>
                                                         <c:otherwise>${gi.issueType}</c:otherwise>
                                                     </c:choose>
                                                 </td>
                                                 <td>${gi.receiverName}</td>
-                                                <td>${not empty gi.department ? gi.department : '-'}</td>
                                                 <td>
                                                     <fmt:formatDate value="${gi.issueDate}" pattern="dd/MM/yyyy" />
                                                 </td>
@@ -227,9 +218,6 @@
                                                     <c:choose>
                                                         <c:when test="${gi.status == 'draft'}">
                                                             <span class="status-badge status-draft">Nháp</span>
-                                                        </c:when>
-                                                        <c:when test="${gi.status == 'confirmed'}">
-                                                            <span class="status-badge status-confirmed">Đã xác nhận</span>
                                                         </c:when>
                                                         <c:when test="${gi.status == 'completed'}">
                                                             <span class="status-badge status-completed">Hoàn thành</span>

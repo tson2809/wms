@@ -105,7 +105,8 @@
 
                                                 <div class="col-md-6">
                                                     <label class="form-label">Role</label>
-                                                    <select class="form-select" name="roleId">
+                                                    <select class="form-select" name="roleId"
+                                                            ${sessionScope.user != null && sessionScope.user.userId == user.userId ? "disabled" : ""}>
                                                         <c:forEach items="${roles}" var="r">
                                                             <option value="${r.roleId}"
                                                                     ${r.roleId == user.role.roleId ? "selected" : ""}>
@@ -113,6 +114,13 @@
                                                             </option>
                                                         </c:forEach>
                                                     </select>
+                                                    <c:if test="${sessionScope.user != null && sessionScope.user.userId == user.userId}">
+                                                        <input type="hidden" name="roleId" value="${user.role.roleId}">
+                                                        <small class="text-muted">Bạn không thể tự thay đổi role của chính mình.</small>
+                                                    </c:if>
+                                                    <c:if test="${not empty roleError}">
+                                                        <small class="text-danger">${roleError}</small>
+                                                    </c:if>
 
                                                 </div>
 
