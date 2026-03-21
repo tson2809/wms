@@ -25,7 +25,7 @@ import model.User;
  *
  * @author thais
  */
-@WebServlet(name = "GoodsIssueEditController", urlPatterns = {"/goods-issue-detail"})
+@WebServlet(name = "GoodsIssueEditController", urlPatterns = { "/goods-issue-detail" })
 public class GoodsIssueEditController extends HttpServlet {
     private GoodsIssueDAO goodsIssueDAO = new GoodsIssueDAO();
     private ReturnOrderDAO returnOrderDAO = new ReturnOrderDAO();
@@ -103,8 +103,31 @@ public class GoodsIssueEditController extends HttpServlet {
             GoodsIssue issue = goodsIssueDAO.getGoodsIssueById(issueId);
             boolean success = goodsIssueDAO.updateGoodsIssueStatus(issueId, statusParam, approvedBy);
 
-            if (success && "completed".equals(statusParam) && issue != null && issue.getReturnOrderId() != null) {
-                returnOrderDAO.completeReturnOrder(issue.getReturnOrderId());
+            if (success && "completed".equals(statusParam) && issue != null) {
+                if (issue.getReturnOrderId() != null) {
+                    returnOrderDAO.completeReturnOrder(issue.getReturnOrderId());
+                }
+                if (issue.getNotes() != null && issue.getNotes().contains("[PO_ID:")) {
+                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[PO_ID:(\\d+)\\]").matcher(issue.getNotes());
+                    if (m.find()) {
+                        try {
+                            int poId = Integer.parseInt(m.group(1));
+                            dal.PurchaseOrderDAO poDAO = new dal.PurchaseOrderDAO();
+                            poDAO.completePurchaseOrder(poId);
+                        } catch (Exception ignored) {}
+                    }
+                }
+            } else if (success && "cancelled".equals(statusParam) && issue != null) {
+                if (issue.getNotes() != null && issue.getNotes().contains("[PO_ID:")) {
+                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[PO_ID:(\\d+)\\]").matcher(issue.getNotes());
+                    if (m.find()) {
+                        try {
+                            int poId = Integer.parseInt(m.group(1));
+                            dal.PurchaseOrderDAO poDAO = new dal.PurchaseOrderDAO();
+                            poDAO.cancelPurchaseOrder(poId);
+                        } catch (Exception ignored) {}
+                    }
+                }
             }
 
             response.sendRedirect(request.getContextPath() + "/goods-issue-list");

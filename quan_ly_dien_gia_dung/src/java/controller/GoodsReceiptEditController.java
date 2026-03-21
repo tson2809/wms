@@ -145,16 +145,22 @@ public class GoodsReceiptEditController extends HttpServlet {
             Integer approvedBy = "completed".equals(status) ? currentUser.getUserId() : null;
             boolean success = goodsReceiptDAO.updateGoodsReceiptStatus(receiptId, status, approvedBy);
             if (success) {
-                if ("completed".equals(status)) {
+                if ("completed".equals(status) || "cancelled".equals(status)) {
                     GoodsReceipt approvedReceipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
                     if (approvedReceipt != null) {
-                        // Nếu receipt liên kết với sales return → complete sales return
-                        if (approvedReceipt.getSalesReturnId() != null) {
-                            salesReturnDAO.completeSalesReturn(approvedReceipt.getSalesReturnId());
-                        }
-                        // Nếu receipt liên kết với purchase order → complete PO
-                        if (approvedReceipt.getPurchaseOrderId() != null) {
-                            purchaseOrderDAO.completePurchaseOrder(approvedReceipt.getPurchaseOrderId());
+                        if ("completed".equals(status)) {
+                            // Nếu receipt liên kết với sales return → complete sales return
+                            if (approvedReceipt.getSalesReturnId() != null) {
+                                salesReturnDAO.completeSalesReturn(approvedReceipt.getSalesReturnId());
+                            }
+                            // Nếu receipt liên kết với purchase order → complete PO
+                            if (approvedReceipt.getPurchaseOrderId() != null) {
+                                purchaseOrderDAO.completePurchaseOrder(approvedReceipt.getPurchaseOrderId());
+                            }
+                        } else if ("cancelled".equals(status)) {
+                            if (approvedReceipt.getPurchaseOrderId() != null) {
+                                purchaseOrderDAO.cancelPurchaseOrder(approvedReceipt.getPurchaseOrderId());
+                            }
                         }
                     }
                 }
