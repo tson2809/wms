@@ -133,7 +133,7 @@
                                             <option value="SALE" ${(supplierIdValue == 'SALE' || (empty poSupplierIdValue && empty param.supplierId)) ? 'selected' : ''}>Đầu vào từ Sale</option>
                                             <c:forEach items="${suppliers}" var="s">
                                                 <option value="${s.supplierId}" 
-                                                    ${(not empty poSupplierIdValue && poSupplierIdValue == s.supplierId) || param.supplierId eq s.supplierId ? 'selected' : ''}>
+                                                    ${(not empty poSupplierIdValue && poSupplierIdValue == s.supplierId) || (param.supplierId ne 'SALE' and param.supplierId eq s.supplierId) ? 'selected' : ''}>
                                                     ${s.supplierName}
                                                 </option>
                                             </c:forEach>
