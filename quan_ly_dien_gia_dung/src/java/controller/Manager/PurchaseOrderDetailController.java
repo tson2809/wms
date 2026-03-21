@@ -36,12 +36,6 @@ public class PurchaseOrderDetailController extends HttpServlet {
             return;
         }
 
-        User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || !"Manager".equalsIgnoreCase(user.getRole().getRoleName())) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
-            return;
-        }
-
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/purchase-order/list");

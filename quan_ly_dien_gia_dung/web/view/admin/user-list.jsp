@@ -38,7 +38,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/admin/components/sidebarAdmin.jsp" />
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -47,11 +47,9 @@
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-3 user-list-header">
                                 <h5 class="mb-0">Members List</h5>
-                                <button class="btn add-member-btn">
-                                    <a  href="${pageContext.request.contextPath}/user-add">
-                                        Thêm người dùng
-                                    </a>
-                                </button>
+                                <a href="${pageContext.request.contextPath}/user-add" class="btn btn-primary">
+                                    Thêm người dùng
+                                </a>
                             </div>
                             <form action="user-list" method="get" class="user-filter-form mb-3">
                                 <div class="row g-2 align-items-end">
@@ -148,13 +146,22 @@
                                                     </a>
                                                     <c:choose>
                                                         <c:when test="${u.active}">
-                                                            <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn deactive user này?')">
-                                                                <input type="hidden" name="id" value="${u.userId}">
-                                                                <input type="hidden" name="active" value="false">
-                                                                <button type="submit" class="btn btn-sm btn-secondary" title="Deactive">
-                                                                    <i class="fa fa-user-slash"></i>
-                                                                </button>
-                                                            </form>
+                                                            <c:choose>
+                                                                <c:when test="${sessionScope.user != null && sessionScope.user.userId == u.userId}">
+                                                                    <button type="button" class="btn btn-sm btn-secondary" title="Không thể tự deactive" disabled>
+                                                                        <i class="fa fa-user-slash"></i>
+                                                                    </button>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn deactive user này?')">
+                                                                        <input type="hidden" name="id" value="${u.userId}">
+                                                                        <input type="hidden" name="active" value="false">
+                                                                        <button type="submit" class="btn btn-sm btn-secondary" title="Deactive">
+                                                                            <i class="fa fa-user-slash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </c:otherwise>
+                                                            </c:choose>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn active user này?')">

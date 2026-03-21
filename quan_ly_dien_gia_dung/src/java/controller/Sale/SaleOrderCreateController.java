@@ -46,7 +46,7 @@ public class SaleOrderCreateController extends HttpServlet {
         }
         User user = (User) session.getAttribute("user");
         if (user.getRole() == null || user.getRole().getRoleId() != 4) {
-            response.sendRedirect(request.getContextPath() + "/indexSale");
+            response.sendRedirect(request.getContextPath() + "/purchase-order/list");
             return;
         }
         request.setAttribute("categories", categoryDAO.getActiveCategories());
@@ -64,7 +64,7 @@ public class SaleOrderCreateController extends HttpServlet {
         }
         User user = (User) session.getAttribute("user");
         if (user.getRole() == null || user.getRole().getRoleId() != 4) {
-            response.sendRedirect(request.getContextPath() + "/indexSale");
+            response.sendRedirect(request.getContextPath() + "/purchase-order/list");
             return;
         }
 

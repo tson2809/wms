@@ -1,6 +1,12 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%
+    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+    boolean canCreateGoodsIssue = userPermissions != null && userPermissions.contains("create goods issue");
+    boolean canEditGoodsIssue = userPermissions != null && userPermissions.contains("edit goods issue");
+    boolean canApproveGoodsIssue = userPermissions != null && userPermissions.contains("approve goods issue");
+%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -132,17 +138,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <c:choose>
-                <c:when test="${sessionScope.user.role.roleId == 2}">
-                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
-                </c:when>
-                <c:when test="${sessionScope.user.role.roleId == 3}">
-                    <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
-                </c:when>
-                <c:otherwise>
-                    <jsp:include page="/view/common/components/RoleSideBar.jsp" />
-                </c:otherwise>
-            </c:choose>
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -151,9 +147,9 @@
                         <div class="col-12 issue-list-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0 fw-semibold">Danh sách phiếu xuất kho</h5>
-                                <c:if test="${sessionScope.user.role.roleId == 3}">
+                                <% if (canCreateGoodsIssue) { %>
                                     <a href="${pageContext.request.contextPath}/goods-issue-add" class="btn btn-primary">Tạo phiếu xuất kho</a>
-                                </c:if>
+                                <% } %>
                             </div>
 
                             <form action="${pageContext.request.contextPath}/goods-issue-list" method="post" class="mb-3 issue-filter-form">
@@ -197,7 +193,6 @@
                                 <table class="table table-hover align-middle">
                                     <thead>
                                         <tr>
-                                            <th style="width: 80px;">ID</th>
                                             <th style="width: 140px;">Mã phiếu</th>
                                             <th style="width: 130px;">Loại xuất</th>
                                             <th>Người nhận</th>
@@ -212,7 +207,6 @@
                                     <tbody>
                                         <c:forEach items="${issues}" var="gi">
                                             <tr>
-                                                <td>${gi.issueId}</td>
                                                 <td><strong>${gi.issueCode}</strong></td>
                                                 <td>
                                                     <c:choose>
@@ -254,14 +248,15 @@
                                                            title="${gi.status == 'draft' ? 'Xem / Duyệt' : 'Xem chi tiết'}">
                                                             <c:choose>
                                                                 <c:when test="${gi.status == 'draft'}">
-                                                                    <iconify-icon icon="lucide:edit-2"></iconify-icon>
+                                                                    <iconify-icon icon="<%= canEditGoodsIssue ? "lucide:edit-2" : "lucide:eye" %>"></iconify-icon>
                                                                 </c:when>
                                                                 <c:otherwise>
                                                                     <iconify-icon icon="lucide:eye"></iconify-icon>
                                                                 </c:otherwise>
                                                             </c:choose>
                                                         </a>
-                                                        <c:if test="${sessionScope.user.role.roleId == 2 and gi.status == 'draft'}">
+                                                        <% if (canApproveGoodsIssue) { %>
+                                                        <c:if test="${gi.status == 'draft'}">
                                                             <form method="POST" action="${pageContext.request.contextPath}/goods-issue-list"
                                                                   style="display:inline"
                                                                   >
@@ -281,6 +276,7 @@
                                                                 </button>
                                                             </form>
                                                         </c:if>
+                                                        <% } %>
                                                     </div>
                                                 </td>
                                             </tr>

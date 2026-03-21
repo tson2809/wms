@@ -81,9 +81,10 @@ public class ChangePassController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String contextPath = request.getContextPath();
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect("login");
+            response.sendRedirect(contextPath + "/login");
             return;
         }
         User sessionUser = (User) session.getAttribute("user");
@@ -91,29 +92,35 @@ public class ChangePassController extends HttpServlet {
         String currentPassword = request.getParameter("currentPassword");
         String newPassword = request.getParameter("newPassword");
         String confirmPassword = request.getParameter("confirmPassword");
+
+        if (newPassword == null || confirmPassword == null || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+            response.sendRedirect(contextPath + "/change-password?error=unknown");
+            return;
+        }
+
         if (currentPassword == null || currentPassword.isEmpty()) {
-            response.sendRedirect("change-password?error=wrong");
+            response.sendRedirect(contextPath + "/change-password?error=wrong");
             return;
         }
         if (!newPassword.equals(confirmPassword)) {
-            response.sendRedirect("change-password?error=confirm");
+            response.sendRedirect(contextPath + "/change-password?error=confirm");
             return;
         }
         if (!newPassword.matches(PASSWORD_REGEX)) {
-            response.sendRedirect("change-password?error=weak");
+            response.sendRedirect(contextPath + "/change-password?error=weak");
             return;
         }
         if (!userDAO.checkCurrentPassword(userId, currentPassword)) {
-            response.sendRedirect("change-password?error=wrong");
+            response.sendRedirect(contextPath + "/change-password?error=wrong");
             return;
         }
         boolean updated = userDAO.updatePassword(userId, newPassword);
         if (updated) {
             session.invalidate();
-            response.sendRedirect("login?passwordChanged=true");
+            response.sendRedirect(contextPath + "/login?passwordChanged=true");
             return;
         }
-        response.sendRedirect("change-password?error=unknown");
+        response.sendRedirect(contextPath + "/change-password?error=unknown");
     }
 
     /**

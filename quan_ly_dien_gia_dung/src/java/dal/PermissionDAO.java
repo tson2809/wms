@@ -4,6 +4,7 @@
  */
 package dal;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,9 +25,9 @@ public class PermissionDAO extends DBContext {
         String sql = """
                      SELECT * FROM permissions order by permission_id desc
                      """;       
-        try {
-            PreparedStatement pre = this.getConnection().prepareStatement(sql);
-            ResultSet rs = pre.executeQuery();
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql);
+             ResultSet rs = pre.executeQuery()) {
             while (rs.next()) {
                 int permissionId = rs.getInt("permission_id");
                 String permissionName = rs.getString("permission_name");
@@ -49,7 +50,8 @@ public class PermissionDAO extends DBContext {
                      UPDATE permissions SET permission_name = ?, permission_description = ? 
                      WHERE permission_id = ?
                      """;
-        try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql)) {
             pre.setString(1, p.getPermissionName());
             pre.setString(2, p.getPermissionDescription());
             pre.setInt(3, p.getPermissionId());
@@ -58,5 +60,27 @@ public class PermissionDAO extends DBContext {
             Logger.getLogger(PermissionDAO.class.getName()).log(Level.SEVERE, null, ex);
         }    
         return n;
+    }
+
+    public void ensurePermissionExists(String permissionName, String permissionDescription) {
+        String checkSql = "SELECT permission_id FROM permissions WHERE LOWER(permission_name) = LOWER(?)";
+        String insertSql = "INSERT INTO permissions (permission_name, permission_description) VALUES (?, ?)";
+
+        try (Connection conn = this.getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setString(1, permissionName);
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next()) {
+                    return;
+                }
+            }
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                insertStmt.setString(1, permissionName);
+                insertStmt.setString(2, permissionDescription);
+                insertStmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PermissionDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

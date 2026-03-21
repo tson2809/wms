@@ -18,13 +18,13 @@
         <div class="container-fluid position-relative bg-white d-flex p-0">
             <c:choose>
                 <c:when test="${sessionScope.user.role.roleId == 2}">
-                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
                 </c:when>
                 <c:when test="${sessionScope.user.role.roleId == 3}">
-                    <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
                 </c:when>
                 <c:otherwise>
-                    <jsp:include page="/view/common/components/RoleSideBar.jsp" />
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
                 </c:otherwise>
             </c:choose>
             <div class="content">
@@ -58,6 +58,11 @@
                         </div>
                         <div class="col-lg-8">
                             <div class="bg-light rounded p-4">
+                                <c:if test="${not empty generalError}">
+                                    <div class="alert alert-danger" role="alert">
+                                        ${generalError}
+                                    </div>
+                                </c:if>
                                 <form action="profile"
                                       method="post"
                                       enctype="multipart/form-data"
@@ -78,21 +83,21 @@
                                         <label class="form-label">Email</label>
                                         <input class="form-control editable"
                                                name="email"
-                                               value="${user.email}"
+                                               value="${not empty formEmail ? formEmail : user.email}"
                                                readonly>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">SĐt</label>
                                         <input class="form-control editable"
                                                name="phone"
-                                               value="${user.phone}"
+                                               value="${not empty formPhone ? formPhone : user.phone}"
                                                readonly>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Địa chỉ</label>
                                         <input class="form-control editable"
                                                name="address"
-                                               value="${user.address}"
+                                               value="${not empty formAddress ? formAddress : user.address}"
                                                readonly>
                                     </div>
                                     <button type="button"
@@ -114,6 +119,7 @@
             </div>
         </div>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/loadComponents.js"></script>
         <script src="${pageContext.request.contextPath}/js/main.js"></script>
         <script>
@@ -136,6 +142,10 @@
                                                         document.getElementById('avatarForm').submit();
                                                     }
                                                 });
+
+                                                <c:if test="${not empty generalError || editMode}">
+                                                enableEdit();
+                                                </c:if>
         </script>
     </body>
 </html>

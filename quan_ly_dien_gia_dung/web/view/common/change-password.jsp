@@ -17,8 +17,19 @@
 
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <%@ include file="components/ProfileSideBar.jsp" %>
+            <c:choose>
+                <c:when test="${sessionScope.user.role.roleId == 2}">
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
+                </c:when>
+                <c:when test="${sessionScope.user.role.roleId == 3}">
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
+                </c:when>
+                <c:otherwise>
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
+                </c:otherwise>
+            </c:choose>
             <div class="content">
+                <jsp:include page="/view/common/components/navbar.jsp" />
                 <div class="container-fluid pt-4 px-4">
                     <div class="row justify-content-center">
                         <div class="col-lg-5">
@@ -35,7 +46,7 @@
                                         Password must contain uppercase, lowercase, number, special character and be at least 8 characters
                                     </div>
                                 </c:if>
-                                <form action="change-password" method="post"">
+                                <form action="${pageContext.request.contextPath}/change-password" method="post">
                                     <div class="mb-3">
                                         <label class="form-label">Current Password</label>
                                         <input type="password" name="currentPassword" class="form-control" required>
