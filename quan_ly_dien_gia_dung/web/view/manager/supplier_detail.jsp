@@ -6,6 +6,13 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%
+    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+    boolean canEditSupplier = userPermissions != null && userPermissions.contains("edit supplier");
+    Object modeAttr = request.getAttribute("mode");
+    boolean isAddMode = "add".equals(modeAttr);
+    boolean readOnlySupplier = !isAddMode && !canEditSupplier;
+%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -25,7 +32,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -62,7 +69,7 @@
                                         <div class="col-md-6">
                                             <label for="supplierName" class="form-label">Tên nhà cung cấp</label>
                                             <input type="text" class="form-control" id="supplierName" name="supplierName"
-                                                   value="${valName}" placeholder="Nhập tên nhà cung cấp">
+                                                  value="${valName}" placeholder="Nhập tên nhà cung cấp" <%= readOnlySupplier ? "readonly" : "" %>>
                                             <c:if test="${not empty errorSupplierName}">
                                                 <div class="text-danger small mt-1">${errorSupplierName}</div>
                                             </c:if>
@@ -70,7 +77,7 @@
                                         <div class="col-md-6">
                                             <label for="contactPerson" class="form-label">Người liên hệ</label>
                                             <input type="text" class="form-control" id="contactPerson" name="contactPerson"
-                                                   value="${valContact}" placeholder="Họ tên người liên hệ">
+                                                  value="${valContact}" placeholder="Họ tên người liên hệ" <%= readOnlySupplier ? "readonly" : "" %>>
                                             <c:if test="${not empty errorContactPerson}">
                                                 <div class="text-danger small mt-1">${errorContactPerson}</div>
                                             </c:if>
@@ -78,7 +85,7 @@
                                         <div class="col-md-6">
                                             <label for="email" class="form-label">Email</label>
                                             <input type="text" class="form-control" id="email" name="email"
-                                                   value="${valEmail}" placeholder="email@gmail.com">
+                                                  value="${valEmail}" placeholder="email@gmail.com" <%= readOnlySupplier ? "readonly" : "" %>>
                                             <c:if test="${not empty errorEmail}">
                                                 <div class="text-danger small mt-1">${errorEmail}</div>
                                             </c:if>
@@ -86,14 +93,14 @@
                                         <div class="col-md-6">
                                             <label for="phone" class="form-label">Số điện thoại</label>
                                             <input type="text" class="form-control" id="phone" name="phone"
-                                                   value="${valPhone}" placeholder="Số điện thoại">
+                                                  value="${valPhone}" placeholder="Số điện thoại" <%= readOnlySupplier ? "readonly" : "" %>>
                                             <c:if test="${not empty errorPhone}">
                                                 <div class="text-danger small mt-1">${errorPhone}</div>
                                             </c:if>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="status" class="form-label">Trạng thái</label>
-                                            <select class="form-select" id="status" name="status">
+                                            <select class="form-select" id="status" name="status" <%= readOnlySupplier ? "disabled" : "" %>>
                                                 <option value="active"   ${valStatus == 'active'   ? 'selected' : ''}>Active</option>
                                                 <option value="inactive" ${valStatus == 'inactive' ? 'selected' : ''}>Inactive</option>
                                             </select>
@@ -101,16 +108,18 @@
                                         <div class="col-12">
                                             <label for="description" class="form-label">Mô tả</label>
                                             <textarea class="form-control" id="description" name="description" rows="3"
-                                                      placeholder="Mô tả về nhà cung cấp">${valDesc}</textarea>
+                                                      placeholder="Mô tả về nhà cung cấp" <%= readOnlySupplier ? "readonly" : "" %>>${valDesc}</textarea>
                                             <c:if test="${not empty errorDescription}">
                                                 <div class="text-danger small mt-1">${errorDescription}</div>
                                             </c:if>
                                         </div>
                                         <div class="col-12 d-flex justify-content-end gap-2">
                                             <a href="${pageContext.request.contextPath}/supplier-list" class="btn btn-secondary">Quay lại</a>
+                                            <% if (!readOnlySupplier) { %>
                                             <button type="submit" class="btn btn-primary">
                                                 ${mode == 'add' ? 'Thêm mới' : 'Lưu'}
                                             </button>
+                                            <% } %>
                                         </div>
                                     </div>
                                 </form>

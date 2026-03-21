@@ -47,7 +47,7 @@ public class AddUserController extends HttpServlet {
             return false;
         }
         String e = email.trim();
-        return e.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+        return e.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     }
 
     private boolean isValidUsername(String username) {
@@ -60,10 +60,10 @@ public class AddUserController extends HttpServlet {
 
     private boolean isValidPhone(String phone) {
         if (phone == null || phone.isBlank()) {
-            return true;
+            return false;
         }
-        String p = phone.trim();
-        return p.matches("^[0-9+\\-\\s]{6,20}$");
+        String p = phone.trim().replaceAll("\\s", "");
+        return p.matches("^0\\d{9}$");
     }
 
     @Override
@@ -160,7 +160,7 @@ public class AddUserController extends HttpServlet {
         user.setUserName(username.trim());
         user.setEmail(email.trim());
         user.setFullName(fullName.trim());
-        user.setPhone(phone == null ? null : phone.trim());
+        user.setPhone(phone.trim().replaceAll("\\s", ""));
         user.setAddress(address.trim());
         user.setPassword(password);
         user.setIsActive(isActive);

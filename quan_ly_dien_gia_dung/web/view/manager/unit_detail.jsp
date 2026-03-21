@@ -22,8 +22,15 @@
         <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
     </head>
     <body>
+        <%
+            java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+            boolean canCreateUnit = userPermissions != null && userPermissions.contains("create unit");
+            boolean canEditUnit = userPermissions != null && userPermissions.contains("edit unit");
+            boolean readOnlyEdit = "edit".equals(request.getAttribute("mode")) && !canEditUnit;
+            boolean readOnlyAdd = "add".equals(request.getAttribute("mode")) && !canCreateUnit;
+        %>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -52,11 +59,13 @@
                                             <div class="mb-3">
                                                 <label for="unitName" class="form-label fw-semibold">Tên đơn vị</label>
                                                 <input type="text" class="form-control" id="unitName" name="unitName"
-                                                       value="${unit.unitName}" placeholder="VD: Chiếc, Bộ, Cái..." maxlength="50" autofocus>
+                                                       value="${unit.unitName}" placeholder="VD: Chiếc, Bộ, Cái..." maxlength="50" autofocus <%= readOnlyEdit ? "readonly" : "" %>>
                                             </div>
                                             <div class="d-flex gap-2">
                                                 <a href="${pageContext.request.contextPath}/unit-list" class="btn btn-secondary flex-fill">Hủy</a>
+                                                <% if (!readOnlyEdit) { %>
                                                 <button type="submit" class="btn btn-primary flex-fill">Cập nhật</button>
+                                                <% } %>
                                             </div>
                                         </form>
                                     </c:when>
@@ -65,11 +74,13 @@
                                             <div class="mb-3">
                                                 <label for="unitName" class="form-label fw-semibold">Tên đơn vị</label>
                                                 <input type="text" class="form-control" id="unitName" name="unitName"
-                                                       value="${unitName}" placeholder="VD: Chiếc, Bộ, Cái..." maxlength="50" autofocus>
+                                                       value="${unitName}" placeholder="VD: Chiếc, Bộ, Cái..." maxlength="50" autofocus <%= readOnlyAdd ? "readonly" : "" %>>
                                             </div>
                                             <div class="d-flex gap-2">
                                                 <a href="${pageContext.request.contextPath}/unit-list" class="btn btn-secondary flex-fill">Hủy</a>
+                                                <% if (!readOnlyAdd) { %>
                                                 <button type="submit" class="btn btn-primary flex-fill">Thêm mới</button>
+                                                <% } %>
                                             </div>
                                         </form>
                                     </c:otherwise>

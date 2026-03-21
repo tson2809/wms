@@ -12,26 +12,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import model.Unit;
-import model.User;
 
 @WebServlet(name = "UnitListController", urlPatterns = {"/unit-list"})
 public class UnitListController extends HttpServlet {
     private final UnitDAO unitDAO = new UnitDAO();
-
-    private boolean checkManager(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        User user = (session != null) ? (User) session.getAttribute("user") : null;
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return false;
-        }
-        if (user.getRole() == null || !"Manager".equalsIgnoreCase(user.getRole().getRoleName())) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
-            return false;
-        }
-        return true;
-    }
 
     private void handleList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -79,15 +63,12 @@ public class UnitListController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!checkManager(request, response)) return;
         handleList(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!checkManager(request, response)) return;
-
         String deleteIdParam = request.getParameter("deleteId");
         if (deleteIdParam != null) {
             String message;

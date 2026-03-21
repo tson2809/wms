@@ -20,7 +20,7 @@
 
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <jsp:include page="/view/admin/components/sidebarAdmin.jsp" />
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -95,9 +95,12 @@
                                                 <div class="col-md-6">
                                                     <label class="form-label">Role</label>
                                                     <select class="form-select" name="roleId">
-                                                        <option value="">N/A</option>
                                                         <c:forEach items="${roles}" var="r">
-                                                            <option value="${r.roleId}" ${roleId != null && r.roleId == roleId ? "selected" : ""}>
+                                                            <option value="${r.roleId}" ${
+                                                                      (roleId != null && r.roleId == roleId)
+                                                                      || (roleId == null && r.roleName != null && r.roleName.equalsIgnoreCase('Admin'))
+                                                                      ? "selected" : ""
+                                                                      }>
                                                                 ${r.roleName}
                                                             </option>
                                                         </c:forEach>

@@ -179,10 +179,13 @@
         </div>
         <div class="nav-item dropdown">
             <% model.User currentUser=(model.User) session.getAttribute("user"); String
-                userAvatar="" ; String userName="User" ; if (currentUser !=null) { String
+                userAvatar="" ; String userName="User" ; String userRole=""; if (currentUser !=null) { String
                 avatar=currentUser.getAvatar(); if (avatar !=null && !avatar.isEmpty()) {
                 userAvatar=request.getContextPath() + "/" + avatar; }
                 userName=currentUser.getFullName() !=null ? currentUser.getFullName() : "User" ;
+                if (currentUser.getRole() != null && currentUser.getRole().getRoleName() != null) {
+                userRole = currentUser.getRole().getRoleName();
+                }
                 } %>
             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                 <% if (!userAvatar.isEmpty()) { %>
@@ -190,7 +193,7 @@
                      style="width: 40px; height: 40px;">
                 <% } %>
                 <span class="d-none d-lg-inline-flex">
-                    <%= userName %>
+                    <%= userRole.isEmpty() ? userName : (userName + " (" + userRole + ")") %>
                 </span>
             </a>
             <div

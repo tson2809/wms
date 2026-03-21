@@ -28,7 +28,7 @@
 </head>
 <body>
     <div class="container-fluid position-relative d-flex p-0">
-        <jsp:include page="/view/sale/components/sidebarSale.jsp"/>
+        <jsp:include page="/view/common/components/sidebar.jsp"/>
 
         <div class="content">
             <jsp:include page="/view/common/components/navbar.jsp"/>
@@ -126,8 +126,8 @@
         </div>
     </div>
 
-    <script src="${pageContext.request.contextPath}/js/jquery-3.6.0.min.js"></script>
-    <script src="${pageContext.request.contextPath}/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     <script>
         window.PO_FILTER = { contextPath: '${pageContext.request.contextPath}' };

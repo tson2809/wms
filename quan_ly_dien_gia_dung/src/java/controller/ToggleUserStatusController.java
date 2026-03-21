@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import model.User;
 
 @WebServlet(name = "ToggleUserStatusController", urlPatterns = {"/user-toggle-status"})
 public class ToggleUserStatusController extends HttpServlet {
@@ -50,6 +51,7 @@ public class ToggleUserStatusController extends HttpServlet {
             throws ServletException, IOException {
         Integer userId = parseIntegerOrNull(request.getParameter("id"));
         Boolean active = parseBooleanOrNull(request.getParameter("active"));
+        User currentUser = (User) request.getSession().getAttribute("user");
 
         String referer = request.getHeader("Referer");
         String fallback = request.getContextPath() + "/user-list";
@@ -57,6 +59,13 @@ public class ToggleUserStatusController extends HttpServlet {
 
         if (userId == null || active == null) {
             response.sendRedirect(addParam(redirectUrl, "error", "invalid_request"));
+            return;
+        }
+
+        if (currentUser != null
+                && userId.equals(currentUser.getUserId())
+                && Boolean.FALSE.equals(active)) {
+            response.sendRedirect(addParam(redirectUrl, "error", "cannot_deactivate_self"));
             return;
         }
 

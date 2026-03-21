@@ -7,6 +7,12 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%
+    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+    boolean canCreateGoodsReceipt = userPermissions != null && userPermissions.contains("create goods receipt");
+    boolean canEditGoodsReceipt = userPermissions != null && userPermissions.contains("edit goods receipt");
+    boolean canApproveGoodsReceipt = userPermissions != null && userPermissions.contains("approve goods receipt");
+%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -134,17 +140,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <c:choose>
-                <c:when test="${sessionScope.user.role.roleId == 2}">
-                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
-                </c:when>
-                <c:when test="${sessionScope.user.role.roleId == 3}">
-                    <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
-                </c:when>
-                <c:otherwise>
-                    <jsp:include page="/view/common/components/RoleSideBar.jsp" />
-                </c:otherwise>
-            </c:choose>
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -153,9 +149,9 @@
                         <div class="col-12 receipt-list-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0 fw-semibold">Danh sách phiếu nhập kho</h5>
-                                <c:if test="${sessionScope.user.role.roleId == 3}">
+                                <% if (canCreateGoodsReceipt) { %>
                                     <a href="${pageContext.request.contextPath}/goods-receipt-add" class="btn btn-primary">Tạo phiếu nhập kho</a>
-                                </c:if>
+                                <% } %>
                             </div>
                             <form action="${pageContext.request.contextPath}/goods-receipt-list" method="post" class="mb-3 receipt-filter-form">
                                 <input type="hidden" name="numberPerPage" value="${numberPerPage}">
@@ -196,7 +192,6 @@
                                 <table class="table table-hover align-middle">
                                     <thead>
                                         <tr>
-                                            <th style="width: 80px;">ID</th>
                                             <th style="width: 140px;">Mã phiếu</th>
                                             <th>Nguồn cung cấp</th>
                                             <th style="width: 130px;">Ngày nhập</th>
@@ -210,7 +205,6 @@
                                     <tbody>
                                         <c:forEach items="${receipts}" var="gr">
                                             <tr>
-                                                <td>${gr.receiptId}</td>
                                                 <td><strong>${gr.receiptCode}</strong></td>
                                                 <td>
                                                     <c:choose>
@@ -248,8 +242,8 @@
                                                         <c:choose>
                                                             <c:when test="${gr.status == 'draft'}">
                                                                 <a href="${pageContext.request.contextPath}/goods-receipt-edit?id=${gr.receiptId}"
-                                                                   class="action-btn action-view" title="Sửa phiếu nhập">
-                                                                    <iconify-icon icon="lucide:edit-2"></iconify-icon>
+                                                                   class="action-btn action-view" title="<%= canEditGoodsReceipt ? "Sửa phiếu nhập" : "Xem chi tiết" %>">
+                                                                    <iconify-icon icon="<%= canEditGoodsReceipt ? "lucide:edit-2" : "lucide:eye" %>"></iconify-icon>
                                                                 </a>
                                                             </c:when>
                                                             <c:when test="${gr.status == 'completed' || gr.status == 'cancelled'}">
@@ -259,7 +253,8 @@
                                                                 </a>
                                                             </c:when>
                                                         </c:choose>
-                                                        <c:if test="${sessionScope.user.role.roleId == 2 and gr.status == 'draft'}">
+                                                        <% if (canApproveGoodsReceipt) { %>
+                                                        <c:if test="${gr.status == 'draft'}">
                                                             <form method="POST" action="${pageContext.request.contextPath}/goods-receipt-list"
                                                                   style="display:inline">
                                                                 <input type="hidden" name="id" value="${gr.receiptId}">
@@ -277,6 +272,7 @@
                                                                 </button>
                                                             </form>
                                                         </c:if>
+                                                        <% } %>
                                                     </div>
                                                 </td>
                                             </tr>

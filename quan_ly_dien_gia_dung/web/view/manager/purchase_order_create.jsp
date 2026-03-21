@@ -30,7 +30,7 @@
 </head>
 <body>
     <div class="container-fluid position-relative d-flex p-0">
-        <jsp:include page="components/sidebarManager.jsp" />
+        <jsp:include page="/view/common/components/sidebar.jsp" />
         
         <div class="content">
             <jsp:include page="../common/components/navbar.jsp" />

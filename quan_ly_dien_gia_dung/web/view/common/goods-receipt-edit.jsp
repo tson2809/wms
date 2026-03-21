@@ -8,6 +8,13 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%
+    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+    boolean canEditGoodsReceipt = userPermissions != null && userPermissions.contains("edit goods receipt");
+    boolean canApproveGoodsReceipt = userPermissions != null && userPermissions.contains("approve goods receipt");
+    request.setAttribute("canEditGoodsReceipt", canEditGoodsReceipt);
+    request.setAttribute("canApproveGoodsReceipt", canApproveGoodsReceipt);
+%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -69,17 +76,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <c:choose>
-                <c:when test="${sessionScope.user.role.roleId == 2}">
-                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
-                </c:when>
-                <c:when test="${sessionScope.user.role.roleId == 3}">
-                    <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
-                </c:when>
-                <c:otherwise>
-                    <jsp:include page="/view/common/components/RoleSideBar.jsp" />
-                </c:otherwise>
-            </c:choose>
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -91,7 +88,8 @@
                         </div>
 
                         <div class="col-lg-9">
-                            <c:if test="${sessionScope.user.role.roleId == 3 and !readOnly}">
+                            <% if (canEditGoodsReceipt) { %>
+                            <c:if test="${!readOnly}">
                                 <div class="bg-light rounded p-2 mb-3">
                                     <div class="d-flex gap-2 align-items-stretch position-relative">
                                         <div class="flex-grow-1 position-relative">
@@ -108,6 +106,7 @@
                                     </div>
                                 </div>
                             </c:if>
+                            <% } %>
 
                             <div class="bg-light rounded p-3">
                                 <div class="table-responsive">
@@ -120,14 +119,16 @@
                                                 <th style="width: 80px;">Đơn vị</th>
                                                 <th style="width: 120px;">Giá</th>
                                                 <th style="width: 100px;">Số lượng</th>
-                                                <c:if test="${sessionScope.user.role.roleId == 3 and !readOnly}">
+                                                <% if (canEditGoodsReceipt) { %>
+                                                <c:if test="${!readOnly}">
                                                     <th style="width: 80px;">Thao tác</th>
                                                 </c:if>
+                                                <% } %>
                                             </tr>
                                         </thead>
                                         <tbody id="productTableBody">
                                             <tr>
-                                                <td colspan="${(sessionScope.user.role.roleId == 3 and !readOnly) ? '7' : '6'}" class="text-center text-muted">
+                                                <td colspan="<%= (canEditGoodsReceipt && !(Boolean.TRUE.equals(request.getAttribute("readOnly")))) ? "7" : "6" %>" class="text-center text-muted">
                                                     Chưa có sản phẩm nào. Tìm kiếm để thêm sản phẩm.
                                                 </td>
                                             </tr>
@@ -149,7 +150,7 @@
                                                 <input type="text" class="form-control" value="Nhập từ sale" readonly>
                                             </c:when>
                                             <c:otherwise>
-                                                <select class="form-select" name="supplierId" ${(sessionScope.user.role.roleId == 2 or readOnly) ? 'disabled' : ''}>
+                                                <select class="form-select" name="supplierId" <%= (!canEditGoodsReceipt || Boolean.TRUE.equals(request.getAttribute("readOnly"))) ? "disabled" : "" %>>
                                                     <c:forEach items="${suppliers}" var="s">
                                                         <option value="${s.supplierId}" ${receipt.supplier.supplierId eq s.supplierId ? 'selected' : ''}>${s.supplierName}</option>
                                                     </c:forEach>
@@ -164,7 +165,7 @@
                                     <div class="mb-3">
                                         <label class="form-label">Ngày nhập</label>
                                         <fmt:formatDate value="${receipt.receiptDate}" pattern="yyyy-MM-dd" var="formattedDate" />
-                                        <input type="date" class="form-control" name="receiptDate" id="receiptDate" value="${formattedDate}" ${(sessionScope.user.role.roleId == 2 or readOnly) ? 'readonly' : ''} required>
+                                        <input type="date" class="form-control" name="receiptDate" id="receiptDate" value="${formattedDate}" <%= (!canEditGoodsReceipt || Boolean.TRUE.equals(request.getAttribute("readOnly"))) ? "readonly" : "" %> required>
                                         <c:if test="${not empty receiptDateError}">
                                             <small class="text-danger">${receiptDateError}</small>
                                         </c:if>
@@ -172,7 +173,7 @@
 
                                     <div class="mb-3">
                                         <label class="form-label">Mã phiếu nhập</label>
-                                        <input type="text" class="form-control" name="receiptCode" placeholder="Nhập mã phiếu (VD: PN001)" value="${receipt.receiptCode}" ${(sessionScope.user.role.roleId == 2 or readOnly) ? 'readonly' : ''}>
+                                        <input type="text" class="form-control" name="receiptCode" placeholder="Nhập mã phiếu (VD: PN001)" value="${receipt.receiptCode}" <%= (!canEditGoodsReceipt || Boolean.TRUE.equals(request.getAttribute("readOnly"))) ? "readonly" : "" %>>
                                         <c:if test="${not empty receiptCodeError}">
                                             <small class="text-danger">${receiptCodeError}</small>
                                         </c:if>
@@ -189,7 +190,8 @@
                                         <input type="hidden" name="totalAmount" id="totalAmountValue" value="0">
                                     </div>
 
-                                    <c:if test="${sessionScope.user.role.roleId == 2 and !readOnly}">
+                                    <% if (canApproveGoodsReceipt) { %>
+                                    <c:if test="${!readOnly}">
                                         <div class="mb-3">
                                             <label class="form-label">Trạng thái:</label>
                                             <select class="form-select" name="status">
@@ -199,6 +201,7 @@
                                             </select>
                                         </div>
                                     </c:if>
+                                    <% } %>
 
                                     <c:if test="${readOnly}">
                                         <div class="mb-3">
@@ -208,7 +211,7 @@
                                     </c:if>
                                     <div class="mb-4">
                                         <label class="form-label">Ghi chú:</label>
-                                        <textarea class="form-control" name="notes" rows="4" placeholder="Nhập ghi chú..." ${(sessionScope.user.role.roleId == 2 or readOnly) ? 'readonly' : ''}>${receipt.notes}</textarea>
+                                        <textarea class="form-control" name="notes" rows="4" placeholder="Nhập ghi chú..." <%= (!canEditGoodsReceipt || Boolean.TRUE.equals(request.getAttribute("readOnly"))) ? "readonly" : "" %>>${receipt.notes}</textarea>
                                     </div>
 
                                     <c:if test="${not empty productsError}">
@@ -226,14 +229,11 @@
                                     <div class="d-flex gap-2">
                                         <a href="${pageContext.request.contextPath}/goods-receipt-list" class="btn btn-secondary flex-fill">Đóng</a>
                                         <c:if test="${!readOnly}">
-                                            <c:choose>
-                                                <c:when test="${sessionScope.user.role.roleId == 2}">
-                                                    <button type="submit" class="btn btn-success flex-fill">Cập nhật trạng thái</button>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <button type="submit" class="btn btn-primary flex-fill">Cập nhật</button>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <% if (canApproveGoodsReceipt) { %>
+                                                <button type="submit" class="btn btn-success flex-fill">Cập nhật trạng thái</button>
+                                            <% } else if (canEditGoodsReceipt) { %>
+                                                <button type="submit" class="btn btn-primary flex-fill">Cập nhật</button>
+                                            <% } %>
                                         </c:if>
                                     </div>
 
@@ -254,7 +254,7 @@
             window.GOODS_RECEIPT_EDIT = {
                 contextPath: '${pageContext.request.contextPath}',
                 editUrl: '${pageContext.request.contextPath}/goods-receipt-edit',
-                isManager: ${sessionScope.user.role.roleId == 2},
+                isManager: <%= canApproveGoodsReceipt %>,
                 readOnly: ${readOnly eq true}
             };
         </script>
@@ -270,8 +270,8 @@
                     <div class="modal-header">
                         <h5 class="modal-title" id="serialModalTitle">
                             <c:choose>
-                                <c:when test="${sessionScope.user.role.roleId == 2 or readOnly}">Xem Serial Number</c:when>
-                                <c:otherwise>Nhập Serial Number</c:otherwise>
+                                <c:when test="${canEditGoodsReceipt and not readOnly}">Nhập Serial Number</c:when>
+                                <c:otherwise>Xem Serial Number</c:otherwise>
                             </c:choose>
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -281,7 +281,7 @@
                             <p class="text-center text-muted">Vui lòng chọn sản phẩm</p>
                         </div>
                     </div>
-                    <c:if test="${sessionScope.user.role.roleId == 3 and !readOnly}">
+                    <c:if test="${canEditGoodsReceipt and not readOnly}">
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" id="saveSerials">Lưu</button>
                         </div>

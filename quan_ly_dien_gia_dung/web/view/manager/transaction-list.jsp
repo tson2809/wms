@@ -43,7 +43,7 @@
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
 
-            <jsp:include page="/view/manager/components/sidebarManager.jsp"/>
+            <jsp:include page="/view/common/components/sidebar.jsp"/>
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp"/>
