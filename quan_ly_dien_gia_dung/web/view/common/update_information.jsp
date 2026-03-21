@@ -18,7 +18,7 @@
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
             <!-- Sidebar Container -->
-            <jsp:include page="/view/admin/components/sidebarAdmin.jsp" />
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <!-- Content Start -->
             <div class="content">
@@ -122,8 +122,15 @@
                                                         <option value="true"
                                                                 ${user.isActive ? "selected" : ""}>Active</option>
                                                         <option value="false"
-                                                                ${!user.isActive ? "selected" : ""}>Inactive</option>
+                                                                ${!user.isActive ? "selected" : ""}
+                                                                ${sessionScope.user != null && sessionScope.user.userId == user.userId ? "disabled" : ""}>Inactive</option>
                                                     </select>
+                                                    <c:if test="${sessionScope.user != null && sessionScope.user.userId == user.userId}">
+                                                        <small class="text-muted">Bạn không thể tự chuyển trạng thái tài khoản của mình sang Inactive.</small>
+                                                    </c:if>
+                                                    <c:if test="${not empty statusError}">
+                                                        <small class="text-danger">${statusError}</small>
+                                                    </c:if>
                                                 </div>
 
 

@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @WebServlet(name = "PurchaseOrderEditController", urlPatterns = {"/purchase-order/edit"})
 public class PurchaseOrderEditController extends HttpServlet {
@@ -44,15 +45,7 @@ public class PurchaseOrderEditController extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        int roleId = user.getRole().getRoleId();
-        if (roleId != 2 && roleId != 3 && roleId != 4) {
-            response.sendRedirect(request.getContextPath() + "/purchase-order/list");
-            return;
-        }
+        int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
 
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.trim().isEmpty()) {
@@ -74,11 +67,12 @@ public class PurchaseOrderEditController extends HttpServlet {
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             List<ProductVariant> variants = productDAO.getAllActiveProductVariants();
 
-            // Chỉ Manager mới được sửa khi draft, các role khác chỉ được xem
-            boolean viewOnly = true;
-            if (roleId == 2) {
-                viewOnly = !"draft".equalsIgnoreCase(po.getStatus());
-            }
+            @SuppressWarnings("unchecked")
+            Set<String> permissions = (Set<String>) session.getAttribute("userPermissions");
+            boolean canEditPurchaseOrder = permissions != null && permissions.contains("edit purchase order");
+
+            // Cho phép sửa khi có quyền edit và đơn đang draft; còn lại chỉ xem.
+            boolean viewOnly = !(canEditPurchaseOrder && "draft".equalsIgnoreCase(po.getStatus()));
             request.setAttribute("purchaseOrder", po);
             request.setAttribute("details", details);
             request.setAttribute("suppliers", suppliers);
@@ -102,10 +96,6 @@ public class PurchaseOrderEditController extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        if (user.getRole() == null || user.getRole().getRoleId() != 2) {
-            response.sendRedirect(request.getContextPath() + "/purchase-order/list");
-            return;
-        }
 
         try {
             String idParam = request.getParameter("id");

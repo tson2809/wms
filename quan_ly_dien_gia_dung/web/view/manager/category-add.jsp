@@ -23,9 +23,9 @@
             if (currentUser != null && currentUser.getRole() != null && currentUser.getRole().getRoleName() != null) {
                 roleName = currentUser.getRole().getRoleName().toLowerCase();
             }
-            String sidebarPage = "/view/admin/components/sidebarAdmin.jsp";
+            String sidebarPage = "/view/common/components/sidebar.jsp";
             if ("manager".equals(roleName)) {
-                sidebarPage = "/view/manager/components/sidebarManager.jsp";
+                sidebarPage = "/view/common/components/sidebar.jsp";
             }
         %>
         <div class="container-fluid position-relative bg-white d-flex p-0">

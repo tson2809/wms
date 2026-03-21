@@ -4,6 +4,7 @@
  */
 package dal;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,9 +25,9 @@ public class RoleDAO extends DBContext{
         String sql = """
                      SELECT * FROM roles ORDER BY role_id ASC
                      """;
-        try {
-            PreparedStatement pre = this.getConnection().prepareStatement(sql);
-            ResultSet rs = pre.executeQuery();
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql);
+             ResultSet rs = pre.executeQuery()) {
             while (rs.next()) {
                 int roleId = rs.getInt(1);
                 String roleName = rs.getString(2);
@@ -47,7 +48,8 @@ public class RoleDAO extends DBContext{
         String sql = """
                      UPDATE roles SET role_name = ?, role_description = ?, is_active = ? WHERE role_id = ?
                      """;
-        try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql)) {
             pre.setString(1, r.getRoleName());
             pre.setString(2, r.getRoleDescription());
             pre.setBoolean(3, r.isIsActive());
@@ -64,19 +66,20 @@ public class RoleDAO extends DBContext{
         String sql = """
                      SELECT * FROM roles WHERE role_id = ?
                      """;
-        try {
-            PreparedStatement pre = this.getConnection().prepareStatement(sql);
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql)) {
             pre.setInt(1, roleId);
-            ResultSet rs = pre.executeQuery();
+            try (ResultSet rs = pre.executeQuery()) {
             
-            if (rs.next()) {
-                return new Role(
-                    rs.getInt("role_id"),
-                    rs.getString("role_name"),
-                    rs.getString("role_description"),
-                    rs.getBoolean("is_active"),
-                    rs.getDate("created_at")
-                );
+                if (rs.next()) {
+                    return new Role(
+                        rs.getInt("role_id"),
+                        rs.getString("role_name"),
+                        rs.getString("role_description"),
+                        rs.getBoolean("is_active"),
+                        rs.getDate("created_at")
+                    );
+                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(RoleDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -90,13 +93,14 @@ public class RoleDAO extends DBContext{
         String sql = """
                      SELECT permission_id FROM role_permissions WHERE role_id = ?
                      """;
-        try {
-            PreparedStatement pre = this.getConnection().prepareStatement(sql);
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql)) {
             pre.setInt(1, roleId);
-            ResultSet rs = pre.executeQuery();
+            try (ResultSet rs = pre.executeQuery()) {
             
-            while (rs.next()) {
-                permissionIds.add(rs.getInt("permission_id"));
+                while (rs.next()) {
+                    permissionIds.add(rs.getInt("permission_id"));
+                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(RoleDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -104,27 +108,58 @@ public class RoleDAO extends DBContext{
         
         return permissionIds;
     }
+
+    public List<String> getRolePermissionNames(int roleId) {
+        List<String> permissionNames = new ArrayList<>();
+        String sql = """
+                     SELECT p.permission_name
+                     FROM role_permissions rp
+                     JOIN permissions p ON rp.permission_id = p.permission_id
+                     WHERE rp.role_id = ?
+                     """;
+        try (Connection conn = this.getConnection();
+             PreparedStatement pre = conn.prepareStatement(sql)) {
+            pre.setInt(1, roleId);
+            try (ResultSet rs = pre.executeQuery()) {
+
+                while (rs.next()) {
+                    String permissionName = rs.getString("permission_name");
+                    if (permissionName != null && !permissionName.trim().isEmpty()) {
+                        permissionNames.add(permissionName.trim().toLowerCase());
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RoleDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return permissionNames;
+    }
     
     // Cập nhật permissions cho một role
     public boolean updateRolePermissions(int roleId, List<Integer> permissionIds) {
-        try {
+        try (Connection conn = this.getConnection()) {
+            conn.setAutoCommit(false);
+
             String deleteSql = "DELETE FROM role_permissions WHERE role_id = ?";
-            PreparedStatement deleteStmt = this.getConnection().prepareStatement(deleteSql);
-            deleteStmt.setInt(1, roleId);
-            deleteStmt.executeUpdate();
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+                deleteStmt.setInt(1, roleId);
+                deleteStmt.executeUpdate();
+            }
             
             if (permissionIds != null && !permissionIds.isEmpty()) {
                 String insertSql = "INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)";
-                PreparedStatement insertStmt = this.getConnection().prepareStatement(insertSql);
-                
-                for (Integer permissionId : permissionIds) {
-                    insertStmt.setInt(1, roleId);
-                    insertStmt.setInt(2, permissionId);
-                    insertStmt.addBatch();
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    for (Integer permissionId : permissionIds) {
+                        insertStmt.setInt(1, roleId);
+                        insertStmt.setInt(2, permissionId);
+                        insertStmt.addBatch();
+                    }
+                    insertStmt.executeBatch();
                 }
-                
-                insertStmt.executeBatch();
             }
+
+            conn.commit();
             
             return true;
         } catch (SQLException ex) {

@@ -92,6 +92,7 @@ public class UpdateUserController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int userId = Integer.parseInt(request.getParameter("userId"));
+        User currentUser = (User) request.getSession(false).getAttribute("user");
         String username = request.getParameter("username");
         String email = request.getParameter("email");
         String fullName = request.getParameter("fullName");
@@ -104,7 +105,7 @@ public class UpdateUserController extends HttpServlet {
         boolean hasError = false;
 
         String phoneRegex = "^0\\d{9}$";
-        String emailRegex = "^.+@.+$";
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         if (username == null || username.isBlank()) {
             request.setAttribute("usernameError", "Username không được để trống");
             hasError = true;
@@ -114,8 +115,11 @@ public class UpdateUserController extends HttpServlet {
             request.setAttribute("emailError", "Email không được để trống");
             hasError = true;
         }
-        if (!email.matches(emailRegex)) {
+        if (email != null && !email.matches(emailRegex)) {
             request.setAttribute("emailError", "Email không hợp lệ");
+            hasError = true;
+        } else if (email != null && userDAO.existsEmail(email, userId)) {
+            request.setAttribute("emailError", "Email đã tồn tại");
             hasError = true;
         }
 
@@ -127,16 +131,26 @@ public class UpdateUserController extends HttpServlet {
         if (address == null || address.isBlank()) {
             request.setAttribute("addressError", "Địa chỉ không được để trống");
             hasError = true;
+        } else if (address.trim().length() > 50) {
+            request.setAttribute("addressError", "Địa chỉ tối đa 50 ký tự");
+            hasError = true;
         }
 
         if (phone == null || phone.isBlank()) {
             request.setAttribute("phoneError", "Số điện thoại không được để trống");
             hasError = true;
-        } else if (!phone.matches(phoneRegex)) {
+        } else if (!phone.trim().replaceAll("\\s", "").matches(phoneRegex)) {
             request.setAttribute(
                     "phoneError",
                     "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0"
             );
+            hasError = true;
+        }
+
+        if (currentUser != null
+                && currentUser.getUserId() == userId
+                && !isActive) {
+            request.setAttribute("statusError", "Bạn không thể tự vô hiệu hóa chính mình");
             hasError = true;
         }
 
@@ -152,7 +166,7 @@ public class UpdateUserController extends HttpServlet {
         old.setFullName(fullName);
         old.setAddress(address);
         old.setIsActive(isActive);
-        old.setPhone(phone);
+        old.setPhone(phone.trim().replaceAll("\\s", ""));
 
         Role role = new Role();
         role.setRoleId(roleId);

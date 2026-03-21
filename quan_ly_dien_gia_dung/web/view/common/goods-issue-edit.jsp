@@ -2,6 +2,11 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%
+    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+    boolean canApproveGoodsIssue = userPermissions != null && userPermissions.contains("approve goods issue");
+    request.setAttribute("canApproveGoodsIssue", canApproveGoodsIssue);
+%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -43,17 +48,7 @@
     </head>
     <body>
         <div class="container-fluid position-relative bg-white d-flex p-0">
-            <c:choose>
-                <c:when test="${sessionScope.user.role.roleId == 2}">
-                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
-                </c:when>
-                <c:when test="${sessionScope.user.role.roleId == 3}">
-                    <jsp:include page="/view/staff/components/sidebarStaff.jsp" />
-                </c:when>
-                <c:otherwise>
-                    <jsp:include page="/view/common/components/RoleSideBar.jsp" />
-                </c:otherwise>
-            </c:choose>
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <div class="content">
                 <jsp:include page="/view/common/components/navbar.jsp" />
@@ -131,7 +126,7 @@
                                 </div>
 
                                 <c:choose>
-                                    <c:when test="${sessionScope.user.role.roleId == 2 and !readOnly}">
+                                    <c:when test="${canApproveGoodsIssue and !readOnly}">
                                         <div class="mb-3">
                                             <label class="form-label">Trạng thái:</label>
                                             <select class="form-select" name="status" form="goodsIssueStatusForm">
@@ -157,7 +152,7 @@
 
                                 <div class="d-flex gap-2">
                                     <a href="${pageContext.request.contextPath}/goods-issue-list" class="btn btn-secondary flex-fill">Đóng</a>
-                                    <c:if test="${sessionScope.user.role.roleId == 2 and !readOnly}">
+                                    <c:if test="${canApproveGoodsIssue and !readOnly}">
                                         <form id="goodsIssueStatusForm" method="POST" action="${pageContext.request.contextPath}/goods-issue-detail"
                                               class="d-inline flex-fill">
                                             <input type="hidden" name="id" value="${issue.issueId}">
@@ -178,7 +173,7 @@
         <script>
             window.GOODS_ISSUE_EDIT = {
                 contextPath: '${pageContext.request.contextPath}',
-                isManager: ${sessionScope.user.role.roleId == 2},
+                isManager: <%= canApproveGoodsIssue %>,
                 readOnly: ${readOnly eq true}
             };
         </script>

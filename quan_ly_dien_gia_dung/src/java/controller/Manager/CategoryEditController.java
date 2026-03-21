@@ -6,37 +6,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import model.Category;
-import model.User;
 
 @WebServlet(name = "CategoryEditController", urlPatterns = {"/category-edit"})
 public class CategoryEditController extends HttpServlet {
 
     private final CategoryDAO categoryDAO = new CategoryDAO();
-
-    private boolean hasRole(HttpServletRequest request, String... roles) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return false;
-        }
-        Object u = session.getAttribute("user");
-        if (!(u instanceof User)) {
-            return false;
-        }
-        User user = (User) u;
-        if (user.getRole() == null || user.getRole().getRoleName() == null) {
-            return false;
-        }
-        String roleName = user.getRole().getRoleName().toLowerCase();
-        for (String r : roles) {
-            if (r != null && roleName.equals(r.toLowerCase())) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     private Integer parseIntegerOrNull(String raw) {
         if (raw == null || raw.isBlank()) {
@@ -52,11 +28,6 @@ public class CategoryEditController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!hasRole(request, "manager")) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-
         Integer id = parseIntegerOrNull(request.getParameter("id"));
         if (id == null) {
             response.sendRedirect(request.getContextPath() + "/category-list?error=invalid_request");
@@ -77,11 +48,6 @@ public class CategoryEditController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-
-        if (!hasRole(request, "manager")) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
 
         Integer id = parseIntegerOrNull(request.getParameter("categoryId"));
         String categoryName = request.getParameter("categoryName");

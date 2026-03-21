@@ -24,7 +24,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import model.GoodsReceipt;
 import model.GoodsReceiptDetail;
 import model.Supplier;
@@ -122,12 +124,14 @@ public class GoodsReceiptEditController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        
-        boolean isManager = (currentUser.getRole().getRoleId() == 2);
-        
-        if (isManager) {
-            String status = request.getParameter("status");
-            if (status == null || status.trim().isEmpty()) {
+
+        Set<String> userPermissions = getUserPermissions(request);
+        boolean canApproveGoodsReceipt = userPermissions != null && userPermissions.contains("approve goods receipt");
+        boolean canEditGoodsReceipt = userPermissions != null && userPermissions.contains("edit goods receipt");
+
+        String status = request.getParameter("status");
+        if (canApproveGoodsReceipt && status != null) {
+            if (status.trim().isEmpty()) {
                 request.setAttribute("error", "Vui lòng chọn trạng thái");
                 GoodsReceipt r = goodsReceiptDAO.getGoodsReceiptById(receiptId);
                 request.setAttribute("receipt", r);
@@ -178,6 +182,11 @@ public class GoodsReceiptEditController extends HttpServlet {
                 request.setAttribute("isEdit", true);
                 request.getRequestDispatcher("/view/common/goods-receipt-edit.jsp").forward(request, response);
             }
+            return;
+        }
+
+        if (!canEditGoodsReceipt) {
+            response.sendRedirect(request.getContextPath() + "/goods-receipt-list?denied=true");
             return;
         }
         
@@ -493,5 +502,20 @@ public class GoodsReceiptEditController extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(jsonResult);
+    }
+
+    private Set<String> getUserPermissions(HttpServletRequest request) {
+        Object raw = request.getSession().getAttribute("userPermissions");
+        if (!(raw instanceof Set<?> rawSet)) {
+            return new HashSet<>();
+        }
+
+        Set<String> permissions = new HashSet<>();
+        for (Object item : rawSet) {
+            if (item instanceof String permission) {
+                permissions.add(permission.toLowerCase());
+            }
+        }
+        return permissions;
     }
 }

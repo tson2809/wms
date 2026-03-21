@@ -15,7 +15,9 @@ import service.PurchaseOrderService;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @WebServlet(name = "PurchaseOrderListController", urlPatterns = { "/purchase-order/list" })
 public class PurchaseOrderListController extends HttpServlet {
@@ -41,11 +43,6 @@ public class PurchaseOrderListController extends HttpServlet {
 
         User user = (User) session.getAttribute("user");
         int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
-        // Manager (2), Staff (3), Sale (4)
-        if (roleId != 2 && roleId != 3 && roleId != 4) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
 
         String status = request.getParameter("status");
         String supplierIdParam = request.getParameter("supplierId");
@@ -153,12 +150,11 @@ public class PurchaseOrderListController extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
+        Set<String> permissions = getSessionPermissions(session);
 
         String action = request.getParameter("action");
 
-        if ("cancel".equals(action) && (roleId == 2 || roleId == 4)) {
-            // Manager và Sale có thể hủy đơn
+        if ("cancel".equals(action) && permissions.contains("cancel purchase order")) {
             String idParam = request.getParameter("id");
             if (idParam != null && !idParam.trim().isEmpty()) {
                 try {
@@ -179,6 +175,15 @@ public class PurchaseOrderListController extends HttpServlet {
         // Redirect về list, giữ lại các filter params
         String redirectUrl = buildRedirectUrl(request);
         response.sendRedirect(redirectUrl);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<String> getSessionPermissions(HttpSession session) {
+        Object raw = session.getAttribute("userPermissions");
+        if (raw instanceof Set) {
+            return (Set<String>) raw;
+        }
+        return new HashSet<>();
     }
 
     private String buildRedirectUrl(HttpServletRequest request) {

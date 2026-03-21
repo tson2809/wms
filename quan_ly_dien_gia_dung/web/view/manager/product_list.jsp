@@ -1,6 +1,12 @@
 <%-- Document : product_list Created on : 2 thg 2, 2026, 3:50:00 Author : laptop368 --%>
 
     <%@page contentType="text/html" pageEncoding="UTF-8" %>
+        <%
+            java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+            boolean canCreateProduct = userPermissions != null && userPermissions.contains("create product");
+            boolean canEditProduct = userPermissions != null && userPermissions.contains("edit product");
+            boolean canDeactivateProduct = userPermissions != null && userPermissions.contains("deactivate product");
+        %>
         <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
             <!DOCTYPE html>
             <html>
@@ -157,7 +163,7 @@
 
             <body>
                 <div class="container-fluid position-relative bg-white d-flex p-0">
-                    <jsp:include page="/view/manager/components/sidebarManager.jsp" />
+                    <jsp:include page="/view/common/components/sidebar.jsp" />
 
                     <div class="content">
                         <jsp:include page="/view/common/components/navbar.jsp" />
@@ -166,8 +172,10 @@
                                 <div class="col-12 product-list-section">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h5 class="mb-0 fw-semibold">Danh sách sản phẩm</h5>
+                                        <% if (canCreateProduct) { %>
                                         <a href="${pageContext.request.contextPath}/product-add"
                                             class="btn btn-primary">Thêm sản phẩm</a>
+                                        <% } %>
                                     </div>
 
                                     <!-- Filter Form -->
@@ -308,12 +316,15 @@
                                                                 </td>
                                                                 <td class="action-col">
                                                                     <div class="action-btn-group">
+                                                                        <% if (canEditProduct) { %>
                                                                         <a href="${pageContext.request.contextPath}/product-edit?id=${product.productId}"
                                                                             class="action-btn action-edit"
                                                                             title="Chỉnh sửa">
                                                                             <iconify-icon
                                                                                 icon="lucide:edit-2"></iconify-icon>
                                                                         </a>
+                                                                        <% } %>
+                                                                        <% if (canDeactivateProduct) { %>
                                                                         <c:choose>
                                                                             <c:when
                                                                                 test="${product.status == 'active'}">
@@ -379,6 +390,10 @@
                                                                                 </form>
                                                                             </c:otherwise>
                                                                         </c:choose>
+                                                                        <% } %>
+                                                                        <% if (!canEditProduct && !canDeactivateProduct) { %>
+                                                                        <span class="text-muted small">-</span>
+                                                                        <% } %>
                                                                     </div>
                                                                 </td>
                                                         </tr>

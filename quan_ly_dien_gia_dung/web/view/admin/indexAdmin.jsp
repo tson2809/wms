@@ -49,7 +49,7 @@
             <!-- Spinner End -->
 
             <!-- Sidebar Container -->
-            <jsp:include page="/view/admin/components/sidebarAdmin.jsp" />
+            <jsp:include page="/view/common/components/sidebar.jsp" />
 
             <!-- Content Start -->
             <div class="content">

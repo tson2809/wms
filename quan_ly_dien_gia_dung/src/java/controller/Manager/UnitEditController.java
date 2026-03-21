@@ -11,32 +11,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import model.Unit;
-import model.User;
 
 @WebServlet(name = "UnitEditController", urlPatterns = {"/unit-edit"})
 public class UnitEditController extends HttpServlet {
     private final UnitDAO unitDAO = new UnitDAO();
 
-    private boolean checkManager(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        User user = (session != null) ? (User) session.getAttribute("user") : null;
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return false;
-        }
-        if (user.getRole() == null || !"Manager".equalsIgnoreCase(user.getRole().getRoleName())) {
-            response.sendRedirect(request.getContextPath() + "/indexManager");
-            return false;
-        }
-        return true;
-    }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!checkManager(request, response)) return;
-
         String idParam = request.getParameter("id");
         if (idParam == null) {
             response.sendRedirect(request.getContextPath() + "/unit-list");
@@ -63,8 +45,6 @@ public class UnitEditController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!checkManager(request, response)) return;
-
         request.setCharacterEncoding("UTF-8");
         String idParam = request.getParameter("unitId");
         String unitName = request.getParameter("unitName");

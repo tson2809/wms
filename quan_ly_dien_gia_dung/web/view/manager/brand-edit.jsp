@@ -20,12 +20,14 @@
         <%
             model.User currentUser = (model.User) session.getAttribute("user");
             String roleName = "";
+            java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
+            boolean canEditBrand = userPermissions != null && userPermissions.contains("edit brand");
             if (currentUser != null && currentUser.getRole() != null && currentUser.getRole().getRoleName() != null) {
                 roleName = currentUser.getRole().getRoleName().toLowerCase();
             }
-            String sidebarPage = "/view/admin/components/sidebarAdmin.jsp";
+            String sidebarPage = "/view/common/components/sidebar.jsp";
             if ("manager".equals(roleName)) {
-                sidebarPage = "/view/manager/components/sidebarManager.jsp";
+                sidebarPage = "/view/common/components/sidebar.jsp";
             }
         %>
         <div class="container-fluid position-relative bg-white d-flex p-0">
@@ -56,7 +58,7 @@
 
                                         <div class="col-md-6">
                                             <label class="form-label">Brand name</label>
-                                            <input type="text" class="form-control" name="brandName" value="${brand.brandName}">
+                                            <input type="text" class="form-control" name="brandName" value="${brand.brandName}" <%= !canEditBrand ? "readonly" : "" %>>
                                             <c:if test="${not empty brandNameError}">
                                                 <small class="text-danger">${brandNameError}</small>
                                             </c:if>
@@ -64,7 +66,7 @@
 
                                         <div class="col-12">
                                             <label class="form-label">Description</label>
-                                            <input type="text" class="form-control" name="description" value="${brand.description}">
+                                            <input type="text" class="form-control" name="description" value="${brand.description}" <%= !canEditBrand ? "readonly" : "" %>>
                                             <c:if test="${not empty descriptionError}">
                                                 <small class="text-danger">${descriptionError}</small>
                                             </c:if>
@@ -74,7 +76,9 @@
 
                                     <div class="text-end mt-4">
                                         <a href="${pageContext.request.contextPath}/brand-list" class="btn btn-secondary me-2">Cancel</a>
+                                        <% if (canEditBrand) { %>
                                         <button type="submit" class="btn btn-primary">Update Brand</button>
+                                        <% } %>
                                     </div>
                                 </form>
                             </div>
