@@ -78,17 +78,19 @@ public class GoodsReceiptAddController extends HttpServlet {
         if (purchaseOrderIdStr != null && !purchaseOrderIdStr.trim().isEmpty()) {
             try {
                 int poId = Integer.parseInt(purchaseOrderIdStr.trim());
+                // Luôn set purchaseOrderId để hidden input trong form được render
+                request.setAttribute("purchaseOrderId", poId);
+
                 User user = (User) request.getSession().getAttribute("user");
                 PurchaseOrder po = purchaseOrderDAO.getPurchaseOrderById(poId);
 
                 if (po != null && user != null && user.getRole() != null && user.getRole().getRoleId() == 3
                         && "submitted".equalsIgnoreCase(po.getStatus())
-                        && po.getApprovedBy() != null && po.getApprovedBy() == user.getUserId()) {
+                        && po.getApprovedBy() != null && po.getApprovedBy().equals(user.getUserId())) {
 
                     List<PurchaseOrderDetail> poDetails = purchaseOrderService.getPurchaseOrderDetails(poId);
                     List<Map<String, Object>> products = buildProductsFromPO(poDetails);
 
-                    request.setAttribute("purchaseOrderId", poId);
                     request.setAttribute("poSupplierIdValue", po.getSupplierId());
                     request.setAttribute("poExpectedDeliveryDate", po.getExpectedDeliveryDate());
                     if (!products.isEmpty()) {
@@ -173,6 +175,10 @@ public class GoodsReceiptAddController extends HttpServlet {
             if (salesReturnId != null && !salesReturnId.trim().isEmpty()) {
                 request.setAttribute("salesReturnId", salesReturnId.trim());
             }
+            String purchaseOrderIdParam = request.getParameter("purchaseOrderId");
+            if (purchaseOrderIdParam != null && !purchaseOrderIdParam.trim().isEmpty()) {
+                request.setAttribute("purchaseOrderId", purchaseOrderIdParam.trim());
+            }
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             request.setAttribute("suppliers", suppliers);
             request.getRequestDispatcher("/view/staff/goods-receipt-add.jsp").forward(request, response);
@@ -224,6 +230,8 @@ public class GoodsReceiptAddController extends HttpServlet {
             } else {
                 request.setAttribute("generalError", "Có lỗi xảy ra khi tạo phiếu nhập kho. Vui lòng thử lại!");
                 request.setAttribute("productsJson", productsJson);
+                if (salesReturnId != null) request.setAttribute("salesReturnId", salesReturnId);
+                if (purchaseOrderId != null) request.setAttribute("purchaseOrderId", purchaseOrderId);
                 List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
                 request.setAttribute("suppliers", suppliers);
                 request.getRequestDispatcher("/view/staff/goods-receipt-add.jsp").forward(request, response);
@@ -232,6 +240,14 @@ public class GoodsReceiptAddController extends HttpServlet {
             ex.printStackTrace();
             request.setAttribute("generalError", "Có lỗi xảy ra: " + ex.getMessage());
             request.setAttribute("productsJson", productsJson);
+            String srIdParam = request.getParameter("salesReturnId");
+            if (srIdParam != null && !srIdParam.trim().isEmpty()) {
+                request.setAttribute("salesReturnId", srIdParam.trim());
+            }
+            String poIdParam = request.getParameter("purchaseOrderId");
+            if (poIdParam != null && !poIdParam.trim().isEmpty()) {
+                request.setAttribute("purchaseOrderId", poIdParam.trim());
+            }
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             request.setAttribute("suppliers", suppliers);
             request.getRequestDispatcher("/view/staff/goods-receipt-add.jsp").forward(request, response);

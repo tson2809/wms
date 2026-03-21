@@ -45,8 +45,31 @@ public class GoodsIssueListController extends HttpServlet {
                 Integer approvedBy = "completed".equals(statusParam) && user != null ? user.getUserId() : null;
                 GoodsIssue issue = goodsIssueDAO.getGoodsIssueById(issueId);
                 boolean success = goodsIssueDAO.updateGoodsIssueStatus(issueId, statusParam, approvedBy);
-                if (success && "completed".equals(statusParam) && issue != null && issue.getReturnOrderId() != null) {
-                    returnOrderDAO.completeReturnOrder(issue.getReturnOrderId());
+                if (success && "completed".equals(statusParam) && issue != null) {
+                    if (issue.getReturnOrderId() != null) {
+                        returnOrderDAO.completeReturnOrder(issue.getReturnOrderId());
+                    }
+                    if (issue.getNotes() != null && issue.getNotes().contains("[PO_ID:")) {
+                        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[PO_ID:(\\d+)\\]").matcher(issue.getNotes());
+                        if (m.find()) {
+                            try {
+                                int poId = Integer.parseInt(m.group(1));
+                                dal.PurchaseOrderDAO poDAO = new dal.PurchaseOrderDAO();
+                                poDAO.completePurchaseOrder(poId);
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                } else if (success && "cancelled".equals(statusParam) && issue != null) {
+                    if (issue.getNotes() != null && issue.getNotes().contains("[PO_ID:")) {
+                        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[PO_ID:(\\d+)\\]").matcher(issue.getNotes());
+                        if (m.find()) {
+                            try {
+                                int poId = Integer.parseInt(m.group(1));
+                                dal.PurchaseOrderDAO poDAO = new dal.PurchaseOrderDAO();
+                                poDAO.cancelPurchaseOrder(poId);
+                            } catch (Exception ignored) {}
+                        }
+                    }
                 }
             } catch (NumberFormatException e) {}
             response.sendRedirect(request.getContextPath() + "/goods-issue-list");
