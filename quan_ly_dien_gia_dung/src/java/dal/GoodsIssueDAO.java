@@ -150,7 +150,6 @@ public class GoodsIssueDAO extends DBContext {
         gi.setIssueType(rs.getString("issue_type"));
         gi.setIssueDate(rs.getTimestamp("issue_date"));
         gi.setReceiverName(rs.getString("receiver_name"));
-        gi.setDepartment(rs.getString("department"));
         gi.setStatus(rs.getString("status"));
         gi.setNotes(rs.getString("notes"));
         gi.setCreatedAt(rs.getTimestamp("created_at"));
@@ -387,36 +386,37 @@ public class GoodsIssueDAO extends DBContext {
      * (completed).
      */
     public boolean createGoodsIssue(String issueCode, String issueType, String issueDate,
-            String receiverName, String department, String notes,
+            String receiverName, String notes,
             int createdBy, List<GoodsIssueDetail> details) {
-        return createGoodsIssue(issueCode, issueType, issueDate, receiverName, department, notes, createdBy, details,
+        return createGoodsIssue(issueCode, issueType, issueDate, receiverName, notes, createdBy, details,
                 null);
     }
 
     /** Tạo phiếu xuất kho với return_order_id (khi tạo từ đơn trả hàng). */
     public boolean createGoodsIssue(String issueCode, String issueType, String issueDate,
-            String receiverName, String department, String notes,
+            String receiverName, String notes,
             int createdBy, List<GoodsIssueDetail> details, Integer returnOrderId) {
         Connection conn = null;
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
 
+            String normalizedIssueType = normalizeIssueType(issueType);
+
             String sqlIssue = """
                     INSERT INTO goods_issues
-                    (issue_code, issue_type, issue_date, receiver_name, department, status, created_by, notes, return_order_id)
-                    VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?)
+                    (issue_code, issue_type, issue_date, receiver_name, status, created_by, notes, return_order_id)
+                    VALUES (?, ?, ?, ?, 'draft', ?, ?, ?)
                     """;
             int issueId;
             try (PreparedStatement ps = conn.prepareStatement(sqlIssue, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, issueCode);
-                ps.setString(2, issueType);
+                ps.setString(2, normalizedIssueType);
                 ps.setString(3, issueDate);
                 ps.setString(4, receiverName);
-                ps.setString(5, department != null ? department : "");
-                ps.setInt(6, createdBy);
-                ps.setString(7, notes != null ? notes : "");
-                ps.setObject(8, returnOrderId);
+                ps.setInt(5, createdBy);
+                ps.setString(6, notes != null ? notes : "");
+                ps.setObject(7, returnOrderId);
                 ps.executeUpdate();
                 ResultSet rs = ps.getGeneratedKeys();
                 if (rs.next())
@@ -653,5 +653,16 @@ public class GoodsIssueDAO extends DBContext {
             return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t",
                 "\\t");
+    }
+
+    private String normalizeIssueType(String issueType) {
+        if (issueType == null) {
+            return "sale";
+        }
+        String normalized = issueType.trim().toLowerCase();
+        if ("return_supplier".equals(normalized) || "other".equals(normalized)) {
+            return normalized;
+        }
+        return "sale";
     }
 }

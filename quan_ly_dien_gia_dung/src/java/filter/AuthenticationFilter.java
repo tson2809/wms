@@ -107,7 +107,7 @@ public class AuthenticationFilter implements Filter {
             case "admin":
                 return "/user-list";
             case "manager":
-                return getPermissionBasedLanding(permissions, "/purchase-order/list");
+                return "/manager-report";
             case "sale":
                 return getPermissionBasedLanding(permissions, "/sales-return-list");
             case "staff":

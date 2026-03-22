@@ -12,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -103,11 +104,23 @@ public class AlertCountFilter implements Filter {
             ServletResponse response,
             FilterChain chain)
             throws IOException, ServletException {
-        int alertCount = dao.countInventoryAlerts(null, null);
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String uri = httpRequest.getRequestURI();
+        String contextPath = httpRequest.getContextPath();
+        String relativePath = uri.substring(contextPath.length());
+
+        int alertCount = 0;
+        if (shouldCountAlerts(relativePath, httpRequest)) {
+            try {
+                alertCount = dao.countInventoryAlerts(null, null);
+            } catch (Exception e) {
+                alertCount = 0;
+            }
+        }
         request.setAttribute("alertCount", alertCount);
         Boolean enabled = true;
         try {
-            enabled = (Boolean) ((jakarta.servlet.http.HttpServletRequest) request)
+            enabled = (Boolean) httpRequest
                     .getSession()
                     .getAttribute("alertEnabled");
             if (enabled == null) {
@@ -118,6 +131,25 @@ public class AlertCountFilter implements Filter {
         }
         request.setAttribute("alertEnabled", enabled);
         chain.doFilter(request, response);
+    }
+
+    private boolean shouldCountAlerts(String relativePath, HttpServletRequest request) {
+        if (relativePath == null || relativePath.isEmpty()) {
+            return false;
+        }
+
+        if (relativePath.startsWith("/css/")
+                || relativePath.startsWith("/js/")
+                || relativePath.startsWith("/img/")
+                || relativePath.startsWith("/lib/")
+                || relativePath.startsWith("/view/")
+                || relativePath.startsWith("/login")
+                || relativePath.startsWith("/forgot-password")) {
+            return false;
+        }
+
+        Object user = request.getSession(false) != null ? request.getSession(false).getAttribute("user") : null;
+        return user != null;
     }
 
     /**

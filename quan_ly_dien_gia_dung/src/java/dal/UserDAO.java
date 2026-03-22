@@ -14,12 +14,66 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import model.User;
 import java.sql.*;
 import model.Role;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author laptop368
  */
 public class UserDAO extends DBContext {
+
+    private static final Logger LOGGER = Logger.getLogger(UserDAO.class.getName());
+
+    public User findByUsernameWithRole(String username) throws SQLException {
+        String sql = """
+        SELECT
+            u.user_id,
+            u.username,
+            u.email,
+            u.password_hash,
+            u.full_name,
+            u.phone,
+            u.address,
+            u.avatar,
+            u.is_active,
+            u.created_at,
+            r.role_id,
+            r.role_name
+        FROM users u
+        INNER JOIN roles r ON u.role_id = r.role_id
+        WHERE u.username = ?
+    """;
+
+        try (Connection connection = getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setUsername(rs.getString("username"));
+                    user.setEmail(rs.getString("email"));
+                    user.setPasswordHash(rs.getString("password_hash"));
+                    user.setFullName(rs.getString("full_name"));
+                    user.setPhone(rs.getString("phone"));
+                    user.setAddress(rs.getString("address"));
+                    user.setAvatar(rs.getString("avatar"));
+                    user.setActive(rs.getBoolean("is_active"));
+                    user.setCreatedAt(rs.getTimestamp("created_at"));
+                    user.setRoleId(rs.getInt("role_id"));
+                    user.setRoleName(rs.getString("role_name"));
+
+                    Role role = new Role();
+                    role.setRoleId(rs.getInt("role_id"));
+                    role.setRoleName(rs.getString("role_name"));
+                    user.setRole(role);
+
+                    return user;
+                }
+            }
+        }
+        return null;
+    }
 
     public User getUserById(int id) {
         String sql = """
@@ -201,7 +255,7 @@ public class UserDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Loi truy van user theo username", e);
         }
         return null;
     }
