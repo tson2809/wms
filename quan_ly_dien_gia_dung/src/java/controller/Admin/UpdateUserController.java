@@ -93,6 +93,7 @@ public class UpdateUserController extends HttpServlet {
             throws ServletException, IOException {
         int userId = Integer.parseInt(request.getParameter("userId"));
         User currentUser = (User) request.getSession(false).getAttribute("user");
+        User old = userDAO.getUserById(userId);
         String username = request.getParameter("username");
         String email = request.getParameter("email");
         String fullName = request.getParameter("fullName");
@@ -154,7 +155,16 @@ public class UpdateUserController extends HttpServlet {
             hasError = true;
         }
 
-        User old = userDAO.getUserById(userId);
+        if (currentUser != null
+                && currentUser.getUserId() == userId
+                && old != null
+                && old.getRole() != null
+                && roleId != old.getRole().getRoleId()) {
+            request.setAttribute("roleError", "Bạn không thể tự thay đổi role của chính mình");
+            hasError = true;
+            roleId = old.getRole().getRoleId();
+        }
+
         if (hasError) {
             request.setAttribute("user", old);
             request.setAttribute("roles", roleDAO.getAllRole());

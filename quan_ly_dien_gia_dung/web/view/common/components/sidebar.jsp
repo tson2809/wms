@@ -99,6 +99,7 @@
             || currentURI.contains("/sheet-create.jsp")
             || currentURI.contains("/sheet-view.jsp")
             || currentURI.contains("/sheet-edit.jsp")) ? "active" : "";
+    String managerReportActive = currentURI.contains("/manager-report") ? "active" : "";
 
         String salesReturnActive = (currentURI.contains("/sales-return-list")
             || currentURI.contains("/sales-return-add")
@@ -157,10 +158,11 @@
                 <% } %>
             </div>
         <% } else if ("manager".equals(roleName)) { %>
-            <a href="${pageContext.request.contextPath}/inventory-list" class="navbar-brand mx-4 mb-3">
+            <a href="${pageContext.request.contextPath}/manager-report" class="navbar-brand mx-4 mb-3">
                 <h3 class="text-primary">WMS_HA</h3>
             </a>
             <div class="navbar-nav w-100">
+                <a href="${pageContext.request.contextPath}/manager-report" class="nav-item nav-link <%= managerReportActive %>"><i class="fa fa-chart-pie me-2"></i>Báo cáo thống kê</a>
                 <% if (canViewInventory) { %>
                 <a href="${pageContext.request.contextPath}/inventory-list" class="nav-item nav-link <%= inventoryListActive %>"><i class="fa fa-boxes me-2"></i>Tồn kho</a>
                 <% } %>
@@ -208,6 +210,8 @@
                 <% if (canViewInventory) { %>
                 <a href="${pageContext.request.contextPath}/inventory-list" class="nav-item nav-link <%= inventoryListActive %>"><i class="fa fa-boxes me-2"></i>Tồn kho</a>
                 <% } %>
+                <a href="${pageContext.request.contextPath}/purchase-order/list" class="nav-item nav-link <%= purchaseOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
+                <% } %>
                 <% if (canViewSupplier) { %>
                 <a href="${pageContext.request.contextPath}/supplier-list" class="nav-item nav-link <%= supplierActive %>"><i class="fa fa-truck me-2"></i>Nhà cung cấp</a>
                 <% } %>
@@ -235,8 +239,6 @@
                 <a href="${pageContext.request.contextPath}/return-order-list" class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả về NCC</a>
                 <a href="${pageContext.request.contextPath}/sales-return-list" class="nav-item nav-link <%= salesReturnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả từ Sale</a>
                 <% if (canViewPurchaseOrder) { %>
-                <a href="${pageContext.request.contextPath}/purchase-order/list" class="nav-item nav-link <%= purchaseOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
-                <% } %>
             </div>
         <% } else { %>
             <a href="${pageContext.request.contextPath}/purchase-order/list" class="navbar-brand mx-4 mb-3">

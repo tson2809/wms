@@ -384,6 +384,9 @@ public class PermissionFilter implements Filter {
         if ("admin".equals(roleName)) {
             return "/user-list";
         }
+        if ("manager".equals(roleName)) {
+            return "/manager-report";
+        }
         if ("sale".equals(roleName)) {
             return "/sales-return-list";
         }

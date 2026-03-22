@@ -16,7 +16,6 @@ public class GoodsIssue {
     private String issueType;
     private Timestamp issueDate;
     private String receiverName;
-    private String department;
     private String status;
     private String notes;
     private Timestamp createdAt;
@@ -66,14 +65,6 @@ public class GoodsIssue {
 
     public void setReceiverName(String receiverName) {
         this.receiverName = receiverName;
-    }
-
-    public String getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(String department) {
-        this.department = department;
     }
 
     public String getStatus() {
