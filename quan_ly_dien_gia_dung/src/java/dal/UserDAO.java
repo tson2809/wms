@@ -95,7 +95,7 @@ public class UserDAO extends DBContext {
         WHERE u.user_id = ?
     """;
 
-        try (Connection connection = this.getConnection(); PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
 

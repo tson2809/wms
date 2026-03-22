@@ -8,7 +8,7 @@
     }
 
     java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-    if (currentUser != null && userPermissions == null) {
+    if (currentUser != null) {
         try {
             dal.RoleDAO roleDAO = new dal.RoleDAO();
             java.util.List<String> permissionNames = roleDAO.getRolePermissionNames(currentUser.getRoleId());
@@ -210,6 +210,8 @@
                 <% if (canViewInventory) { %>
                 <a href="${pageContext.request.contextPath}/inventory-list" class="nav-item nav-link <%= inventoryListActive %>"><i class="fa fa-boxes me-2"></i>Tồn kho</a>
                 <% } %>
+                <a href="${pageContext.request.contextPath}/purchase-order/list" class="nav-item nav-link <%= purchaseOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
+                <% } %>
                 <% if (canViewSupplier) { %>
                 <a href="${pageContext.request.contextPath}/supplier-list" class="nav-item nav-link <%= supplierActive %>"><i class="fa fa-truck me-2"></i>Nhà cung cấp</a>
                 <% } %>
@@ -237,8 +239,6 @@
                 <a href="${pageContext.request.contextPath}/return-order-list" class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả về NCC</a>
                 <a href="${pageContext.request.contextPath}/sales-return-list" class="nav-item nav-link <%= salesReturnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả từ Sale</a>
                 <% if (canViewPurchaseOrder) { %>
-                <a href="${pageContext.request.contextPath}/purchase-order/list" class="nav-item nav-link <%= purchaseOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
-                <% } %>
             </div>
         <% } else { %>
             <a href="${pageContext.request.contextPath}/purchase-order/list" class="navbar-brand mx-4 mb-3">
