@@ -365,10 +365,9 @@ public class GoodsIssueAddController extends HttpServlet {
     private void handleCreateIssue(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String issueCode = request.getParameter("issueCode");
-        String issueType = request.getParameter("issueType");
+        String issueType = normalizeIssueType(request.getParameter("issueType"));
         String issueDate = request.getParameter("issueDate");
         String receiverName = request.getParameter("receiverName");
-        String department = request.getParameter("department");
         String notes = request.getParameter("notes");
         String productsJson = request.getParameter("products");
 
@@ -438,7 +437,7 @@ public class GoodsIssueAddController extends HttpServlet {
 
             boolean success = goodsIssueDAO.createGoodsIssue(
                     issueCode.trim(), issueType, issueDate,
-                    receiverName.trim(), department, notesWithPo.trim(),
+                    receiverName.trim(), notesWithPo.trim(),
                     user.getUserId(), details, returnOrderId);
 
             if (success) {
@@ -496,5 +495,16 @@ public class GoodsIssueAddController extends HttpServlet {
             details.add(d);
         }
         return details;
+    }
+
+    private String normalizeIssueType(String issueType) {
+        if (issueType == null) {
+            return "sale";
+        }
+        String normalized = issueType.trim().toLowerCase();
+        if ("return_supplier".equals(normalized) || "other".equals(normalized)) {
+            return normalized;
+        }
+        return "sale";
     }
 }

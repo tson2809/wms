@@ -103,9 +103,7 @@
                                         <c:choose>
                                             <c:when test='${issue.issueType eq "sale"}'>Bán hàng</c:when>
                                             <c:when test='${issue.issueType eq "return_supplier"}'>Trả nhà cung cấp</c:when>
-                                            <c:when test='${issue.issueType eq "transfer"}'>Điều chuyển kho</c:when>
-                                            <c:when test='${issue.issueType eq "disposal"}'>Hủy hàng</c:when>
-                                            <c:when test='${issue.issueType eq "internal_use"}'>Sử dụng nội bộ</c:when>
+                                            <c:when test='${issue.issueType eq "other"}'>Khác</c:when>
                                             <c:otherwise>${issue.issueType}</c:otherwise>
                                         </c:choose>">
                                 </div>
@@ -113,11 +111,6 @@
                                 <div class="mb-3">
                                     <label class="form-label">Người nhận</label>
                                     <input type="text" class="form-control" value="${issue.receiverName}" readonly>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Bộ phận</label>
-                                    <input type="text" class="form-control" value="${not empty issue.department ? issue.department : ''}" readonly>
                                 </div>
 
                                 <div class="mb-3">
@@ -140,7 +133,7 @@
                                         <div class="mb-3">
                                             <label class="form-label">Trạng thái:</label>
                                             <input type="text" class="form-control" readonly
-                                                   value="${issue.status eq 'draft' ? 'Nháp' : (issue.status eq 'confirmed' ? 'Đã xác nhận' : (issue.status eq 'completed' ? 'Hoàn thành' : 'Đã hủy'))}">
+                                                   value="${issue.status eq 'draft' ? 'Nháp' : (issue.status eq 'completed' ? 'Hoàn thành' : 'Đã hủy')}">
                                         </div>
                                     </c:otherwise>
                                 </c:choose>

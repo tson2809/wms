@@ -14,9 +14,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -27,6 +30,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @WebServlet(name = "LoginController", urlPatterns = {"/login"})
 public class LoginController extends HttpServlet {
 
+    private static final Logger LOGGER = Logger.getLogger(LoginController.class.getName());
     private final UserDAO userDAO = new UserDAO();
     private final RoleDAO roleDAO = new RoleDAO();
 
@@ -49,18 +53,18 @@ public class LoginController extends HttpServlet {
             return;
         }
 
-        User user = userDAO.findByUsername(username.trim());
-
-        if (user == null) {
-            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
+        User fullUser;
+        try {
+            fullUser = userDAO.findByUsernameWithRole(username.trim());
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Khong the dang nhap do loi ket noi CSDL", ex);
+            request.setAttribute("error", "Hệ thống đang bận hoặc mất kết nối CSDL. Vui lòng thử lại sau!");
             request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
             return;
         }
 
-        User fullUser = userDAO.getUserById(user.getUserId());
-
         if (fullUser == null) {
-            request.setAttribute("error", "Đã xảy ra lỗi. Vui lòng thử lại!");
+            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
             request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
             return;
         }
@@ -71,19 +75,19 @@ public class LoginController extends HttpServlet {
             return;
         }
 
-//        String storedPassword = fullUser.getPassword();
-//        if (storedPassword == null) {
-//            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
-//            request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
-//            return;
-//        }
-        
-//        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-//        if (!encoder.matches(password, storedPassword)) {
-//            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
-//            request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
-//            return;
-//        }
+        String storedPassword = fullUser.getPassword();
+        if (storedPassword == null || storedPassword.trim().isEmpty()) {
+            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
+            request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
+            return;
+        }
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        if (!encoder.matches(password, storedPassword)) {
+            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không chính xác!");
+            request.getRequestDispatcher("view/common/login.jsp").forward(request, response);
+            return;
+        }
 
         HttpSession session = request.getSession();
         session.setAttribute("user", fullUser);
@@ -128,7 +132,7 @@ public class LoginController extends HttpServlet {
             case "admin":
                 return "/user-list";
             case "manager":
-                return getPermissionBasedLanding(permissions, "/purchase-order/list");
+                return "/manager-report";
             case "sale":
                 return getPermissionBasedLanding(permissions, "/sales-return-list");
             case "staff":

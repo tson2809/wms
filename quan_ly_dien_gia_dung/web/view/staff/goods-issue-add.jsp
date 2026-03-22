@@ -159,11 +159,9 @@
                                     <div class="mb-3">
                                         <label class="form-label">Loại xuất</label>
                                         <select class="form-select" name="issueType" id="issueType">
-                                            <option value="sale"            ${(issueType ne 'return_supplier' || empty issueType) && (param.issueType ne 'return_supplier' || empty param.issueType) ? 'selected' : ''}>Bán hàng</option>
+                                            <option value="sale"            ${(issueType ne 'return_supplier' && issueType ne 'other' || empty issueType) && (param.issueType ne 'return_supplier' && param.issueType ne 'other' || empty param.issueType) ? 'selected' : ''}>Bán hàng</option>
                                             <option value="return_supplier" ${(issueType eq 'return_supplier' || param.issueType eq 'return_supplier') ? 'selected' : ''}>Trả nhà cung cấp</option>
-                                            <option value="transfer"        ${param.issueType eq 'transfer'        ? 'selected' : ''}>Điều chuyển kho</option>
-                                            <option value="disposal"        ${param.issueType eq 'disposal'        ? 'selected' : ''}>Hủy hàng</option>
-                                            <option value="internal_use"    ${param.issueType eq 'internal_use'    ? 'selected' : ''}>Sử dụng nội bộ</option>
+                                            <option value="other"           ${(issueType eq 'other' || param.issueType eq 'other') ? 'selected' : ''}>Khác</option>
                                         </select>
                                     </div>
 
@@ -174,12 +172,6 @@
                                         <c:if test="${not empty receiverNameError}">
                                             <small class="text-danger">${receiverNameError}</small>
                                         </c:if>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Bộ phận</label>
-                                        <input type="text" class="form-control" name="department"
-                                               placeholder="VD: Kinh doanh, Kho vận..." value="${param.department}">
                                     </div>
 
                                     <div class="mb-4">
