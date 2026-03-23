@@ -310,6 +310,17 @@
                                                                            title="Tạo phiếu nhập kho">
                                                                             <iconify-icon icon="lucide:package-plus"></iconify-icon>
                                                                         </a>
+                                                                        <form action="${pageContext.request.contextPath}/sales-return-claim" method="post" class="d-inline"
+                                                                              onsubmit="return confirm('Bạn xác nhận hủy việc đã nhận đơn trả hàng này?');">
+                                                                            <input type="hidden" name="id" value="${sr.salesReturnId}">
+                                                                            <input type="hidden" name="action" value="cancel">
+                                                                            <button type="submit"
+                                                                                    class="action-btn action-view"
+                                                                                    title="Hủy nhận đơn"
+                                                                                    style="cursor:pointer;">
+                                                                                <iconify-icon icon="lucide:x"></iconify-icon>
+                                                                            </button>
+                                                                        </form>
                                                                     </c:if>
                                                                     <a href="${pageContext.request.contextPath}/sales-return-edit?id=${sr.salesReturnId}"
                                                                        class="action-btn action-view"

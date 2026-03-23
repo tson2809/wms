@@ -36,8 +36,14 @@ public class SalesReturnClaimController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/sales-return-list");
             return;
         }
-
-        salesReturnDAO.claimSalesReturn(salesReturnId, user.getUserId());
+        
+        String action = request.getParameter("action");
+        if ("cancel".equalsIgnoreCase(action)) {
+            salesReturnDAO.cancelClaimSalesReturn(salesReturnId, user.getUserId());
+        } else {
+            // mặc định: claim
+            salesReturnDAO.claimSalesReturn(salesReturnId, user.getUserId());
+        }
         response.sendRedirect(request.getContextPath() + "/sales-return-list");
     }
 

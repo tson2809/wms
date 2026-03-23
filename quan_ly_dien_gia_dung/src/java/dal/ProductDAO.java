@@ -624,6 +624,11 @@ AND v.status = 'active'
                 throw new SQLException("Product must have at least one variant.");
             }
 
+            // Không cho phép trùng product_name (theo yêu cầu nghiệp vụ)
+            if (dto.getProductName() != null && isProductNameExists(dto.getProductName().trim())) {
+                return 0;
+            }
+
             // 1. INSERT vào bảng PRODUCTS
             String sqlProduct = "INSERT INTO products (product_name, category_id, brand_id, "
                     + "supplier_id, unit_id, picture, description, status, created_at) "
@@ -811,6 +816,43 @@ AND v.status = 'active'
             e.printStackTrace();
         }
 
+        return false;
+    }
+
+    public boolean isProductNameExists(String productName) {
+        if (productName == null || productName.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT COUNT(*) FROM products WHERE product_name = ?";
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setString(1, productName.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isProductNameExistsExcludingProduct(String productName, int productId) {
+        if (productName == null || productName.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT COUNT(*) FROM products WHERE product_name = ? AND product_id != ?";
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
+            ps.setString(1, productName.trim());
+            ps.setInt(2, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
@@ -1019,6 +1061,13 @@ AND v.status = 'active'
             return false;
         }
         int productId = dto.getProductId();
+
+        // Không cho phép trùng product_name (ngoại trừ chính product hiện tại)
+        if (dto.getProductName() != null
+                && isProductNameExistsExcludingProduct(dto.getProductName().trim(), productId)) {
+            return false;
+        }
+
         Connection conn = null;
         try {
             conn = getConnection();

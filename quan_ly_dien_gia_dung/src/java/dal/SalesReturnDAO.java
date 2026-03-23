@@ -563,6 +563,34 @@ public class SalesReturnDAO extends DBContext {
         return false;
     }
 
+    /**
+     * Hủy việc nhân đơn (rollback): đưa đơn từ 'processing' về 'pending' và xóa received_by.
+     * Không cho hủy nếu đã tồn tại goods_receipts cho sales_return đó mà status khác 'cancelled'.
+     */
+    public boolean cancelClaimSalesReturn(int salesReturnId, int userId) {
+        String sql = """
+            UPDATE sales_returns
+            SET received_by = NULL, status = 'pending'
+            WHERE sales_return_id = ?
+              AND status = 'processing'
+              AND received_by = ?
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM goods_receipts gr
+                  WHERE gr.sales_return_id = sales_returns.sales_return_id
+                    AND gr.status <> 'cancelled'
+              )
+        """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, salesReturnId);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(SalesReturnDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     public boolean completeSalesReturn(int salesReturnId) {
         String sql = """
             UPDATE sales_returns
