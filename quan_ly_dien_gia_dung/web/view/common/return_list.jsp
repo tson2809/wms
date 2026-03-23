@@ -295,19 +295,15 @@ Author : laptop368
                                                     <td>
                                                         <c:choose>
                                                             <c:when test="${ro.status == 'pending'}"><span
-                                                                    class="status-badge status-pending">Chờ
-                                                                    xử lý</span></c:when>
+                                                                    class="status-badge status-pending">Chờ xử lý</span></c:when>
                                                                 <c:when test="${ro.status == 'processing'}">
                                                                 <span
-                                                                    class="status-badge status-processing">Đang
-                                                                    xử lý</span>
+                                                                    class="status-badge status-processing">Đang xử lý</span>
                                                                 </c:when>
                                                                 <c:when test="${ro.status == 'completed'}"><span
-                                                                    class="status-badge status-completed">Hoàn
-                                                                    tất</span></c:when>
+                                                                    class="status-badge status-completed">Hoàn tất</span></c:when>
                                                             <c:when test="${ro.status == 'cancelled'}"><span
-                                                                    class="status-badge status-cancelled">Đã
-                                                                    hủy</span></c:when>
+                                                                    class="status-badge status-cancelled">Đã hủy</span></c:when>
                                                             <c:otherwise><span
                                                                     class="status-badge">${ro.status}</span>
                                                             </c:otherwise>
@@ -317,14 +313,12 @@ Author : laptop368
                                                         <c:choose>
                                                             <c:when test="${ro.refundStatus == 'refunded'}">
                                                                 <span
-                                                                    class="status-badge refund-refunded">Đã
-                                                                    hoàn</span>
+                                                                    class="status-badge refund-refunded">Đã hoàn</span>
                                                                 </c:when>
                                                                 <c:when
                                                                     test="${ro.refundStatus == 'not_refunded'}">
                                                                 <span
-                                                                    class="status-badge refund-not_refunded">Chưa
-                                                                    hoàn</span>
+                                                                    class="status-badge refund-not_refunded">Chưa hoàn</span>
                                                                 </c:when>
                                                                 <c:otherwise><span
                                                                     class="status-badge">${ro.refundStatus}</span>
@@ -379,6 +373,17 @@ Author : laptop368
                                                                            title="Tạo phiếu xuất kho">
                                                                             <iconify-icon icon="lucide:package-plus"></iconify-icon>
                                                                         </a>
+                                                                        <form action="${pageContext.request.contextPath}/return-claim" method="post" class="d-inline"
+                                                                              onsubmit="return confirm('Bạn xác nhận hủy việc đã nhận đơn trả hàng này?');">
+                                                                            <input type="hidden" name="id" value="${ro.returnOrderId}">
+                                                                            <input type="hidden" name="action" value="cancel">
+                                                                            <button type="submit"
+                                                                                    class="action-btn action-view"
+                                                                                    title="Hủy nhận đơn"
+                                                                                    style="cursor:pointer;">
+                                                                                <iconify-icon icon="lucide:x"></iconify-icon>
+                                                                            </button>
+                                                                        </form>
                                                                     </c:if>
                                                                     <a href="${pageContext.request.contextPath}/return-edit?id=${ro.returnOrderId}&view=1"
                                                                        class="action-btn action-view"

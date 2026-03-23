@@ -12,9 +12,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import com.google.gson.Gson;
 import java.util.stream.Collectors;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -43,6 +47,7 @@ public class ProductEditController extends HttpServlet {
     private final BrandDAO brandDAO = new BrandDAO();
     private final SupplierDAO supplierDAO = new SupplierDAO();
     private final UnitDAO unitDAO = new UnitDAO();
+    private final Gson gson = new Gson();
 
     private void loadDropdownData(HttpServletRequest request) {
         request.setAttribute("categories", categoryDAO.getActiveCategories());
@@ -151,6 +156,9 @@ public class ProductEditController extends HttpServlet {
         if (productName == null || productName.isBlank()) {
             request.setAttribute("errorProductName", "Tên sản phẩm không được để trống.");
             hasError = true;
+        } else if (productDAO.isProductNameExistsExcludingProduct(productName.trim(), productId)) {
+            request.setAttribute("errorProductName", "Tên sản phẩm đã tồn tại.");
+            hasError = true;
         }
         if (categoryId == null || categoryId.isBlank()) {
             request.setAttribute("errorCategoryId", "Vui lòng chọn danh mục.");
@@ -208,7 +216,37 @@ public class ProductEditController extends HttpServlet {
             request.setAttribute("supplierId", supplierId);
             request.setAttribute("unitId", unitId);
             request.setAttribute("description", description);
-            request.setAttribute("editDataJson", buildEditDataJsonFromParams(attributeNamesStr, variantAttrValuesArr, variantIds, variantSkus, variantBarcodes));
+
+            // Preserve existing variant pictures (paths) so they don't disappear on validation errors.
+            Map<Integer, String> existingPictureByVariantId = new HashMap<>();
+            if (existingDto.getVariants() != null) {
+                for (ProductVariantSimpleDTO ev : existingDto.getVariants()) {
+                    if (ev.getVariantId() != null && ev.getVariantPicture() != null && !ev.getVariantPicture().trim().isEmpty()) {
+                        existingPictureByVariantId.put(ev.getVariantId(), ev.getVariantPicture().trim());
+                    }
+                }
+            }
+
+            request.setAttribute("editDataJson", buildEditDataJsonFromParams(
+                    attributeNamesStr,
+                    variantAttrValuesArr,
+                    variantIds,
+                    variantSkus,
+                    variantBarcodes,
+                    existingPictureByVariantId
+            ));
+
+            // Preserve variant images (base64) so user doesn't lose previews after validation error.
+            if (variantSkus != null && variantSkus.length > 0) {
+                List<String> variantImagesBase64 = new ArrayList<>();
+                for (int i = 0; i < variantSkus.length; i++) {
+                    String base64 = request.getParameter("variantImageBase64_" + i);
+                    variantImagesBase64.add(base64 != null ? base64 : "");
+                }
+                Map<String, Object> preserve = new HashMap<>();
+                preserve.put("variantImagesBase64", variantImagesBase64);
+                request.setAttribute("preserveStateJson", gson.toJson(preserve));
+            }
             request.getRequestDispatcher("/view/manager/product_edit.jsp").forward(request, response);
             return;
         }
@@ -311,6 +349,14 @@ public class ProductEditController extends HttpServlet {
                         }
                     }
                 }
+
+                // Nếu không có file upload, thử lấy ảnh variant dạng base64 (preserveState sau validation lỗi).
+                if (variantPicture == null) {
+                    String base64Param = request.getParameter("variantImageBase64_" + i);
+                    if (base64Param != null && base64Param.startsWith("data:")) {
+                        variantPicture = saveVariantImageFromBase64(base64Param, request);
+                    }
+                }
                 if (variantPicture == null && variantId != null) {
                     variantPicture = existingPictureByVariantId.get(variantId);
                 }
@@ -371,7 +417,8 @@ public class ProductEditController extends HttpServlet {
     }
 
     private String buildEditDataJsonFromParams(String attributeNamesStr, String[] variantAttrValuesArr,
-            String[] variantIds, String[] variantSkus, String[] variantBarcodes) {
+            String[] variantIds, String[] variantSkus, String[] variantBarcodes,
+            Map<Integer, String> existingPictureByVariantId) {
         if (attributeNamesStr == null || attributeNamesStr.trim().isEmpty() || variantAttrValuesArr == null || variantAttrValuesArr.length == 0) {
             return "";
         }
@@ -394,7 +441,11 @@ public class ProductEditController extends HttpServlet {
             ProductVariantSimpleDTO v = new ProductVariantSimpleDTO();
             if (variantIds != null && i < variantIds.length && variantIds[i] != null && !variantIds[i].trim().isEmpty()) {
                 try {
-                    v.setVariantId(Integer.parseInt(variantIds[i].trim()));
+                    Integer vid = Integer.parseInt(variantIds[i].trim());
+                    v.setVariantId(vid);
+                    if (existingPictureByVariantId != null && existingPictureByVariantId.containsKey(vid)) {
+                        v.setVariantPicture(existingPictureByVariantId.get(vid));
+                    }
                 } catch (NumberFormatException ignored) { }
             }
             v.setSku(variantSkus != null && i < variantSkus.length && variantSkus[i] != null ? variantSkus[i].trim() : "");
@@ -476,6 +527,45 @@ public class ProductEditController extends HttpServlet {
             }
 
             filePart.write(webPath + File.separator + saveName);
+
+            String buildPath = getServletContext().getRealPath("/img/variants");
+            File buildDir = new File(buildPath);
+            if (buildDir.exists() || buildDir.mkdirs()) {
+                Files.copy(Path.of(webPath, saveName), Path.of(buildPath, saveName), StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            return "img/variants/" + saveName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String saveVariantImageFromBase64(String dataUrl, HttpServletRequest request) {
+        try {
+            int comma = dataUrl.indexOf(',');
+            if (comma < 0) return null;
+
+            String base64 = dataUrl.substring(comma + 1);
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            if (bytes == null || bytes.length == 0) return null;
+
+            String ext = "png";
+            if (dataUrl.startsWith("data:image/jpeg") || dataUrl.startsWith("data:image/jpg")) ext = "jpg";
+            else if (dataUrl.startsWith("data:image/gif")) ext = "gif";
+            else if (dataUrl.startsWith("data:image/webp")) ext = "webp";
+
+            String saveName = System.currentTimeMillis() + "_variant." + ext;
+
+            String rootPath = getServletContext().getRealPath("/");
+            if (rootPath != null && rootPath.contains("build")) {
+                rootPath = rootPath.substring(0, rootPath.indexOf("build"));
+            }
+            String webPath = rootPath + "web" + File.separator + "img" + File.separator + "variants";
+            File webDir = new File(webPath);
+            if (!webDir.exists()) webDir.mkdirs();
+
+            Files.write(Path.of(webPath, saveName), bytes);
 
             String buildPath = getServletContext().getRealPath("/img/variants");
             File buildDir = new File(buildPath);
