@@ -362,6 +362,35 @@ public class ReturnOrderDAO extends DBContext {
         return false;
     }
 
+    /**
+     * Hủy việc đã nhận đơn trả hàng (rollback claim):
+     * - Chỉ cho phép khi đơn đang 'processing' và received_by đúng nhân viên
+     * - Tránh rollback nếu đã có goods_issues tạo cho return_order đó (chứng từ đã phát sinh)
+     */
+    public boolean cancelClaimReturnOrder(int returnOrderId, int userId) {
+        String sql = """
+            UPDATE return_orders
+            SET received_by = NULL, status = 'pending'
+            WHERE return_order_id = ?
+              AND status = 'processing'
+              AND received_by = ?
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM goods_issues gi
+                  WHERE gi.return_order_id = return_orders.return_order_id
+                    AND gi.status <> 'cancelled'
+              )
+        """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, returnOrderId);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(ReturnOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     public boolean cancelReturnOrder(int returnOrderId) {
         String sql = "UPDATE return_orders SET status = 'cancelled' "
                 + "WHERE return_order_id = ? AND status IN ('pending', 'processing')";

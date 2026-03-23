@@ -151,6 +151,9 @@ public class ProductEditController extends HttpServlet {
         if (productName == null || productName.isBlank()) {
             request.setAttribute("errorProductName", "Tên sản phẩm không được để trống.");
             hasError = true;
+        } else if (productDAO.isProductNameExistsExcludingProduct(productName.trim(), productId)) {
+            request.setAttribute("errorProductName", "Tên sản phẩm đã tồn tại.");
+            hasError = true;
         }
         if (categoryId == null || categoryId.isBlank()) {
             request.setAttribute("errorCategoryId", "Vui lòng chọn danh mục.");
