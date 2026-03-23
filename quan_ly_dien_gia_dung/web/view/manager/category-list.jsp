@@ -4,7 +4,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Danh sách Category</title>
+        <title>Danh sách danh mục</title>
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <meta content="" name="keywords">
         <meta content="" name="description">
@@ -46,29 +46,27 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-3 user-list-header">
-                                <h5 class="mb-0">Danh sách Category</h5>
-                                <button class="btn add-member-btn">
-                                    <a href="${pageContext.request.contextPath}/category-add">Add Category</a>
-                                </button>
+                                <h5 class="mb-0">Danh sách danh mục</h5>
+                                <a href="${pageContext.request.contextPath}/category-add" class="btn btn-primary">Thêm danh mục</a>
                             </div>
 
                             <form action="category-list" method="get" class="user-filter-form mb-3">
                                 <div class="row g-2 align-items-end">
                                     <div class="col-md-6">
-                                        <label class="form-label">Name</label>
-                                        <input type="text" name="keyword" value="${param.keyword}" class="form-control" placeholder="Search by name">
+                                        <label class="form-label">Tên</label>
+                                        <input type="text" name="keyword" value="${param.keyword}" class="form-control" placeholder="Tìm kiếm theo tên">
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label">Status</label>
+                                        <label class="form-label">Trạng thái</label>
                                         <select name="status" class="form-select">
-                                            <option value="all" ${(empty param.status || param.status == 'all') ? 'selected' : ''}>All</option>
-                                            <option value="active" ${param.status == 'active' ? 'selected' : ''}>Active</option>
-                                            <option value="inactive" ${param.status == 'inactive' ? 'selected' : ''}>Inactive</option>
+                                            <option value="all" ${(empty param.status || param.status == 'all') ? 'selected' : ''}>Tất cả</option>
+                                            <option value="active" ${param.status == 'active' ? 'selected' : ''}>Hoạt động</option>
+                                            <option value="inactive" ${param.status == 'inactive' ? 'selected' : ''}>Ngừng hoạt động</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2 d-flex gap-2">
-                                        <button type="submit" class="btn btn-primary w-100">Search</button>
-                                        <button type="reset" class="btn btn-secondary w-100" onclick="window.location.href = 'category-list'">Clear</button>
+                                        <button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
+                                        <button type="reset" class="btn btn-secondary w-100" onclick="window.location.href = 'category-list'">Xóa lọc</button>
                                     </div>
                                 </div>
                             </form>
@@ -76,11 +74,11 @@
                             <table class="table align-middle">
                                 <thead>
                                     <tr>
-                                        <th>Id</th>
-                                        <th>Name</th>
-                                        <th>Description</th>
-                                        <th>Status</th>
-                                        <th class="action-col">Action</th>
+                                        <th>Mã</th>
+                                        <th>Tên</th>
+                                        <th>Mô tả</th>
+                                        <th>Trạng thái</th>
+                                        <th class="action-col">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -91,11 +89,11 @@
                                             <td>${c.description}</td>
                                             <td>
                                                 <span class="status-dot ${c.status == 'active' ? 'status-active' : 'status-inactive'}"></span>
-                                                ${c.status == 'active' ? 'Active' : 'Inactive'}
+                                                ${c.status == 'active' ? 'Hoạt động' : 'Ngừng hoạt động'}
                                             </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
-                                                    <a href="${pageContext.request.contextPath}/category-edit?id=${c.categoryId}" class="action-btn action-edit" title="Edit category">
+                                                    <a href="${pageContext.request.contextPath}/category-edit?id=${c.categoryId}" class="action-btn action-edit" title="Sửa danh mục">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
 
@@ -132,13 +130,13 @@
                                        href="category-list?page=${currentPage - 1}&keyword=${param.keyword}&status=${param.status}">‹</a>
 
                                     <span class="page-number">
-                                        Page
+                                        Trang
                                         <form action="category-list" method="get" class="page-jump-form">
                                             <input type="hidden" name="keyword" value="${param.keyword}">
                                             <input type="hidden" name="status" value="${param.status}">
                                             <input type="number" name="page" min="1" max="${totalPages}" value="${currentPage}" onchange="this.form.submit()">
                                         </form>
-                                        of ${totalPages}
+                                        / ${totalPages}
                                     </span>
 
                                     <a class="page-btn ${currentPage == totalPages ? 'disabled' : ''}"
