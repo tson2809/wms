@@ -229,11 +229,20 @@
                     let attributes = [];
                     let attributeIdCounter = 0;
                     let variants = [];
+                    let preserveState = null;
+
+                    <c:if test="${not empty preserveStateJson}">
+                        preserveState = <c:out value="${preserveStateJson}" escapeXml="false"/>;
+                    </c:if>
 
                     // Add first attribute row on load
                     document.addEventListener('DOMContentLoaded', function () {
-                        addAttributeRow();
-                        updateAddAttributeButton();
+                        if (preserveState && preserveState.attributeNamesStr && preserveState.variantAttrValues && preserveState.variantAttrValues.length > 0) {
+                            initFromPreserve(preserveState);
+                        } else {
+                            addAttributeRow();
+                            updateAddAttributeButton();
+                        }
 
                         // Trước khi submit: kiểm tra phải có ít nhất 1 variant, rồi thêm hidden fields cho attributeNames và variantAttrValues
                         document.getElementById('productAddForm').addEventListener('submit', function (e) {
@@ -425,6 +434,52 @@
                         return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                     }
 
+                    // Re-hydrate attributes/variants from server state when returning after a validation error.
+                    function initFromPreserve(p) {
+                        attributes = [];
+                        variants = [];
+                        attributeIdCounter = 0;
+
+                        const namesStr = p.attributeNamesStr || '';
+                        const names = namesStr.split('|').map(s => (s || '').trim()).filter(Boolean);
+
+                        attributeIdCounter = names.length;
+                        names.forEach((name, idx) => {
+                            attributes.push({id: idx, name: name, values: []});
+                        });
+
+                        // Map variant combination -> sku/barcode so generateVariants can refill inputs.
+                        window.serverVariantMap = {};
+
+                        const rows = p.variantAttrValues || [];
+                        const skus = p.variantSkus || [];
+                        const barcodes = p.variantBarcodes || [];
+                        const images = p.variantImagesBase64 || [];
+
+                        rows.forEach((rowStr, i) => {
+                            const vals = (rowStr || '').split('|').map(s => (s || '').trim());
+
+                            // Collect attribute value order as first seen (matches original cartesian product generation).
+                            for (let j = 0; j < attributes.length; j++) {
+                                const v = vals[j] || '';
+                                if (v && !attributes[j].values.includes(v)) {
+                                    attributes[j].values.push(v);
+                                }
+                            }
+
+                            const key = vals.slice(0, attributes.length).join(' / ');
+                            window.serverVariantMap[key] = {
+                                sku: (skus[i] != null ? String(skus[i]) : ''),
+                                barcode: (barcodes[i] != null ? String(barcodes[i]) : ''),
+                                pendingPreviewDataUrl: (images[i] != null && String(images[i]).startsWith('data:')) ? String(images[i]) : ''
+                            };
+                        });
+
+                        renderAttributes();
+                        updateAddAttributeButton();
+                        generateVariants();
+                    }
+
                     function generateVariants() {
                         // Filter attributes with name and values
                         const validAttrs = attributes.filter(attr => attr.name && attr.values.length > 0);
@@ -436,7 +491,10 @@
                         }
 
                         // Map variant cũ: giữ SKU, barcode, ảnh preview (data URL) khi rebuild
-                        const oldVariantMap = {};
+                        // Khi load lại trang do lỗi validate, oldVariantMap có thể đến từ server (preserveState).
+                        const oldVariantMap = (window.serverVariantMap && typeof window.serverVariantMap === 'object')
+                                ? window.serverVariantMap
+                                : {};
                         document.querySelectorAll('#variantsContainer .variant-item').forEach(row => {
                             const key = row.querySelector('.variant-combination')?.textContent?.trim();
                             if (!key) return;
