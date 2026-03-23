@@ -170,6 +170,13 @@ public class ProductAddController extends HttpServlet {
                 preserve.put("variantAttrValues", variantAttrValuesArr != null ? Arrays.asList(variantAttrValuesArr) : new ArrayList<String>());
                 preserve.put("variantSkus", variantSkus != null ? Arrays.asList(variantSkus) : new ArrayList<String>());
                 preserve.put("variantBarcodes", variantBarcodes != null ? Arrays.asList(variantBarcodes) : new ArrayList<String>());
+                // Preserve image previews (data URL) for each variant index.
+                List<String> variantImagesBase64 = new ArrayList<>();
+                for (int i = 0; i < (variantSkus != null ? variantSkus.length : 0); i++) {
+                    String base64Param = request.getParameter("variantImageBase64_" + i);
+                    variantImagesBase64.add(base64Param != null ? base64Param : "");
+                }
+                preserve.put("variantImagesBase64", variantImagesBase64);
                 request.setAttribute("preserveStateJson", gson.toJson(preserve));
             }
             request.getRequestDispatcher("/view/manager/product_add.jsp").forward(request, response);

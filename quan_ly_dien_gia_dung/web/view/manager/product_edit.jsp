@@ -175,6 +175,11 @@
                                             let attributes = [];
                                             let attributeIdCounter = 0;
                                             let variants = [];
+                                            let preserveState = null;
+
+                                            <c:if test="${not empty preserveStateJson}">
+                                                preserveState = <c:out value="${preserveStateJson}" escapeXml="false"/>;
+                                            </c:if>
 
                                             function esc(s) {
                                                 return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -208,6 +213,16 @@
                                                                     var variantText = (v.attributeValues || []).join(' / ');
                                                                     var variantIdVal = (v.variantId != null && v.variantId > 0) ? String(v.variantId) : '';
                                                                     var variantPic = (v.variantPicture != null && String(v.variantPicture).trim() !== '') ? String(v.variantPicture).trim() : '';
+
+                                                                    // Override with preserved base64 images when we re-render after validation errors.
+                                                                    var pendingPic = '';
+                                                                    if (preserveState && preserveState.variantImagesBase64 && preserveState.variantImagesBase64.length > index) {
+                                                                        pendingPic = preserveState.variantImagesBase64[index];
+                                                                    }
+                                                                    if (pendingPic && String(pendingPic).startsWith('data:')) {
+                                                                        variantPic = String(pendingPic);
+                                                                    }
+
                                                                     variantDiv.setAttribute('data-variant-picture', variantPic);
                                                                     variantDiv.innerHTML =
                                                                             '<input type="hidden" name="variantId" value="' + esc(variantIdVal) + '">' +
@@ -216,7 +231,7 @@
                                                                             '<input type="text" name="variantSku" placeholder="Mã SKU" value="' + esc(v.sku) + '" style="width: 150px;" required>' +
                                                                             '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(v.barcode) + '" style="width: 150px;">' +
                                                                             '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
-                                                                            (variantPic ? '<img src="' + contextPath + '/' + esc(variantPic) + '" alt="">' : '<i class="fa fa-camera"></i>') +
+                                                                            (variantPic ? (String(variantPic).startsWith('data:') ? '<img src="' + esc(variantPic) + '" alt="">' : '<img src="' + contextPath + '/' + esc(variantPic) + '" alt="">' ) : '<i class="fa fa-camera"></i>') +
                                                                             '</div>' +
                                                                             '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
                                                                     container.appendChild(variantDiv);
@@ -232,6 +247,24 @@
                                                     addAttributeRow();
                                                 }
                                                 updateAddAttributeButton();
+
+                                                // If we have preserved base64 images, keep them as hidden fields too
+                                                // so that resubmitting after validation error still can save without re-upload.
+                                                if (preserveState && preserveState.variantImagesBase64) {
+                                                    var form = document.getElementById('productEditForm');
+                                                    preserveState.variantImagesBase64.forEach(function (dataUrl, i) {
+                                                        if (!dataUrl || !String(dataUrl).startsWith('data:')) return;
+                                                        var hiddenName = 'variantImageBase64_' + i;
+                                                        var hidden = form.querySelector('input[name="' + hiddenName + '"]');
+                                                        if (!hidden) {
+                                                            hidden = document.createElement('input');
+                                                            hidden.type = 'hidden';
+                                                            hidden.name = hiddenName;
+                                                            form.appendChild(hidden);
+                                                        }
+                                                        hidden.value = dataUrl;
+                                                    });
+                                                }
 
                                                 syncHiddenVariantData();
 
@@ -469,7 +502,7 @@
                                                             '<input type="text" name="variantSku" value="' + esc(old.sku || '') + '" placeholder="Mã SKU" style="width:150px" required>' +
                                                             '<input type="text" name="variantBarcode" value="' + esc(old.barcode || '') + '" placeholder="Barcode" style="width:150px">' +
                                                             '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
-                                                            (pic ? '<img src="' + contextPath + '/' + esc(pic) + '" alt="">' : '<i class="fa fa-camera"></i>') +
+                                                            (pic ? (String(pic).startsWith('data:') ? '<img src="' + esc(pic) + '" alt="">' : '<img src="' + contextPath + '/' + esc(pic) + '" alt="">' ) : '<i class="fa fa-camera"></i>') +
                                                             '</div>' +
                                                             '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
                                                     container.appendChild(variantDiv);
@@ -538,7 +571,7 @@
                                                             '<input type="text" name="variantSku" placeholder="Mã SKU" value="' + esc(preserved.sku) + '" style="width: 150px;" required>' +
                                                             '<input type="text" name="variantBarcode" placeholder="Barcode" value="' + esc(preserved.barcode) + '" style="width: 150px;">' +
                                                             '<div class="variant-image-box" onclick="document.getElementById(\'variantImage-' + index + '\').click()">' +
-                                                            (pic ? '<img src="' + contextPath + '/' + esc(pic) + '" alt="">' : '<i class="fa fa-camera"></i>') +
+                                                            (pic ? (String(pic).startsWith('data:') ? '<img src="' + esc(pic) + '" alt="">' : '<img src="' + contextPath + '/' + esc(pic) + '" alt="">' ) : '<i class="fa fa-camera"></i>') +
                                                             '</div>' +
                                                             '<input type="file" id="variantImage-' + index + '" name="variantImage" accept="image/*" style="display:none">';
                                                     container.appendChild(variantDiv);
@@ -576,7 +609,31 @@
                                                     if (!box || !box.classList.contains('variant-image-box')) return;
                                                     var reader = new FileReader();
                                                     reader.onload = function (ev) {
-                                                        box.innerHTML = '<img src="' + ev.target.result + '" alt="">';
+                                                        var dataUrl = ev.target.result;
+                                                        box.innerHTML = '<img src="' + dataUrl + '" alt="">';
+                                                        if (row) row.setAttribute('data-variant-picture', dataUrl);
+
+                                                        // Preserve base64 for resubmission after validation errors.
+                                                        var form = document.getElementById('productEditForm');
+                                                        var idx = row && row.querySelector('.variant-checkbox')
+                                                                ? row.querySelector('.variant-checkbox').getAttribute('data-index')
+                                                                : null;
+                                                        if (!idx && e.target && e.target.id) {
+                                                            var m = String(e.target.id).match(/variantImage-(\d+)/);
+                                                            if (m) idx = m[1];
+                                                        }
+
+                                                        if (idx !== null && idx !== undefined && String(idx).trim() !== '') {
+                                                            var hiddenName = 'variantImageBase64_' + idx;
+                                                            var hidden = form.querySelector('input[name="' + hiddenName + '"]');
+                                                            if (!hidden) {
+                                                                hidden = document.createElement('input');
+                                                                hidden.type = 'hidden';
+                                                                hidden.name = hiddenName;
+                                                                form.appendChild(hidden);
+                                                            }
+                                                            hidden.value = dataUrl;
+                                                        }
                                                     };
                                                     reader.readAsDataURL(file);
                                                 }

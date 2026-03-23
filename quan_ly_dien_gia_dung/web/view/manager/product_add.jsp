@@ -454,6 +454,7 @@
                         const rows = p.variantAttrValues || [];
                         const skus = p.variantSkus || [];
                         const barcodes = p.variantBarcodes || [];
+                        const images = p.variantImagesBase64 || [];
 
                         rows.forEach((rowStr, i) => {
                             const vals = (rowStr || '').split('|').map(s => (s || '').trim());
@@ -470,7 +471,7 @@
                             window.serverVariantMap[key] = {
                                 sku: (skus[i] != null ? String(skus[i]) : ''),
                                 barcode: (barcodes[i] != null ? String(barcodes[i]) : ''),
-                                pendingPreviewDataUrl: ''
+                                pendingPreviewDataUrl: (images[i] != null && String(images[i]).startsWith('data:')) ? String(images[i]) : ''
                             };
                         });
 
