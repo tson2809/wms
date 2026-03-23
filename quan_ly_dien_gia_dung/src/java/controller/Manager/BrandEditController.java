@@ -86,7 +86,7 @@ public class BrandEditController extends HttpServlet {
             old.setBrandName(brandName == null ? old.getBrandName() : brandName);
             old.setDescription(description);
             request.setAttribute("brand", old);
-            request.getRequestDispatcher("/view/admin/brand-edit.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/manager/brand-edit.jsp").forward(request, response);
             return;
         }
 
