@@ -13,7 +13,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import com.google.gson.Gson;
 import java.util.stream.Collectors;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -43,6 +46,7 @@ public class ProductAddController extends HttpServlet {
     private final BrandDAO brandDAO = new BrandDAO();
     private final SupplierDAO supplierDAO = new SupplierDAO();
     private final UnitDAO unitDAO = new UnitDAO();
+    private final Gson gson = new Gson();
 
     private void loadDropdownData(HttpServletRequest request) {
         request.setAttribute("categories", categoryDAO.getActiveCategories());
@@ -96,6 +100,9 @@ public class ProductAddController extends HttpServlet {
 
         if (productName == null || productName.isBlank()) {
             request.setAttribute("errorProductName", "Tên sản phẩm không được để trống.");
+            hasError = true;
+        } else if (productDAO.isProductNameExists(productName.trim())) {
+            request.setAttribute("errorProductName", "Tên sản phẩm đã tồn tại.");
             hasError = true;
         }
 
@@ -155,6 +162,23 @@ public class ProductAddController extends HttpServlet {
             request.setAttribute("supplierId", supplierId);
             request.setAttribute("unitId", unitId);
             request.setAttribute("description", description);
+
+            // Preserve entered attributes/variants so user doesn't need to re-type after validation error.
+            if (attributeNamesStr != null && variantAttrValuesArr != null && variantSkus != null && variantSkus.length > 0) {
+                Map<String, Object> preserve = new HashMap<>();
+                preserve.put("attributeNamesStr", attributeNamesStr);
+                preserve.put("variantAttrValues", variantAttrValuesArr != null ? Arrays.asList(variantAttrValuesArr) : new ArrayList<String>());
+                preserve.put("variantSkus", variantSkus != null ? Arrays.asList(variantSkus) : new ArrayList<String>());
+                preserve.put("variantBarcodes", variantBarcodes != null ? Arrays.asList(variantBarcodes) : new ArrayList<String>());
+                // Preserve image previews (data URL) for each variant index.
+                List<String> variantImagesBase64 = new ArrayList<>();
+                for (int i = 0; i < (variantSkus != null ? variantSkus.length : 0); i++) {
+                    String base64Param = request.getParameter("variantImageBase64_" + i);
+                    variantImagesBase64.add(base64Param != null ? base64Param : "");
+                }
+                preserve.put("variantImagesBase64", variantImagesBase64);
+                request.setAttribute("preserveStateJson", gson.toJson(preserve));
+            }
             request.getRequestDispatcher("/view/manager/product_add.jsp").forward(request, response);
             return;
         }
