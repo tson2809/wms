@@ -4,7 +4,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Cập nhật Brand</title>
+        <title>Cập nhật thương hiệu</title>
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,7 +39,7 @@
                 <div class="container-fluid pt-4 px-4">
                     <div class="row g-4">
                         <div class="col-12">
-                            <h2 class="mb-4">Cập nhật Brand</h2>
+                            <h2 class="mb-4">Cập nhật thương hiệu</h2>
 
                             <c:if test="${not empty generalError}">
                                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -57,7 +57,7 @@
                                     <div class="row g-3">
 
                                         <div class="col-md-6">
-                                            <label class="form-label">Brand name</label>
+                                            <label class="form-label">Tên thương hiệu</label>
                                             <input type="text" class="form-control" name="brandName" value="${brand.brandName}" <%= !canEditBrand ? "readonly" : "" %>>
                                             <c:if test="${not empty brandNameError}">
                                                 <small class="text-danger">${brandNameError}</small>
@@ -65,7 +65,7 @@
                                         </div>
 
                                         <div class="col-12">
-                                            <label class="form-label">Description</label>
+                                            <label class="form-label">Mô tả</label>
                                             <input type="text" class="form-control" name="description" value="${brand.description}" <%= !canEditBrand ? "readonly" : "" %>>
                                             <c:if test="${not empty descriptionError}">
                                                 <small class="text-danger">${descriptionError}</small>
@@ -75,9 +75,9 @@
                                     </div>
 
                                     <div class="text-end mt-4">
-                                        <a href="${pageContext.request.contextPath}/brand-list" class="btn btn-secondary me-2">Cancel</a>
+                                        <a href="${pageContext.request.contextPath}/brand-list" class="btn btn-secondary me-2">Hủy</a>
                                         <% if (canEditBrand) { %>
-                                        <button type="submit" class="btn btn-primary">Update Brand</button>
+                                        <button type="submit" class="btn btn-primary">Cập nhật thương hiệu</button>
                                         <% } %>
                                     </div>
                                 </form>

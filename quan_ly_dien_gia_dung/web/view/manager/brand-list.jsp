@@ -4,7 +4,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Danh sách Brand</title>
+        <title>Danh sách thương hiệu</title>
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <meta content="" name="keywords">
         <meta content="" name="description">
@@ -50,7 +50,7 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-3 user-list-header">
-                                <h5 class="mb-0">Danh sách Brand</h5>
+                                <h5 class="mb-0">Danh sách thương hiệu</h5>
                                 <% if (canCreateBrand) { %>
                                 <a href="${pageContext.request.contextPath}/brand-add" class="btn btn-primary">Thêm thương hiệu</a>
                                 <% } %>

@@ -275,21 +275,21 @@
                                         <td class="text-center">
                                             <div class="action-btn-group">
 
-                                                <!-- Xem chi tiết (luôn hiện) -->
-                                                <a href="${pageContext.request.contextPath}/purchase-order/view?id=${po.purchaseOrderId}"
-                                                   class="action-btn action-view" title="Xem chi tiết">
-                                                    <iconify-icon icon="lucide:eye"></iconify-icon>
-                                                </a>
-
-                                                <!-- Manager: Sửa (chỉ khi draft) -->
-                                                <% if (canEditPurchaseOrder) { %>
-                                                <c:if test="${po.status == 'draft'}">
-                                                    <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
-                                                       class="action-btn action-edit" title="Chỉnh sửa">
-                                                        <iconify-icon icon="lucide:edit-2"></iconify-icon>
-                                                    </a>
-                                                </c:if>
-                                                <% } %>
+                                                <!-- Hiển thị icon tương ứng dựa trên trạng thái (nhưng cùng một link) -->
+                                                <c:choose>
+                                                    <c:when test="${po.status == 'draft'}">
+                                                        <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
+                                                           class="action-btn action-edit" title="Chỉnh sửa">
+                                                            <iconify-icon icon="lucide:edit-2"></iconify-icon>
+                                                        </a>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
+                                                           class="action-btn action-view" title="Xem chi tiết">
+                                                            <iconify-icon icon="lucide:eye"></iconify-icon>
+                                                        </a>
+                                                    </c:otherwise>
+                                                </c:choose>
 
                                                                                                 <!-- Non-Sale: Hủy (draft hoặc submitted) -->
                                                 <% if (canCancelPurchaseOrder) { %>
