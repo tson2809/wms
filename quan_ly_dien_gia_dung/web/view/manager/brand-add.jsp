@@ -4,7 +4,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Thêm Brand</title>
+        <title>Thêm thương hiệu</title>
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,7 @@
                 <div class="container-fluid pt-4 px-4">
                     <div class="row g-4">
                         <div class="col-12">
-                            <h2 class="mb-4">Thêm Brand</h2>
+                            <h2 class="mb-4">Thêm thương hiệu</h2>
 
                             <c:if test="${not empty generalError}">
                                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -53,7 +53,7 @@
                                     <div class="row g-3">
 
                                         <div class="col-md-6">
-                                            <label class="form-label">Brand name</label>
+                                            <label class="form-label">Tên thương hiệu</label>
                                             <input type="text" class="form-control" name="brandName" value="${brandName}">
                                             <c:if test="${not empty brandNameError}">
                                                 <small class="text-danger">${brandNameError}</small>
@@ -61,7 +61,7 @@
                                         </div>
 
                                         <div class="col-12">
-                                            <label class="form-label">Description</label>
+                                            <label class="form-label">Mô tả</label>
                                             <input type="text" class="form-control" name="description" value="${description}">
                                             <c:if test="${not empty descriptionError}">
                                                 <small class="text-danger">${descriptionError}</small>
@@ -71,8 +71,8 @@
                                     </div>
 
                                     <div class="text-end mt-4">
-                                        <a href="${pageContext.request.contextPath}/brand-list" class="btn btn-secondary me-2">Cancel</a>
-                                        <button type="submit" class="btn btn-primary">Create Brand</button>
+                                        <a href="${pageContext.request.contextPath}/brand-list" class="btn btn-secondary me-2">Hủy</a>
+                                        <button type="submit" class="btn btn-primary">Tạo thương hiệu</button>
                                     </div>
                                 </form>
                             </div>

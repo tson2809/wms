@@ -138,10 +138,10 @@
                 <a href="${pageContext.request.contextPath}/product-list" class="nav-item nav-link <%= productActive %>"><i class="fa fa-box me-2"></i>Sản phẩm</a>
                 <% } %>
                 <% if (canViewCategory) { %>
-                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-box me-2"></i>Danh mục</a>
+                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-tags me-2"></i>Danh mục</a>
                 <% } %>
                 <% if (canViewBrand) { %>
-                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-box me-2"></i>Thương hiệu</a>
+                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-copyright me-2"></i>Thương hiệu</a>
                 <% } %>
                 <% if (canViewUnit) { %>
                 <a href="${pageContext.request.contextPath}/unit-list" class="nav-item nav-link <%= unitActive %>"><i class="fa fa-ruler me-2"></i>Đơn vị tính</a>
@@ -183,10 +183,10 @@
                 <a href="${pageContext.request.contextPath}/product-list" class="nav-item nav-link <%= productActive %>"><i class="fa fa-box me-2"></i>Sản phẩm</a>
                 <% } %>
                 <% if (canViewCategory) { %>
-                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-box me-2"></i>Danh mục</a>
+                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-tags me-2"></i>Danh mục</a>
                 <% } %>
                 <% if (canViewBrand) { %>
-                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-box me-2"></i>Thương hiệu</a>
+                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-copyright me-2"></i>Thương hiệu</a>
                 <% } %>
                 <% if (canViewUnit) { %>
                 <a href="${pageContext.request.contextPath}/unit-list" class="nav-item nav-link <%= unitActive %>"><i class="fa fa-ruler me-2"></i>Đơn vị tính</a>
@@ -216,10 +216,10 @@
                 <a href="${pageContext.request.contextPath}/supplier-list" class="nav-item nav-link <%= supplierActive %>"><i class="fa fa-truck me-2"></i>Nhà cung cấp</a>
                 <% } %>
                 <% if (canViewCategory) { %>
-                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-box me-2"></i>Danh mục</a>
+                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-tags me-2"></i>Danh mục</a>
                 <% } %>
                 <% if (canViewBrand) { %>
-                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-box me-2"></i>Thương hiệu</a>
+                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-copyright me-2"></i>Thương hiệu</a>
                 <% } %>
                 <% if (canViewUnit) { %>
                 <a href="${pageContext.request.contextPath}/unit-list" class="nav-item nav-link <%= unitActive %>"><i class="fa fa-ruler me-2"></i>Đơn vị tính</a>
@@ -252,10 +252,10 @@
                 <a href="${pageContext.request.contextPath}/supplier-list" class="nav-item nav-link <%= supplierActive %>"><i class="fa fa-truck me-2"></i>Nhà cung cấp</a>
                 <% } %>
                 <% if (canViewCategory) { %>
-                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-box me-2"></i>Danh mục</a>
+                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-tags me-2"></i>Danh mục</a>
                 <% } %>
                 <% if (canViewBrand) { %>
-                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-box me-2"></i>Thương hiệu</a>
+                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-copyright me-2"></i>Thương hiệu</a>
                 <% } %>
                 <% if (canViewUnit) { %>
                 <a href="${pageContext.request.contextPath}/unit-list" class="nav-item nav-link <%= unitActive %>"><i class="fa fa-ruler me-2"></i>Đơn vị tính</a>
