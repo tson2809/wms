@@ -148,7 +148,8 @@
                                     <option value="">-- Tất cả --</option>
                                     <option value="draft"     ${status == 'draft'     ? 'selected' : ''}>Chờ xử lý</option>
                                     <option value="submitted" ${status == 'submitted' ? 'selected' : ''}>Đang xử lý</option>
-                                    <option value="received"  ${status == 'received'  ? 'selected' : ''}>Hoàn tất</option>
+                                    <option value="received"  ${status == 'received'  ? 'selected' : ''}>Hoàn tất (Nhập kho)</option>
+                                    <option value="approved"  ${status == 'approved'  ? 'selected' : ''}>Hoàn tất (Xuất kho)</option>
                                     <option value="cancelled" ${status == 'cancelled' ? 'selected' : ''}>Đã hủy</option>
                                 </select>
                             </div>
@@ -249,7 +250,7 @@
                                             <c:choose>
                                                 <c:when test="${po.status == 'draft'}"><span class="status-badge status-pending">Chờ xử lý</span></c:when>
                                                 <c:when test="${po.status == 'submitted'}"><span class="status-badge status-processing">Đang xử lý</span></c:when>
-                                                <c:when test="${po.status == 'received'}"><span class="status-badge status-completed">Hoàn tất</span></c:when>
+                                                <c:when test="${po.status == 'received' or po.status == 'approved' or po.status == 'completed'}"><span class="status-badge status-completed">Hoàn tất</span></c:when>
                                                 <c:when test="${po.status == 'cancelled'}"><span class="status-badge status-cancelled">Đã hủy</span></c:when>
                                                 <c:otherwise><span class="status-badge">${po.status}</span></c:otherwise>
                                             </c:choose>
@@ -275,7 +276,7 @@
                                             <div class="action-btn-group">
 
                                                 <!-- Xem chi tiết (luôn hiện) -->
-                                                <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
+                                                <a href="${pageContext.request.contextPath}/purchase-order/view?id=${po.purchaseOrderId}"
                                                    class="action-btn action-view" title="Xem chi tiết">
                                                     <iconify-icon icon="lucide:eye"></iconify-icon>
                                                 </a>
