@@ -4,7 +4,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Thêm Category</title>
+        <title>Thêm danh mục</title>
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,7 @@
                 <div class="container-fluid pt-4 px-4">
                     <div class="row g-4">
                         <div class="col-12">
-                            <h2 class="mb-4">Thêm Category</h2>
+                            <h2 class="mb-4">Thêm danh mục</h2>
 
                             <c:if test="${not empty generalError}">
                                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -53,7 +53,7 @@
                                     <div class="row g-3">
 
                                         <div class="col-md-6">
-                                            <label class="form-label">Category name</label>
+                                            <label class="form-label">Tên danh mục</label>
                                             <input type="text" class="form-control" name="categoryName" value="${categoryName}">
                                             <c:if test="${not empty categoryNameError}">
                                                 <small class="text-danger">${categoryNameError}</small>
@@ -61,15 +61,15 @@
                                         </div>
 
                                         <div class="col-12">
-                                            <label class="form-label">Description</label>
+                                            <label class="form-label">Mô tả</label>
                                             <input type="text" class="form-control" name="description" value="${description}">
                                         </div>
 
                                     </div>
 
                                     <div class="text-end mt-4">
-                                        <a href="${pageContext.request.contextPath}/category-list" class="btn btn-secondary me-2">Cancel</a>
-                                        <button type="submit" class="btn btn-primary">Create Category</button>
+                                        <a href="${pageContext.request.contextPath}/category-list" class="btn btn-secondary me-2">Hủy</a>
+                                        <button type="submit" class="btn btn-primary">Tạo danh mục</button>
                                     </div>
                                 </form>
                             </div>
