@@ -97,8 +97,8 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>Ngày thay đổi</th>
-                                            <th>Giá vốn cũ</th>
-                                            <th>Giá vốn mới</th>
+                                            <th>Giá nhập cũ</th>
+                                            <th>Giá nhập mới</th>
                                             <th>Giá bán cũ</th>
                                             <th>Giá bán mới</th>
                                             <th>Người chỉnh sửa</th>

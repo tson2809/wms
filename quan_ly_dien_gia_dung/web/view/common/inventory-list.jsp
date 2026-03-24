@@ -207,8 +207,8 @@
                                             <th>Thuộc tính</th>
                                             <th>Thể loại</th>
                                             <th>Hãng</th>
-                                            <th>Chi phí</th>
-                                            <th>Giá</th>
+                                            <th>Giá Nhập</th>
+                                            <th>Giá Bán</th>
                                             <th>Số lượng</th>
                                             <th>Trạng thái</th>
                                             <th>Hành động</th>
