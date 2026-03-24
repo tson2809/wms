@@ -129,6 +129,13 @@ public class GoodsReceiptAddController extends HttpServlet {
         String receiptDate = request.getParameter("receiptDate");
         String receiptCode = request.getParameter("receiptCode");
         String productsJson = request.getParameter("products");
+
+        String salesReturnIdRaw = request.getParameter("salesReturnId");
+        boolean isSalesReturnSource = salesReturnIdRaw != null && !salesReturnIdRaw.trim().isEmpty();
+        // Có salesReturnId thì luôn xem là nguồn nhập từ Sale, không phụ thuộc dữ liệu client gửi lên.
+        if (isSalesReturnSource) {
+            supplierId = "SALE";
+        }
         
         boolean hasErrors = false;
         
@@ -136,7 +143,7 @@ public class GoodsReceiptAddController extends HttpServlet {
         // - Giá trị "SALE": Nhập từ sale -> supplier_id = NULL trong DB.
         // - Giá trị số khác: ID nhà cung cấp.
         // - Rỗng: không hợp lệ.
-        boolean isFromSale = "SALE".equalsIgnoreCase(supplierId != null ? supplierId.trim() : "");
+        boolean isFromSale = isSalesReturnSource || "SALE".equalsIgnoreCase(supplierId != null ? supplierId.trim() : "");
         if (!isFromSale) {
             if (supplierId == null || supplierId.trim().isEmpty()) {
                 request.setAttribute("supplierIdError", "Vui lòng chọn nguồn cung cấp");
@@ -191,7 +198,6 @@ public class GoodsReceiptAddController extends HttpServlet {
                 supplier_Id = Integer.parseInt(supplierId);
             }
             Integer salesReturnId = null;
-            String salesReturnIdRaw = request.getParameter("salesReturnId");
             if (salesReturnIdRaw != null && !salesReturnIdRaw.trim().isEmpty()) {
                 try {
                     salesReturnId = Integer.parseInt(salesReturnIdRaw.trim());

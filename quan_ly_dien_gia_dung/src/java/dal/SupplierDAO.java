@@ -152,6 +152,19 @@ public class SupplierDAO extends DBContext {
         return -1;
     }
 
+    public boolean isSupplierNameExists(String supplierName) {
+        String sql = "SELECT 1 FROM suppliers WHERE LOWER(TRIM(supplier_name)) = LOWER(TRIM(?)) LIMIT 1";
+        try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
+            pre.setString(1, supplierName);
+            try (ResultSet rs = pre.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(SupplierDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     public int updateSupplier(Supplier s) {
         int n = 0;
         String sql = """

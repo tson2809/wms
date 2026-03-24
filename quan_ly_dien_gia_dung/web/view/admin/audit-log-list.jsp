@@ -33,16 +33,48 @@
 
                             <form method="get" action="${pageContext.request.contextPath}/audit-log-list" class="user-filter-form mb-3">
                                 <div class="row g-2 align-items-end">
-                                    <div class="col-md-8">
+                                    <div class="col-md-4">
                                         <label class="form-label">Tìm kiếm</label>
                                         <input type="text" class="form-control" name="keyword" value="${keyword}" placeholder="Tìm theo hành động, bảng hoặc người dùng">
                                     </div>
-                                    <div class="col-md-4 d-flex gap-2">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Hành động</label>
+                                        <select class="form-select" name="actionType">
+                                            <option value="">Tất cả</option>
+                                            <c:forEach var="item" items="${actionTypes}">
+                                                <option value="${item}" ${item == actionType ? 'selected' : ''}>${item}</option>
+                                            </c:forEach>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Bảng</label>
+                                        <select class="form-select" name="tableName">
+                                            <option value="">Tất cả</option>
+                                            <c:forEach var="item" items="${tableNames}">
+                                                <option value="${item}" ${item == tableName ? 'selected' : ''}>${item}</option>
+                                            </c:forEach>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 d-flex gap-2">
                                         <button type="submit" class="btn btn-primary w-100">Tìm</button>
                                         <a href="${pageContext.request.contextPath}/audit-log-list" class="btn btn-secondary w-100">Xóa lọc</a>
                                     </div>
                                 </div>
                             </form>
+
+                            <c:url var="prevPageUrl" value="/audit-log-list">
+                                <c:param name="page" value="${currentPage - 1}"/>
+                                <c:param name="keyword" value="${keyword}"/>
+                                <c:param name="actionType" value="${actionType}"/>
+                                <c:param name="tableName" value="${tableName}"/>
+                            </c:url>
+
+                            <c:url var="nextPageUrl" value="/audit-log-list">
+                                <c:param name="page" value="${currentPage + 1}"/>
+                                <c:param name="keyword" value="${keyword}"/>
+                                <c:param name="actionType" value="${actionType}"/>
+                                <c:param name="tableName" value="${tableName}"/>
+                            </c:url>
 
                             <table class="table align-middle">
                                 <thead>
@@ -80,10 +112,10 @@
                                 <div class="pagination-info">Tổng bản ghi: ${totalRecords}</div>
                                 <div class="pagination-controls">
                                     <a class="page-btn ${currentPage <= 1 ? 'disabled' : ''}"
-                                       href="${pageContext.request.contextPath}/audit-log-list?page=${currentPage - 1}&keyword=${keyword}">‹</a>
+                                       href="${pageContext.request.contextPath}${prevPageUrl}">‹</a>
                                     <span class="page-number">Trang ${currentPage}/${totalPages}</span>
                                     <a class="page-btn ${currentPage >= totalPages ? 'disabled' : ''}"
-                                       href="${pageContext.request.contextPath}/audit-log-list?page=${currentPage + 1}&keyword=${keyword}">›</a>
+                                       href="${pageContext.request.contextPath}${nextPageUrl}">›</a>
                                 </div>
                             </div>
                         </div>

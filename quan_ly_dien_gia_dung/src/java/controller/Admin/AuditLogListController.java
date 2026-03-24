@@ -31,6 +31,8 @@ public class AuditLogListController extends HttpServlet {
         }
 
         String keyword = request.getParameter("keyword");
+        String actionType = request.getParameter("actionType");
+        String tableName = request.getParameter("tableName");
         int page = 1;
         String pageParam = request.getParameter("page");
         if (pageParam != null) {
@@ -44,7 +46,7 @@ public class AuditLogListController extends HttpServlet {
             }
         }
 
-        int totalRecords = auditLogDAO.countAuditLogs(keyword);
+        int totalRecords = auditLogDAO.countAuditLogs(keyword, actionType, tableName);
         int totalPages = (int) Math.ceil((double) totalRecords / PAGE_SIZE);
         if (totalPages == 0) {
             totalPages = 1;
@@ -53,10 +55,14 @@ public class AuditLogListController extends HttpServlet {
             page = totalPages;
         }
 
-        List<AuditLog> logs = auditLogDAO.getAuditLogs(page, PAGE_SIZE, keyword);
+        List<AuditLog> logs = auditLogDAO.getAuditLogs(page, PAGE_SIZE, keyword, actionType, tableName);
 
         request.setAttribute("logs", logs);
         request.setAttribute("keyword", keyword);
+        request.setAttribute("actionType", actionType);
+        request.setAttribute("tableName", tableName);
+        request.setAttribute("actionTypes", auditLogDAO.getDistinctActionTypes());
+        request.setAttribute("tableNames", auditLogDAO.getDistinctTableNames());
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalRecords", totalRecords);

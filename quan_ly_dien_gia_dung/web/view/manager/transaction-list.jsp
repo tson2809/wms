@@ -13,7 +13,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Transaction List</title>
+        <title>Lịch sử biến động kho</title>
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <meta content="" name="keywords">
         <meta content="" name="description">
@@ -52,7 +52,7 @@
                     <div class="inventory-card">
 
                         <div class="inventory-header">
-                            <h5>Inventory Transactions</h5>
+                            <h5>Lịch sử biến động kho</h5>
                         </div>
 
                         <form action="inventory-transactions"
@@ -62,12 +62,12 @@
                             <div class="row g-2">
 
                                 <div class="col-md-3">
-                                    <label>Transaction ID</label>
+                                    <label>Mã giao dịch</label>
                                     <input type="text" name="trxId" value="${param.trxId}" class="form-control">
                                 </div>
 
                                 <div class="col-md-3">
-                                    <label>Reference ID</label>
+                                    <label>Mã tham chiếu</label>
                                     <input type="text" name="refId" value="${param.refId}" class="form-control">
                                 </div>
 
@@ -79,30 +79,30 @@
                                 <div class="col-md-3">
                                     <label>Loại biến động</label>
                                     <select name="type" class="form-select">
-                                        <option value="">All</option>
-                                        <option value="import" ${param.type=='import'?'selected':''}>Import</option>
-                                        <option value="export" ${param.type=='export'?'selected':''}>Export</option>
-                                        <option value="adjustment" ${param.type=='adjustment'?'selected':''}>Adjustment</option>
-                                        <option value="inventory_check" ${param.type=='inventory_check'?'selected':''}>Inventory Check</option>
+                                        <option value="">Tất cả</option>
+                                        <option value="import" ${param.type=='import'?'selected':''}>Nhập kho</option>
+                                        <option value="export" ${param.type=='export'?'selected':''}>Xuất kho</option>
+                                        <option value="adjustment" ${param.type=='adjustment'?'selected':''}>Điều chỉnh</option>
+                                        <option value="inventory_check" ${param.type=='inventory_check'?'selected':''}>Kiểm kê</option>
                                     </select>
                                 </div>
 
                                 <div class="col-md-3">
                                     <label>Loại số lượng</label>
                                     <select name="qtyType" class="form-select">
-                                        <option value="">All</option>
-                                        <option value="increase" ${param.qtyType=='increase'?'selected':''}>Increase</option>
-                                        <option value="decrease" ${param.qtyType=='decrease'?'selected':''}>Decrease</option>
+                                        <option value="">Tất cả</option>
+                                        <option value="increase" ${param.qtyType=='increase'?'selected':''}>Tăng</option>
+                                        <option value="decrease" ${param.qtyType=='decrease'?'selected':''}>Giảm</option>
                                     </select>
                                 </div>
 
                                 <div class="col-md-3">
-                                    <label>Reference</label>
+                                    <label>Tham chiếu</label>
                                     <select name="refType" class="form-select">
-                                        <option value="">All</option>
-                                        <option value="goods_receipt" ${param.refType=='goods_receipt'?'selected':''}>Receipt</option>
-                                        <option value="goods_issue" ${param.refType=='goods_issue'?'selected':''}>Issue</option>
-                                        <option value="inventory_sheet" ${param.refType=='inventory_sheet'?'selected':''}>Sheet</option>
+                                        <option value="">Tất cả</option>
+                                        <option value="goods_receipt" ${param.refType=='goods_receipt'?'selected':''}>Phiếu nhập</option>
+                                        <option value="goods_issue" ${param.refType=='goods_issue'?'selected':''}>Phiếu xuất</option>
+                                        <option value="inventory_sheet" ${param.refType=='inventory_sheet'?'selected':''}>Phiếu kiểm kê</option>
                                     </select>
                                 </div>
 
@@ -114,7 +114,7 @@
                                            id="createdByInput"
                                            value="${param.createdBy}"
                                            class="form-control"
-                                           placeholder="Created by...">
+                                           placeholder="Nhập người tạo...">
 
                                     <div id="suggestBox"
                                          class="list-group position-absolute w-100"
@@ -136,7 +136,7 @@
                                 </div>
 
                                 <div class="col-md-2 d-flex align-items-end">
-                                    <a href="inventory-transactions" class="btn btn-secondary w-100">Clear</a>
+                                    <a href="inventory-transactions" class="btn btn-secondary w-100">Xóa lọc</a>
                                 </div>
 
                             </div>
@@ -146,12 +146,12 @@
                             <table class="table align-middle">
                                 <thead>
                                     <tr>
-                                        <th>No</th>
+                                        <th>STT</th>
                                         <th>TRX ID</th>
                                         <th>SKU</th>
                                         <th>Loại</th>
                                         <th>Số lượng</th>
-                                        <th>Reference</th>
+                                        <th>Tham chiếu</th>
                                         <th>Tạo ra bởi</th>     
                                         <th>Ngày tạo</th> 
                                         <th>Hành động</th>
@@ -166,13 +166,24 @@
                                             <td>${t.sku}</td>
                                             <td>
                                                 <span class="badge-type type-${t.transactionType}">
-                                                    ${t.transactionType}
+                                                    <c:choose>
+                                                        <c:when test="${t.transactionType == 'import'}">Nhập kho</c:when>
+                                                        <c:when test="${t.transactionType == 'export'}">Xuất kho</c:when>
+                                                        <c:when test="${t.transactionType == 'adjustment'}">Điều chỉnh</c:when>
+                                                        <c:when test="${t.transactionType == 'inventory_check'}">Kiểm kê</c:when>
+                                                        <c:otherwise>${t.transactionType}</c:otherwise>
+                                                    </c:choose>
                                                 </span>
                                             </td>
                                             <td class="${t.quantityChange > 0 ? 'qty-positive' : 'qty-negative'}">
                                                 ${t.quantityChange}
                                             </td>
-                                            <td>${t.referenceType}-${t.referenceId}</td>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${not empty t.referenceDisplay}">${t.referenceDisplay}</c:when>
+                                                    <c:otherwise>${t.referenceType}-${t.referenceId}</c:otherwise>
+                                                </c:choose>
+                                            </td>
                                             <td>${t.createdBy}</td>  
                                             <td>
                                                 <fmt:formatDate value="${t.transactionDate}" pattern="dd/MM/yyyy"/>
@@ -180,7 +191,7 @@
                                             <td class="text-center">
                                                 <a href="transaction-detail?id=${t.transactionId}"
                                                    class="action-btn action-view"
-                                                   title="View">
+                                                   title="Xem chi tiết">
                                                     <iconify-icon icon="majesticons:eye-line"></iconify-icon>
                                                 </a>
                                             </td>
@@ -207,7 +218,7 @@
                                         ‹
                                     </a>
                                     <span class="page-number">
-                                        Page
+                                        Trang
                                         <form action="inventory-transactions" method="get" class="page-jump-form">
                                             <input type="hidden" name="trxId" value="${param.trxId}">
                                             <input type="hidden" name="refId" value="${param.refId}">
@@ -229,7 +240,7 @@
                                                    value="${currentPage}"
                                                    onchange="this.form.submit()">
                                         </form>
-                                        of ${totalPages}
+                                        / ${totalPages}
                                     </span>
                                     <a class="page-btn ${currentPage == totalPages ? 'disabled' : ''}"
                                        href="inventory-transactions?page=${currentPage + 1}
