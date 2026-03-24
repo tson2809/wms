@@ -5,6 +5,7 @@
  */
 (function() {
     var ctx = (window.PO_FILTER || {}).contextPath || '';
+    var showDetailNote = (window.PO_FILTER || {}).showDetailNote !== false;
     var searchUrl = ctx + '/product-variant/search';
     var searchTimer;
 
@@ -41,10 +42,11 @@
                 item.dataset.variantId  = v.variantId;
                 item.dataset.sku        = v.sku;
                 item.dataset.productName = v.productName;
+                item.dataset.unitName   = v.unitName || '';
                 item.dataset.costPrice  = v.costPrice || 0;
                 item.addEventListener('click', function() {
                     addProductRow(this.dataset.variantId, this.dataset.sku,
-                        this.dataset.productName, this.dataset.costPrice);
+                        this.dataset.productName, this.dataset.unitName, this.dataset.costPrice);
                     closeDd();
                 });
                 dd.appendChild(item);
@@ -73,7 +75,7 @@
     // ── Add product row ─────────────────────────────────────────────────
     var rowIndex = 0; // 0 is the first static row
 
-    function addProductRow(variantId, sku, productName, costPrice) {
+    function addProductRow(variantId, sku, productName, unitName, costPrice) {
         // Check duplicate
         var existing = document.querySelector('.variant-id-input[value="' + variantId + '"]');
         if (existing) {
@@ -87,9 +89,16 @@
         var row = document.createElement('div');
         row.className = 'product-row';
         row.setAttribute('data-index', rowIndex);
+        var totalColClass = showDetailNote ? 'col-md-2' : 'col-md-3';
+        var noteColHtml = showDetailNote
+            ? ('<div class="col-md-1">' +
+                '<label class="form-label">Ghi chú</label>' +
+                '<input type="text" class="form-control" name="detailNotes[]">' +
+               '</div>')
+            : '';
         row.innerHTML =
             '<div class="row align-items-end">' +
-                '<div class="col-md-4">' +
+                '<div class="col-md-3">' +
                     '<label class="form-label">Sản phẩm</label>' +
                     '<input type="text" class="form-control" readonly value="' + escHtml(sku + ' – ' + productName) + '">' +
                     '<input type="hidden" class="variant-id-input" name="variantIds[]" value="' + escHtml(variantId) + '">' +
@@ -98,18 +107,19 @@
                     '<label class="form-label">Số lượng <span class="text-danger">*</span></label>' +
                     '<input type="number" class="form-control quantity-input" name="quantities[]" min="1" value="1" required onchange="poCalcTotal(this)">' +
                 '</div>' +
+                '<div class="col-md-1">' +
+                    '<label class="form-label">Đơn vị</label>' +
+                    '<input type="text" class="form-control" readonly value="' + escHtml(unitName || '') + '">' +
+                '</div>' +
                 '<div class="col-md-2">' +
                     '<label class="form-label">Đơn giá <span class="text-danger">*</span></label>' +
                     '<input type="number" class="form-control price-input" name="unitPrices[]" min="0" step="0.01" value="' + escHtml(costPrice) + '" required onchange="poCalcTotal(this)">' +
                 '</div>' +
-                '<div class="col-md-2">' +
+                '<div class="' + totalColClass + '">' +
                     '<label class="form-label">Thành tiền</label>' +
                     '<input type="text" class="form-control total-input" readonly>' +
                 '</div>' +
-                '<div class="col-md-1">' +
-                    '<label class="form-label">Ghi chú</label>' +
-                    '<input type="text" class="form-control" name="detailNotes[]">' +
-                '</div>' +
+                noteColHtml +
                 '<div class="col-md-1 d-flex align-items-end">' +
                     '<button type="button" class="btn btn-danger btn-sm w-100" onclick="poRemoveRow(this)"><i class="fa fa-trash"></i></button>' +
                 '</div>' +

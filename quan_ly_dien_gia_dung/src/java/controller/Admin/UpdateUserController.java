@@ -14,6 +14,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import java.io.File;
 import java.nio.file.Paths;
@@ -76,6 +77,7 @@ public class UpdateUserController extends HttpServlet {
         List<Role> roles = roleDAO.getAllRole();
         request.setAttribute("user", user);
         request.setAttribute("roles", roles);
+        request.setAttribute("avatarCacheBuster", System.currentTimeMillis());
         request.getRequestDispatcher("view/common/update_information.jsp").forward(request, response);
 
     }
@@ -92,7 +94,8 @@ public class UpdateUserController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int userId = Integer.parseInt(request.getParameter("userId"));
-        User currentUser = (User) request.getSession(false).getAttribute("user");
+        HttpSession session = request.getSession(false);
+        User currentUser = session != null ? (User) session.getAttribute("user") : null;
         User old = userDAO.getUserById(userId);
         String username = request.getParameter("username");
         String email = request.getParameter("email");
@@ -168,6 +171,7 @@ public class UpdateUserController extends HttpServlet {
         if (hasError) {
             request.setAttribute("user", old);
             request.setAttribute("roles", roleDAO.getAllRole());
+            request.setAttribute("avatarCacheBuster", System.currentTimeMillis());
             request.getRequestDispatcher("view/common/update_information.jsp").forward(request, response);
             return;
         }
@@ -189,15 +193,7 @@ public class UpdateUserController extends HttpServlet {
             String fileName = Paths.get(avatarPart.getSubmittedFileName())
                     .getFileName().toString();
 
-            String rootPath = getServletContext().getRealPath("/");
-            if (rootPath.contains("build")) {
-                rootPath = rootPath.substring(0, rootPath.indexOf("build"));
-            }
-
-            // 📁 web/img/avatar
-            String uploadPath = rootPath + "web"
-                    + File.separator + "img"
-                    + File.separator + "avatar";
+            String uploadPath = getServletContext().getRealPath("/img/avatar");
 
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
@@ -211,6 +207,11 @@ public class UpdateUserController extends HttpServlet {
         }
 
         userDAO.update(old);
+
+        if (currentUser != null && currentUser.getUserId() == userId && session != null) {
+            User refreshedUser = userDAO.getUserById(userId);
+            session.setAttribute("user", refreshedUser);
+        }
 
         response.sendRedirect("UpdateUser?id=" + userId);
 

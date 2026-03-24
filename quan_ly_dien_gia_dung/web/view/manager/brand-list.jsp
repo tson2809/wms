@@ -66,7 +66,7 @@
                                         <label class="form-label">Trạng thái</label>
                                         <select name="status" class="form-select">
                                             <option value="all" ${(empty param.status || param.status == 'all') ? 'selected' : ''}>Tất cả</option>
-                                            <option value="active" ${param.status == 'active' ? 'selected' : ''}>Hoạt động</option>
+                                            <option value="active" ${param.status == 'active' ? 'selected' : ''}>Đang hoạt động</option>
                                             <option value="inactive" ${param.status == 'inactive' ? 'selected' : ''}>Ngừng hoạt động</option>
                                         </select>
                                     </div>
@@ -119,7 +119,7 @@
                                             <td>${b.description}</td>
                                             <td>
                                                 <span class="status-dot ${b.status == 'active' ? 'status-active' : 'status-inactive'}"></span>
-                                                ${b.status == 'active' ? 'Hoạt động' : 'Ngừng hoạt động'}
+                                                ${b.status == 'active' ? 'Đang hoạt động' : 'Ngừng hoạt động'}
                                             </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
