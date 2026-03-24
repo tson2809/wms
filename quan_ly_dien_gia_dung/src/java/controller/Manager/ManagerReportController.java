@@ -102,8 +102,12 @@ public class ManagerReportController extends HttpServlet {
             LocalDate from = LocalDate.of(today.getYear(), startMonth, 1);
             return new LocalDate[]{from, today};
         }
+        if ("year".equals(range)) {
+            LocalDate from = today.minusYears(1).plusDays(1);
+            return new LocalDate[]{from, today};
+        }
         if ("ytd".equals(range)) {
-            LocalDate from = LocalDate.of(today.getYear(), 1, 1);
+            LocalDate from = today.minusYears(1).plusDays(1);
             return new LocalDate[]{from, today};
         }
 
@@ -133,6 +137,7 @@ public class ManagerReportController extends HttpServlet {
             case "this_week":
             case "this_month":
             case "this_quarter":
+            case "year":
             case "ytd":
             case "custom":
                 return range;
