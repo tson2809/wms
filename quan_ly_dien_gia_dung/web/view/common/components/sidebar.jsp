@@ -111,7 +111,7 @@
             || currentURI.contains("/sales_return_list.jsp")
             || currentURI.contains("/sales_return_add.jsp")
             || currentURI.contains("/sales_return_edit.jsp")) ? "active" : "";
-        String saleOrderActive = purchaseOrderActive;
+    String saleOrderActive = purchaseOrderActive;
 %>
 
 <div class="sidebar pe-6 pb-5">
@@ -278,7 +278,7 @@
                 <% if (canViewGoodsIssue) { %>
                 <a href="${pageContext.request.contextPath}/goods-issue-list" class="nav-item nav-link <%= goodsIssueActive %>"><i class="fa fa-file-export me-2"></i>Phiếu xuất kho</a>
                 <% } %>
-                <a href="${pageContext.request.contextPath}/sales-return-list" class="nav-item nav-link <%= salesReturnActive %>"><i class="fa fa-undo me-2"></i>Trả hàng</a>     
+                <a href="${pageContext.request.contextPath}/sales-return-list" class="nav-item nav-link <%= salesReturnActive %>"><i class="fa fa-undo me-2"></i>Trả hàng</a>
             </div>
         <% } %>
     </nav>
