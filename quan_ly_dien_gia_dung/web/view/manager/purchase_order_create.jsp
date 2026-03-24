@@ -65,11 +65,11 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Ngày đặt hàng <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" name="orderDate" required>
+                                <input type="date" class="form-control" name="orderDate" id="orderDate" required>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Ngày giao dự kiến</label>
-                                <input type="date" class="form-control" name="expectedDeliveryDate">
+                                <input type="date" class="form-control" name="expectedDeliveryDate" id="expectedDeliveryDate">
                             </div>
                         </div>
 
@@ -145,17 +145,71 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     <script>
-        window.PO_FILTER = { contextPath: '${pageContext.request.contextPath}' };
+        window.PO_FILTER = {
+            contextPath: '${pageContext.request.contextPath}',
+            showDetailNote: false
+        };
     </script>
-    <script src="${pageContext.request.contextPath}/js/purchase-order-product-filter.js"></script>
+    <script src="${pageContext.request.contextPath}/js/purchase-order-product-filter.js?v=2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var today = new Date().toISOString().split('T')[0];
-            document.querySelector('input[name="orderDate"]').value = today;
+            var orderDateEl = document.getElementById('orderDate');
+            var expectedDateEl = document.getElementById('expectedDeliveryDate');
+
+            if (orderDateEl) {
+                orderDateEl.value = today;
+                orderDateEl.min = today;
+            }
+            if (expectedDateEl) {
+                expectedDateEl.min = today;
+            }
+
+            if (orderDateEl && expectedDateEl) {
+                orderDateEl.addEventListener('change', function() {
+                    var orderDate = orderDateEl.value;
+                    if (!orderDate) return;
+
+                    // expectedDeliveryDate must be strictly greater than orderDate
+                    var minExpected = new Date(orderDate + 'T00:00:00');
+                    minExpected.setDate(minExpected.getDate() + 1);
+                    var yyyy = minExpected.getFullYear();
+                    var mm = String(minExpected.getMonth() + 1).padStart(2, '0');
+                    var dd = String(minExpected.getDate()).padStart(2, '0');
+                    expectedDateEl.min = yyyy + '-' + mm + '-' + dd;
+
+                    if (expectedDateEl.value && expectedDateEl.value <= orderDate) {
+                        expectedDateEl.value = '';
+                    }
+                });
+            }
         });
 
         // Prevent submit if no products
         document.getElementById('poForm').addEventListener('submit', function(e) {
+            var today = new Date().toISOString().split('T')[0];
+            var orderDateEl = document.getElementById('orderDate');
+            var expectedDateEl = document.getElementById('expectedDeliveryDate');
+
+            if (orderDateEl && orderDateEl.value && orderDateEl.value < today) {
+                e.preventDefault();
+                alert('Ngày đặt hàng không được là ngày quá khứ!');
+                return;
+            }
+
+            if (expectedDateEl && expectedDateEl.value) {
+                if (expectedDateEl.value < today) {
+                    e.preventDefault();
+                    alert('Ngày giao dự kiến không được là ngày quá khứ!');
+                    return;
+                }
+                if (orderDateEl && orderDateEl.value && expectedDateEl.value <= orderDateEl.value) {
+                    e.preventDefault();
+                    alert('Ngày giao dự kiến phải lớn hơn ngày đặt hàng!');
+                    return;
+                }
+            }
+
             if (!document.querySelector('#productContainer .product-row')) {
                 e.preventDefault();
                 alert('Vui lòng thêm ít nhất một sản phẩm!');

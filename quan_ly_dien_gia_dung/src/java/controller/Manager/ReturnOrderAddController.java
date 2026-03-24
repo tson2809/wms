@@ -5,6 +5,7 @@ import dal.SupplierDAO;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -154,6 +155,11 @@ public class ReturnOrderAddController extends HttpServlet {
         try {
             int supplierId = Integer.parseInt(safeSupplier);
             Date returnDate = Date.valueOf(safeReturnDate);
+            if (returnDate.toLocalDate().isBefore(LocalDate.now())) {
+                request.setAttribute("returnDateError", "Ngày trả không được nhỏ hơn ngày hiện tại");
+                forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription);
+                return;
+            }
 
             List<ReturnOrderDetail> details = parseProductsJson(productsJson.trim());
             if (details.isEmpty()) {

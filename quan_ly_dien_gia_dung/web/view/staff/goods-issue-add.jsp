@@ -227,7 +227,7 @@
                 });
             </script>
         </c:if>
-        <script src="${pageContext.request.contextPath}/js/goods-issue-add.js?v=2"></script>
+        <script src="${pageContext.request.contextPath}/js/goods-issue-add.js?v=3"></script>
 
         <!-- Modal Import Excel -->
         <div class="modal fade" id="importModal" tabindex="-1">
