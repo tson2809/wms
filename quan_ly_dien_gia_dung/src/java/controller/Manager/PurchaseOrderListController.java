@@ -154,17 +154,33 @@ public class PurchaseOrderListController extends HttpServlet {
 
         String action = request.getParameter("action");
 
-        if ("cancel".equals(action) && permissions.contains("cancel purchase order")) {
+        if ("cancel".equals(action)) {
             String idParam = request.getParameter("id");
             if (idParam != null && !idParam.trim().isEmpty()) {
                 try {
                     int poId = Integer.parseInt(idParam);
-                    boolean ok = purchaseOrderDAO.cancelPurchaseOrder(poId);
-                    if (ok) {
-                        session.setAttribute("successMessage", "Đã hủy đơn đặt hàng thành công.");
+                    int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
+                    
+                    boolean canCancel = permissions.contains("cancel purchase order");
+                    
+                    // Staff (roleId=3) can cancel if it's a Sale order (supplier_id IS NULL)
+                    if (!canCancel && roleId == 3) {
+                        PurchaseOrder po = purchaseOrderDAO.getPurchaseOrderById(poId);
+                        if (po != null && po.getSupplierId() == 0) {
+                            canCancel = true;
+                        }
+                    }
+                    
+                    if (canCancel) {
+                        boolean ok = purchaseOrderDAO.cancelPurchaseOrder(poId);
+                        if (ok) {
+                            session.setAttribute("successMessage", "Đã hủy đơn đặt hàng thành công.");
+                        } else {
+                            session.setAttribute("errorMessage",
+                                    "Không thể hủy đơn. Đơn hàng chỉ có thể hủy khi đang chờ xử lý hoặc đang xử lý.");
+                        }
                     } else {
-                        session.setAttribute("errorMessage",
-                                "Không thể hủy đơn. Đơn hàng chỉ có thể hủy khi đang chờ xử lý hoặc đang xử lý.");
+                        session.setAttribute("errorMessage", "Bạn không có quyền hủy đơn hàng này.");
                     }
                 } catch (NumberFormatException e) {
                     session.setAttribute("errorMessage", "Mã đơn hàng không hợp lệ.");
