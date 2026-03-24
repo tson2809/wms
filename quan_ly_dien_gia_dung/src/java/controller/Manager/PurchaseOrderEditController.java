@@ -1,5 +1,7 @@
 package controller.Manager;
 
+import dal.BrandDAO;
+import dal.CategoryDAO;
 import dal.ProductDAO;
 import dal.SupplierDAO;
 import jakarta.servlet.ServletException;
@@ -27,12 +29,16 @@ public class PurchaseOrderEditController extends HttpServlet {
     private PurchaseOrderService purchaseOrderService;
     private SupplierDAO supplierDAO;
     private ProductDAO productDAO;
+    private CategoryDAO categoryDAO;
+    private BrandDAO brandDAO;
 
     @Override
     public void init() throws ServletException {
         this.purchaseOrderService = new PurchaseOrderService();
         this.supplierDAO = new SupplierDAO();
         this.productDAO = new ProductDAO();
+        this.categoryDAO = new CategoryDAO();
+        this.brandDAO = new BrandDAO();
     }
 
     @Override
@@ -71,15 +77,34 @@ public class PurchaseOrderEditController extends HttpServlet {
             Set<String> permissions = (Set<String>) session.getAttribute("userPermissions");
             boolean canEditPurchaseOrder = permissions != null && permissions.contains("edit purchase order");
 
-            // Cho phép sửa khi có quyền edit và đơn đang draft; còn lại chỉ xem.
-            boolean viewOnly = !(canEditPurchaseOrder && "draft".equalsIgnoreCase(po.getStatus()));
+            boolean viewOnly;
+            String targetJsp;
+
+            if (roleId == 4) { // Sale role
+                // Security check: only creator can edit their own order
+                if (po.getCreatedBy() != user.getUserId()) {
+                    response.sendRedirect(request.getContextPath() + "/purchase-order/list");
+                    return;
+                }
+                viewOnly = !"draft".equalsIgnoreCase(po.getStatus());
+                targetJsp = "/view/sale/sale_order_edit.jsp";
+                
+                // For Sale search filter
+                request.setAttribute("categories", categoryDAO.getActiveCategories());
+                request.setAttribute("brands", brandDAO.getActiveBrands());
+            } else {
+                // Manager/Staff: Cho phép sửa khi có quyền edit và đơn đang draft; còn lại chỉ xem.
+                viewOnly = !(canEditPurchaseOrder && "draft".equalsIgnoreCase(po.getStatus()));
+                targetJsp = "/view/manager/purchase_order_edit.jsp";
+            }
+
             request.setAttribute("purchaseOrder", po);
             request.setAttribute("details", details);
             request.setAttribute("suppliers", suppliers);
             request.setAttribute("variants", variants);
             request.setAttribute("viewOnly", viewOnly);
 
-            request.getRequestDispatcher("/view/manager/purchase_order_edit.jsp").forward(request, response);
+            request.getRequestDispatcher(targetJsp).forward(request, response);
 
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/purchase-order/list");
@@ -106,7 +131,11 @@ public class PurchaseOrderEditController extends HttpServlet {
             String expectedDeliveryDateParam = request.getParameter("expectedDeliveryDate");
             String notes = request.getParameter("notes");
 
-            int supplierId = Integer.parseInt(supplierIdParam);
+            int supplierId = 0;
+            if (supplierIdParam != null && !supplierIdParam.trim().isEmpty()) {
+                supplierId = Integer.parseInt(supplierIdParam);
+            }
+            
             Date orderDate = Date.valueOf(orderDateParam);
             Date expectedDeliveryDate = null;
             if (expectedDeliveryDateParam != null && !expectedDeliveryDateParam.trim().isEmpty()) {
@@ -140,7 +169,23 @@ public class PurchaseOrderEditController extends HttpServlet {
             po.setExpectedDeliveryDate(expectedDeliveryDate);
             po.setNotes(notes);
 
-            // Chỉ cho sửa khi status = 'pending'
+            // Security check for Sale
+            int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
+            if (roleId == 4) {
+                PurchaseOrder existingPo = purchaseOrderService.getPurchaseOrderById(purchaseOrderId);
+                if (existingPo == null || existingPo.getCreatedBy() != user.getUserId()) {
+                    request.setAttribute("error", "Bạn không có quyền chỉnh sửa đơn hàng này");
+                    doGet(request, response);
+                    return;
+                }
+                if (!"draft".equalsIgnoreCase(existingPo.getStatus())) {
+                    request.setAttribute("error", "Đơn hàng đã được xử lý, không thể chỉnh sửa");
+                    doGet(request, response);
+                    return;
+                }
+            }
+
+            // Chỉ cho sửa khi status = 'pending' (Actually status is checked inside service/DAO usually, but controller might check too)
             try {
                 boolean success = purchaseOrderService.updatePurchaseOrder(po, details);
                 if (success) {
