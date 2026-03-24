@@ -75,6 +75,11 @@
         boolean canEditPurchaseOrder = userPermissions != null && userPermissions.contains("edit purchase order");
         boolean canCancelPurchaseOrder = userPermissions != null && userPermissions.contains("cancel purchase order");
         boolean canClaimPurchaseOrder = userPermissions != null && userPermissions.contains("claim purchase order");
+        
+        pageContext.setAttribute("canCreatePurchaseOrder", canCreatePurchaseOrder);
+        pageContext.setAttribute("canEditPurchaseOrder", canEditPurchaseOrder);
+        pageContext.setAttribute("canCancelPurchaseOrder", canCancelPurchaseOrder);
+        pageContext.setAttribute("canClaimPurchaseOrder", canClaimPurchaseOrder);
     %>
     <div class="container-fluid position-relative d-flex p-0">
         <!-- Sidebar -->
@@ -291,9 +296,12 @@
                                                     </c:otherwise>
                                                 </c:choose>
 
-                                                                                                <!-- Non-Sale: Hủy (draft hoặc submitted) -->
-                                                <% if (canCancelPurchaseOrder) { %>
-                                                                                                <c:if test="${roleId != 4 and (po.status == 'draft' or po.status == 'submitted')}">
+                                                                                                <%-- Hiển thị nút Hủy cho:
+                                                     1. User có quyền cancel purchase order (ngoại trừ Sale/roleId=4, Sale có block riêng bên dưới)
+                                                     2. Staff (roleId=3) cụ thể cho Sale orders (empty supplierName)
+                                                --%>
+                                                <c:set var="canStaffCancelSale" value="${roleId == 3 and empty po.supplierName}"/>
+                                                <c:if test="${(canCancelPurchaseOrder and roleId != 4 and (po.status == 'draft' or po.status == 'submitted')) or (canStaffCancelSale and (po.status == 'draft' or po.status == 'submitted'))}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/list"
                                                           onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');" style="display:inline">
                                                         <input type="hidden" name="action" value="cancel">
@@ -303,7 +311,6 @@
                                                         </button>
                                                     </form>
                                                 </c:if>
-                                                <% } %>
 
                                                 <%-- Staff: Nhận đơn (chỉ draft, chưa có người nhận) --%>
                                                 <% if (canClaimPurchaseOrder) { %>

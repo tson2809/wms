@@ -286,7 +286,11 @@ public class PurchaseOrderDAO extends DBContext {
                 "WHERE purchase_order_id = ?";
 
         try (PreparedStatement pre = conn.prepareStatement(sql)) {
-            pre.setInt(1, po.getSupplierId());
+            if (po.getSupplierId() > 0) {
+                pre.setInt(1, po.getSupplierId());
+            } else {
+                pre.setNull(1, java.sql.Types.INTEGER);
+            }
             pre.setDate(2, po.getOrderDate());
             pre.setDate(3, po.getExpectedDeliveryDate());
             pre.setBigDecimal(4, po.getTotalAmount());
