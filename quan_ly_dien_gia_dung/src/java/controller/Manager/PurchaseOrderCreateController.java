@@ -87,7 +87,6 @@ public class PurchaseOrderCreateController extends HttpServlet {
             String[] variantIds = request.getParameterValues("variantIds[]");
             String[] quantities = request.getParameterValues("quantities[]");
             String[] unitPrices = request.getParameterValues("unitPrices[]");
-            String[] detailNotes = request.getParameterValues("detailNotes[]");
 
             if (variantIds == null || quantities == null || unitPrices == null 
                     || variantIds.length == 0) {
@@ -102,9 +101,6 @@ public class PurchaseOrderCreateController extends HttpServlet {
                 detail.setVariantId(Integer.parseInt(variantIds[i]));
                 detail.setQuantity(Integer.parseInt(quantities[i]));
                 detail.setUnitPrice(new BigDecimal(unitPrices[i]));
-                if (detailNotes != null && i < detailNotes.length) {
-                    detail.setNotes(detailNotes[i]);
-                }
                 details.add(detail);
             }
 

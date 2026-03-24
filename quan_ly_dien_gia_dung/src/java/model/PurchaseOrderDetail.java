@@ -12,6 +12,7 @@ public class PurchaseOrderDetail {
     private BigDecimal unitPrice;
     private BigDecimal totalAmount;
     private String notes;
+    private String unitName;
 
     public PurchaseOrderDetail() {
     }
@@ -100,6 +101,14 @@ public class PurchaseOrderDetail {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getUnitName() {
+        return unitName;
+    }
+
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
     }
 
     @Override

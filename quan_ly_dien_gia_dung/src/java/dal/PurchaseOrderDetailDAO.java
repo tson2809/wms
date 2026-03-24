@@ -11,10 +11,11 @@ public class PurchaseOrderDetailDAO extends DBContext {
 
     public List<PurchaseOrderDetail> getDetailsByPurchaseOrderId(int purchaseOrderId) {
         List<PurchaseOrderDetail> list = new ArrayList<>();
-        String sql = "SELECT pod.*, pv.sku, p.product_name " +
+        String sql = "SELECT pod.*, pv.sku, p.product_name, u.unit_name " +
                     "FROM purchase_order_details pod " +
                     "INNER JOIN product_variants pv ON pod.variant_id = pv.variant_id " +
                     "INNER JOIN products p ON pv.product_id = p.product_id " +
+                    "LEFT JOIN units u ON p.unit_id = u.unit_id " +
                     "WHERE pod.purchase_order_id = ?";
 
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
@@ -31,6 +32,7 @@ public class PurchaseOrderDetailDAO extends DBContext {
                 detail.setUnitPrice(rs.getBigDecimal("unit_price"));
                 detail.setTotalAmount(rs.getBigDecimal("total_amount"));
                 detail.setNotes(rs.getString("notes"));
+                detail.setUnitName(rs.getString("unit_name") != null ? rs.getString("unit_name") : "");
                 list.add(detail);
             }
         } catch (SQLException ex) {
