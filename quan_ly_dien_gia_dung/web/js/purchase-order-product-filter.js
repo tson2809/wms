@@ -37,14 +37,15 @@
             variants.forEach(function(v) {
                 var item = document.createElement('div');
                 item.className = 'pf-dd-item';
-                item.innerHTML = '<strong>' + escHtml(v.sku) + '</strong> — ' + escHtml(v.productName);
+                item.innerHTML = '<strong>' + escHtml(v.sku) + '</strong> — ' + escHtml(v.productName) + ' (' + escHtml(v.unitName) + ')';
                 item.dataset.variantId  = v.variantId;
                 item.dataset.sku        = v.sku;
                 item.dataset.productName = v.productName;
                 item.dataset.costPrice  = v.costPrice || 0;
+                item.dataset.unitName   = v.unitName || '';
                 item.addEventListener('click', function() {
                     addProductRow(this.dataset.variantId, this.dataset.sku,
-                        this.dataset.productName, this.dataset.costPrice);
+                        this.dataset.productName, this.dataset.costPrice, this.dataset.unitName);
                     closeDd();
                 });
                 dd.appendChild(item);
@@ -73,7 +74,7 @@
     // ── Add product row ─────────────────────────────────────────────────
     var rowIndex = 0; // 0 is the first static row
 
-    function addProductRow(variantId, sku, productName, costPrice) {
+    function addProductRow(variantId, sku, productName, costPrice, unitName) {
         // Check duplicate
         var existing = document.querySelector('.variant-id-input[value="' + variantId + '"]');
         if (existing) {
@@ -89,12 +90,16 @@
         row.setAttribute('data-index', rowIndex);
         row.innerHTML =
             '<div class="row align-items-end">' +
-                '<div class="col-md-4">' +
+                '<div class="col-md-3">' +
                     '<label class="form-label">Sản phẩm</label>' +
                     '<input type="text" class="form-control" readonly value="' + escHtml(sku + ' – ' + productName) + '">' +
                     '<input type="hidden" class="variant-id-input" name="variantIds[]" value="' + escHtml(variantId) + '">' +
                 '</div>' +
-                '<div class="col-md-2">' +
+                '<div class="col-md-1">' +
+                    '<label class="form-label">ĐVT</label>' +
+                    '<input type="text" class="form-control" readonly value="' + escHtml(unitName) + '">' +
+                '</div>' +
+                '<div class="col-md-3">' +
                     '<label class="form-label">Số lượng <span class="text-danger">*</span></label>' +
                     '<input type="number" class="form-control quantity-input" name="quantities[]" min="1" value="1" required onchange="poCalcTotal(this)">' +
                 '</div>' +
@@ -105,10 +110,6 @@
                 '<div class="col-md-2">' +
                     '<label class="form-label">Thành tiền</label>' +
                     '<input type="text" class="form-control total-input" readonly>' +
-                '</div>' +
-                '<div class="col-md-1">' +
-                    '<label class="form-label">Ghi chú</label>' +
-                    '<input type="text" class="form-control" name="detailNotes[]">' +
                 '</div>' +
                 '<div class="col-md-1 d-flex align-items-end">' +
                     '<button type="button" class="btn btn-danger btn-sm w-100" onclick="poRemoveRow(this)"><i class="fa fa-trash"></i></button>' +

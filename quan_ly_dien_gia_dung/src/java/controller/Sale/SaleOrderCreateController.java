@@ -82,7 +82,6 @@ public class SaleOrderCreateController extends HttpServlet {
             String[] variantIds    = request.getParameterValues("variantIds[]");
             String[] quantities    = request.getParameterValues("quantities[]");
             String[] unitPrices    = request.getParameterValues("unitPrices[]");
-            String[] detailNotes   = request.getParameterValues("detailNotes[]");
 
             if (variantIds == null || quantities == null || unitPrices == null || variantIds.length == 0) {
                 request.setAttribute("error", "Phải có ít nhất một sản phẩm trong đơn hàng");
@@ -96,7 +95,6 @@ public class SaleOrderCreateController extends HttpServlet {
                 d.setVariantId(Integer.parseInt(variantIds[i]));
                 d.setQuantity(Integer.parseInt(quantities[i]));
                 d.setUnitPrice(new BigDecimal(unitPrices[i]));
-                if (detailNotes != null && i < detailNotes.length) d.setNotes(detailNotes[i]);
                 details.add(d);
             }
 

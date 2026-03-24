@@ -877,8 +877,10 @@ AND v.status = 'active'
 
     public List<ProductVariant> getAllActiveProductVariants() {
         List<ProductVariant> list = new ArrayList<>();
-        String sql = "SELECT pv.*, p.product_name FROM product_variants pv "
+        String sql = "SELECT pv.*, p.product_name, u.unit_name "
+                + "FROM product_variants pv "
                 + "INNER JOIN products p ON pv.product_id = p.product_id "
+                + "LEFT JOIN units u ON p.unit_id = u.unit_id "
                 + "WHERE pv.status = 'active' AND p.status = 'active' "
                 + "ORDER BY p.product_name, pv.sku";
 
@@ -895,6 +897,7 @@ AND v.status = 'active'
                 pv.setQuantity(rs.getInt("quantity"));
                 pv.setStatus(rs.getString("status"));
                 pv.setCreatedAt(rs.getTimestamp("created_at"));
+                pv.setUnitName(rs.getString("unit_name") != null ? rs.getString("unit_name") : "");
                 list.add(pv);
             }
         } catch (SQLException e) {
@@ -1399,9 +1402,10 @@ AND v.status = 'active'
     public List<ProductInventory> searchVariants(String keyword, Integer categoryId, Integer brandId) {
         List<ProductInventory> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-            "SELECT pv.variant_id, pv.sku, pv.cost_price, p.product_name " +
+            "SELECT pv.variant_id, pv.sku, pv.cost_price, p.product_name, u.unit_name " +
             "FROM product_variants pv " +
             "JOIN products p ON pv.product_id = p.product_id " +
+            "LEFT JOIN units u ON p.unit_id = u.unit_id " +
             "WHERE pv.status = 'active' AND p.status = 'active' "
         );
         List<Object> params = new ArrayList<>();
@@ -1429,6 +1433,7 @@ AND v.status = 'active'
                 v.setSku(rs.getString("sku"));
                 v.setCostPrice(rs.getDouble("cost_price"));
                 v.setProductName(rs.getString("product_name"));
+                v.setUnitName(rs.getString("unit_name") != null ? rs.getString("unit_name") : "");
                 list.add(v);
             }
         } catch (SQLException e) {
