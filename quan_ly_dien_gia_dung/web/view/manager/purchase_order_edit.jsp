@@ -18,6 +18,7 @@
     <style>
         .product-row { margin-bottom: 10px; padding: 15px; background: #f8f9fa; border-radius: 8px; }
         .btn-remove { color: #dc3545; cursor: pointer; }
+        input:disabled, select:disabled, textarea:disabled { background-color: #e9ecef !important; opacity: 1 !important; }
     </style>
 </head>
 <body>
@@ -117,7 +118,7 @@
                                     <div class="row align-items-end">
                                         <div class="col-md-4">
                                             <label class="form-label">Sản phẩm <span class="text-danger">*</span></label>
-                                            <select class="form-select variant-select" name="variantIds[]" required onchange="updateProductInfo(this)">
+                                            <select class="form-select variant-select" name="variantIds[]" required onchange="updateProductInfo(this)" ${viewOnly ? 'disabled' : ''}>
                                                 <option value="">-- Chọn sản phẩm --</option>
                                                 <c:forEach items="${variants}" var="variant">
                                                     <option value="${variant.variantId}" 
@@ -132,19 +133,23 @@
                                         <div class="col-md-2">
                                             <label class="form-label">Số lượng <span class="text-danger">*</span></label>
                                             <input type="number" class="form-control quantity-input" name="quantities[]" 
-                                                   min="1" value="${detail.quantity}" required onchange="calculateTotal(this)">
+                                                   min="1" value="${detail.quantity}" required onchange="calculateTotal(this)" ${viewOnly ? 'disabled' : ''}>
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label">Đơn giá <span class="text-danger">*</span></label>
                                             <input type="number" class="form-control price-input" name="unitPrices[]" 
-                                                   min="0" step="0.01" value="${detail.unitPrice}" required onchange="calculateTotal(this)">
+                                                   min="0" step="0.01" value="${detail.unitPrice}" required onchange="calculateTotal(this)" ${viewOnly ? 'disabled' : ''}>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-2">
                                             <label class="form-label">Thành tiền</label>
                                             <input type="text" class="form-control total-input" 
                                                    value="<fmt:formatNumber value='${detail.totalAmount}' pattern='#,##0'/> VNĐ" readonly>
                                         </div>
-                                        <c:if test="${status.index > 0}">
+                                        <div class="col-md-2">
+                                            <label class="form-label">Ghi chú</label>
+                                            <input type="text" class="form-control" name="detailNotes[]" value="${detail.notes}" ${viewOnly ? 'disabled' : ''}>
+                                        </div>
+                                        <c:if test="${status.index > 0 and not viewOnly}">
                                             <div class="col-md-12 mt-2 text-end">
                                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeProductRow(this)">
                                                     <i class="fa fa-trash"></i> Xóa

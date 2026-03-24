@@ -47,22 +47,20 @@
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-3 user-list-header">
                                 <h5 class="mb-0">Danh sách danh mục</h5>
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <a href="${pageContext.request.contextPath}/category-add" class="btn btn-primary">Thêm danh mục</a>
-                                </div>
+                                <a href="${pageContext.request.contextPath}/category-add" class="btn btn-primary">Thêm danh mục</a>
                             </div>
 
                             <form action="category-list" method="get" class="user-filter-form mb-3">
                                 <div class="row g-2 align-items-end">
                                     <div class="col-md-6">
-                                        <label class="form-label">Tên danh mục</label>
-                                        <input type="text" name="keyword" value="${param.keyword}" class="form-control" placeholder="Tìm theo tên danh mục">
+                                        <label class="form-label">Tên</label>
+                                        <input type="text" name="keyword" value="${param.keyword}" class="form-control" placeholder="Tìm kiếm theo tên">
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Trạng thái</label>
                                         <select name="status" class="form-select">
                                             <option value="all" ${(empty param.status || param.status == 'all') ? 'selected' : ''}>Tất cả</option>
-                                            <option value="active" ${param.status == 'active' ? 'selected' : ''}>Đang hoạt động</option>
+                                            <option value="active" ${param.status == 'active' ? 'selected' : ''}>Hoạt động</option>
                                             <option value="inactive" ${param.status == 'inactive' ? 'selected' : ''}>Ngừng hoạt động</option>
                                         </select>
                                     </div>
@@ -76,8 +74,8 @@
                             <table class="table align-middle">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Tên danh mục</th>
+                                        <th>Mã</th>
+                                        <th>Tên</th>
                                         <th>Mô tả</th>
                                         <th>Trạng thái</th>
                                         <th class="action-col">Thao tác</th>
@@ -91,20 +89,20 @@
                                             <td>${c.description}</td>
                                             <td>
                                                 <span class="status-dot ${c.status == 'active' ? 'status-active' : 'status-inactive'}"></span>
-                                                ${c.status == 'active' ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                                                ${c.status == 'active' ? 'Hoạt động' : 'Ngừng hoạt động'}
                                             </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
-                                                    <a href="${pageContext.request.contextPath}/category-edit?id=${c.categoryId}" class="action-btn action-edit" title="Chỉnh sửa danh mục">
+                                                    <a href="${pageContext.request.contextPath}/category-edit?id=${c.categoryId}" class="action-btn action-edit" title="Sửa danh mục">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
 
                                                     <c:choose>
                                                         <c:when test="${c.status == 'active'}">
-                                                            <form method="post" action="${pageContext.request.contextPath}/category-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn chuyển danh mục này sang ngừng hoạt động?')">
+                                                            <form method="post" action="${pageContext.request.contextPath}/category-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn chuyển danh mục này sang Inactive?')">
                                                                 <input type="hidden" name="id" value="${c.categoryId}">
                                                                 <input type="hidden" name="status" value="inactive">
-                                                                <button type="submit" class="btn btn-sm btn-secondary" title="Ngừng hoạt động">
+                                                                <button type="submit" class="btn btn-sm btn-secondary" title="Delete (soft)">
                                                                     <i class="fa fa-trash"></i>
                                                                 </button>
                                                             </form>
@@ -113,7 +111,7 @@
                                                             <form method="post" action="${pageContext.request.contextPath}/category-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn kích hoạt lại danh mục này?')">
                                                                 <input type="hidden" name="id" value="${c.categoryId}">
                                                                 <input type="hidden" name="status" value="active">
-                                                                <button type="submit" class="btn btn-sm btn-success" title="Kích hoạt lại">
+                                                                <button type="submit" class="btn btn-sm btn-success" title="Activate">
                                                                     <i class="fa fa-check"></i>
                                                                 </button>
                                                             </form>

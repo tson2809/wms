@@ -1,7 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <title>Cập nhật danh mục</title>
@@ -37,7 +37,7 @@
                 <div class="container-fluid pt-4 px-4">
                     <div class="row g-4">
                         <div class="col-12">
-                            <h2 class="mb-4">Cập nhật danh mục</h2>
+                             <h2 class="mb-4">Cập nhật danh mục</h2>
 
                             <c:if test="${not empty generalError}">
                                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
