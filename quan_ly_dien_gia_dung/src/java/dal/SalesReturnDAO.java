@@ -212,7 +212,7 @@ public class SalesReturnDAO extends DBContext {
         List<SalesReturnDetail> list = new ArrayList<>();
         String sql = """
             SELECT srd.sr_detail_id, srd.sales_return_id, srd.variant_id, srd.quantity,
-                   srd.original_price, srd.refund_price, srd.total_refund,
+                   srd.original_price, srd.total_refund,
                    pv.sku, p.product_name, u.unit_name
             FROM sales_return_details srd
             INNER JOIN product_variants pv ON srd.variant_id = pv.variant_id
@@ -231,7 +231,6 @@ public class SalesReturnDAO extends DBContext {
                 d.setVariantId(rs.getInt("variant_id"));
                 d.setQuantity(rs.getInt("quantity"));
                 d.setOriginalPrice(rs.getBigDecimal("original_price"));
-                d.setRefundPrice(rs.getBigDecimal("refund_price"));
                 d.setTotalRefund(rs.getBigDecimal("total_refund"));
                 d.setVariantSku(rs.getString("sku"));
                 d.setProductName(rs.getString("product_name"));
@@ -353,8 +352,8 @@ public class SalesReturnDAO extends DBContext {
 
             String sqlDetail = """
                 INSERT INTO sales_return_details
-                (sales_return_id, variant_id, quantity, original_price, refund_price, total_refund)
-                VALUES (?, ?, ?, ?, ?, ?)
+                (sales_return_id, variant_id, quantity, original_price, total_refund)
+                VALUES (?, ?, ?, ?, ?)
             """;
 
             String sqlAllowedQty = """
@@ -385,10 +384,9 @@ public class SalesReturnDAO extends DBContext {
                     int variantId = d.getVariantId();
                     int qty = d.getQuantity();
                     java.math.BigDecimal originalPrice = d.getOriginalPrice() != null ? d.getOriginalPrice() : java.math.BigDecimal.ZERO;
-                    java.math.BigDecimal refundPrice = d.getRefundPrice() != null ? d.getRefundPrice() : java.math.BigDecimal.ZERO;
 
                     if (variantId <= 0 || qty <= 0) return false;
-                    if (refundPrice.compareTo(java.math.BigDecimal.ZERO) < 0) return false;
+                    if (originalPrice.compareTo(java.math.BigDecimal.ZERO) < 0) return false;
 
                     int allowedQty = 0;
                     try (PreparedStatement psAllowed = conn.prepareStatement(sqlAllowedQty)) {
@@ -401,14 +399,13 @@ public class SalesReturnDAO extends DBContext {
                     }
                     if (qty > allowedQty) return false;
 
-                    java.math.BigDecimal totalRefund = refundPrice.multiply(java.math.BigDecimal.valueOf(qty));
+                    java.math.BigDecimal totalRefund = originalPrice.multiply(java.math.BigDecimal.valueOf(qty));
 
                     psDetail.setInt(1, srId);
                     psDetail.setInt(2, variantId);
                     psDetail.setInt(3, qty);
                     psDetail.setBigDecimal(4, originalPrice);
-                    psDetail.setBigDecimal(5, refundPrice);
-                    psDetail.setBigDecimal(6, totalRefund);
+                    psDetail.setBigDecimal(5, totalRefund);
                     psDetail.addBatch();
                 }
                 psDetail.executeBatch();
@@ -495,8 +492,8 @@ public class SalesReturnDAO extends DBContext {
 
             String sqlDetail = """
                 INSERT INTO sales_return_details
-                (sales_return_id, variant_id, quantity, original_price, refund_price, total_refund)
-                VALUES (?, ?, ?, ?, ?, ?)
+                (sales_return_id, variant_id, quantity, original_price, total_refund)
+                VALUES (?, ?, ?, ?, ?)
             """;
 
             try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
@@ -505,8 +502,7 @@ public class SalesReturnDAO extends DBContext {
                     int variantId = d.getVariantId();
                     int qty = d.getQuantity();
                     java.math.BigDecimal originalPrice = d.getOriginalPrice() != null ? d.getOriginalPrice() : java.math.BigDecimal.ZERO;
-                    java.math.BigDecimal refundPrice = d.getRefundPrice() != null ? d.getRefundPrice() : java.math.BigDecimal.ZERO;
-                    if (variantId <= 0 || qty <= 0 || refundPrice.compareTo(java.math.BigDecimal.ZERO) < 0) return false;
+                    if (variantId <= 0 || qty <= 0 || originalPrice.compareTo(java.math.BigDecimal.ZERO) < 0) return false;
 
                     int allowedQty = 0;
                     try (PreparedStatement psAllowed = conn.prepareStatement(sqlAllowedQty)) {
@@ -519,13 +515,12 @@ public class SalesReturnDAO extends DBContext {
                     }
                     if (qty > allowedQty) return false;
 
-                    java.math.BigDecimal totalRefund = refundPrice.multiply(java.math.BigDecimal.valueOf(qty));
+                    java.math.BigDecimal totalRefund = originalPrice.multiply(java.math.BigDecimal.valueOf(qty));
                     psDetail.setInt(1, salesReturnId);
                     psDetail.setInt(2, variantId);
                     psDetail.setInt(3, qty);
                     psDetail.setBigDecimal(4, originalPrice);
-                    psDetail.setBigDecimal(5, refundPrice);
-                    psDetail.setBigDecimal(6, totalRefund);
+                    psDetail.setBigDecimal(5, totalRefund);
                     psDetail.addBatch();
                 }
                 psDetail.executeBatch();

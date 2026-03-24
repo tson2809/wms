@@ -261,6 +261,24 @@ public class GoodsReceiptDAO extends DBContext {
         }
         return false;
     }
+
+    /** Lấy receipt_id theo mã phiếu (dùng sau khi tạo phiếu để hoàn tất nhập kho). */
+    public Integer getReceiptIdByReceiptCode(String receiptCode) {
+        if (receiptCode == null || receiptCode.trim().isEmpty()) {
+            return null;
+        }
+        String sql = "SELECT receipt_id FROM goods_receipts WHERE receipt_code = ? LIMIT 1";
+        try (PreparedStatement pre = getConnection().prepareStatement(sql)) {
+            pre.setString(1, receiptCode.trim());
+            ResultSet rs = pre.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("receipt_id");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(GoodsReceiptDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
     
     public boolean serialNumberExists(String serialNumber) {
         String sql = "SELECT COUNT(*) FROM product_serials WHERE serial_number = ?";

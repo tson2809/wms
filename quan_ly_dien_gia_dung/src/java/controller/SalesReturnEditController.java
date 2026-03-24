@@ -205,19 +205,16 @@ public class SalesReturnEditController extends HttpServlet {
             Object variantIdObj = item.get("variantId");
             Object qtyObj = item.get("quantity");
             Object originalPriceObj = item.get("originalPrice");
-            Object refundPriceObj = item.get("refundPrice");
             if (variantIdObj == null || qtyObj == null) continue;
 
             SalesReturnDetail d = new SalesReturnDetail();
             d.setVariantId(((Number) variantIdObj).intValue());
             d.setQuantity(((Number) qtyObj).intValue());
-            d.setOriginalPrice(originalPriceObj != null
+            java.math.BigDecimal originalPrice = originalPriceObj != null
                     ? new java.math.BigDecimal(originalPriceObj.toString())
-                    : java.math.BigDecimal.ZERO);
-            d.setRefundPrice(refundPriceObj != null
-                    ? new java.math.BigDecimal(refundPriceObj.toString())
-                    : java.math.BigDecimal.ZERO);
-            d.setTotalRefund(d.getRefundPrice().multiply(java.math.BigDecimal.valueOf(d.getQuantity())));
+                    : java.math.BigDecimal.ZERO;
+            d.setOriginalPrice(originalPrice);
+            d.setTotalRefund(originalPrice.multiply(java.math.BigDecimal.valueOf(d.getQuantity())));
             if (d.getVariantId() > 0 && d.getQuantity() > 0) out.add(d);
         }
         return out;
@@ -235,7 +232,6 @@ public class SalesReturnEditController extends HttpServlet {
             sb.append("\"name\":\"").append(escapeJson(d.getProductName())).append("\",");
             sb.append("\"unit\":\"").append(escapeJson(d.getUnitName())).append("\",");
             sb.append("\"originalPrice\":").append(d.getOriginalPrice() != null ? d.getOriginalPrice() : 0).append(",");
-            sb.append("\"refundPrice\":").append(d.getRefundPrice() != null ? d.getRefundPrice() : 0).append(",");
             sb.append("\"quantity\":").append(d.getQuantity());
             sb.append("}");
         }
