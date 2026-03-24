@@ -5,6 +5,7 @@ import dal.SalesReturnDAO;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,21 @@ public class SalesReturnAddController extends HttpServlet {
             return;
         }
 
-        Date returnDate = Date.valueOf(returnDateStr.trim());
+        Date returnDate;
+        try {
+            returnDate = Date.valueOf(returnDateStr.trim());
+        } catch (IllegalArgumentException ex) {
+            request.setAttribute("generalError", "Ngày trả không hợp lệ.");
+            request.getRequestDispatcher("/view/sale/sales_return_add.jsp").forward(request, response);
+            return;
+        }
+
+        if (returnDate.toLocalDate().isBefore(LocalDate.now())) {
+            request.setAttribute("generalError", "Ngày trả không được nhỏ hơn ngày hiện tại.");
+            request.getRequestDispatcher("/view/sale/sales_return_add.jsp").forward(request, response);
+            return;
+        }
+
         if (!productsJson.trim().startsWith("[")) {
             request.setAttribute("generalError", "Dữ liệu sản phẩm không hợp lệ.");
             request.getRequestDispatcher("/view/sale/sales_return_add.jsp").forward(request, response);

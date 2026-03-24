@@ -132,7 +132,7 @@
     <script>
         window.PO_FILTER = { contextPath: '${pageContext.request.contextPath}' };
     </script>
-    <script src="${pageContext.request.contextPath}/js/purchase-order-product-filter.js"></script>
+    <script src="${pageContext.request.contextPath}/js/purchase-order-product-filter.js?v=2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('input[name="orderDate"]').value = new Date().toISOString().split('T')[0];
