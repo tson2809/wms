@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import model.GoodsReceipt;
 import model.GoodsReceiptDetail;
 import model.PurchaseOrder;
 import model.PurchaseOrderDetail;
@@ -229,9 +230,36 @@ public class GoodsReceiptAddController extends HttpServlet {
                 receiptCode, supplier_Id, receiptDate, totalAmount.doubleValue(),
                 notes, createdBy, details, salesReturnId, purchaseOrderId
             );
-            
+
             if (success) {
-                request.getSession().setAttribute("successMessage", "Tạo phiếu nhập kho thành công!");
+                Integer receiptId = goodsReceiptDAO.getReceiptIdByReceiptCode(receiptCode.trim());
+                boolean completed = receiptId != null
+                        && goodsReceiptDAO.updateGoodsReceiptStatus(receiptId, "completed", createdBy);
+                if (!completed) {
+                    request.setAttribute("generalError",
+                            "Phiếu đã được tạo nhưng không hoàn tất nhập kho tự động. Vui lòng báo quản lý duyệt phiếu trong danh sách.");
+                    request.setAttribute("productsJson", productsJson);
+                    if (salesReturnId != null) {
+                        request.setAttribute("salesReturnId", salesReturnId);
+                    }
+                    if (purchaseOrderId != null) {
+                        request.setAttribute("purchaseOrderId", purchaseOrderId);
+                    }
+                    List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
+                    request.setAttribute("suppliers", suppliers);
+                    request.getRequestDispatcher("/view/staff/goods-receipt-add.jsp").forward(request, response);
+                    return;
+                }
+                GoodsReceipt justReceipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+                if (justReceipt != null) {
+                    if (justReceipt.getSalesReturnId() != null) {
+                        salesReturnDAO.completeSalesReturn(justReceipt.getSalesReturnId());
+                    }
+                    if (justReceipt.getPurchaseOrderId() != null) {
+                        purchaseOrderDAO.completePurchaseOrder(justReceipt.getPurchaseOrderId());
+                    }
+                }
+                request.getSession().setAttribute("successMessage", "Tạo phiếu nhập kho và nhập kho thành công!");
                 response.sendRedirect(request.getContextPath() + "/goods-receipt-list");
             } else {
                 request.setAttribute("generalError", "Có lỗi xảy ra khi tạo phiếu nhập kho. Vui lòng thử lại!");
@@ -342,7 +370,7 @@ public class GoodsReceiptAddController extends HttpServlet {
             m.put("code", d.getVariantSku());
             m.put("name", d.getProductName());
             m.put("unit", d.getUnitName());
-            m.put("price", d.getRefundPrice() != null ? d.getRefundPrice() : BigDecimal.ZERO);
+            m.put("price", d.getOriginalPrice() != null ? d.getOriginalPrice() : BigDecimal.ZERO);
             // Không tự fill số lượng khi load từ sales return; staff sẽ nhập/scan sau.
             m.put("quantity", 0);
             m.put("serials", new ArrayList<>());
