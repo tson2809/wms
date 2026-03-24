@@ -139,14 +139,10 @@
                                             <input type="number" class="form-control price-input" name="unitPrices[]" 
                                                    min="0" step="0.01" value="${detail.unitPrice}" required onchange="calculateTotal(this)">
                                         </div>
-                                        <div class="col-md-2">
+                                        <div class="col-md-4">
                                             <label class="form-label">Thành tiền</label>
                                             <input type="text" class="form-control total-input" 
                                                    value="<fmt:formatNumber value='${detail.totalAmount}' pattern='#,##0'/> VNĐ" readonly>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">Ghi chú</label>
-                                            <input type="text" class="form-control" name="detailNotes[]" value="${detail.notes}">
                                         </div>
                                         <c:if test="${status.index > 0}">
                                             <div class="col-md-12 mt-2 text-end">

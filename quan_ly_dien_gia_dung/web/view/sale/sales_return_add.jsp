@@ -96,7 +96,7 @@
 
                                     <div class="mb-3">
                                         <label class="form-label">Ngày trả <span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="returnDate" required value="${param.returnDate}" />
+                                        <input type="date" class="form-control" id="returnDate" name="returnDate" required value="${param.returnDate}" />
                                     </div>
 
                                     <div class="mb-3">
@@ -145,6 +145,12 @@
             (function () {
                 var ctx = '${pageContext.request.contextPath}';
                 var products = [];
+                var returnDateInput = document.getElementById('returnDate');
+                var today = new Date().toISOString().split('T')[0];
+
+                if (returnDateInput) {
+                    returnDateInput.min = today;
+                }
 
                 function formatCurrency(n) {
                     var num = Number(n || 0);
@@ -381,6 +387,10 @@
                 initFromJsonIfExists();
 
                 $('form').on('submit', function () {
+                    if (returnDateInput && returnDateInput.value && returnDateInput.value < today) {
+                        alert('Ngày trả không được nhỏ hơn ngày hiện tại.');
+                        return false;
+                    }
                     syncHidden();
                 });
             })();

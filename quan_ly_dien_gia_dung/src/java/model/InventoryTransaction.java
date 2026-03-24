@@ -18,6 +18,7 @@ public class InventoryTransaction {
     private int quantityChange;
     private String referenceType;
     private Integer referenceId;
+    private String referenceDisplay;
     private String createdBy;
     private Timestamp transactionDate;
     private String notes;
@@ -87,6 +88,14 @@ public class InventoryTransaction {
 
     public void setReferenceId(Integer referenceId) {
         this.referenceId = referenceId;
+    }
+
+    public String getReferenceDisplay() {
+        return referenceDisplay;
+    }
+
+    public void setReferenceDisplay(String referenceDisplay) {
+        this.referenceDisplay = referenceDisplay;
     }
 
     public String getCreatedBy() {

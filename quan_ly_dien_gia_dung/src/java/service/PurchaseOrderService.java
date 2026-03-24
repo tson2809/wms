@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +32,22 @@ public class PurchaseOrderService {
 
     public boolean validatePurchaseOrder(PurchaseOrder po, List<PurchaseOrderDetail> details, 
             StringBuilder errorMsg) {
+
+        if (po.getOrderDate() == null) {
+            errorMsg.append("Vui lòng chọn ngày đặt hàng. ");
+            return false;
+        }
+
+        Date today = Date.valueOf(LocalDate.now());
+        if (po.getOrderDate().before(today)) {
+            errorMsg.append("Ngày đặt hàng không được là ngày quá khứ. ");
+            return false;
+        }
+
+        if (po.getExpectedDeliveryDate() != null && po.getExpectedDeliveryDate().before(today)) {
+            errorMsg.append("Ngày giao hàng dự kiến không được là ngày quá khứ. ");
+            return false;
+        }
         
         Supplier supplier = supplierDAO.getSupplierById(po.getSupplierId());
         if (supplier == null) {
@@ -44,8 +61,8 @@ public class PurchaseOrderService {
         }
 
         if (po.getExpectedDeliveryDate() != null && po.getOrderDate() != null) {
-            if (po.getExpectedDeliveryDate().before(po.getOrderDate())) {
-                errorMsg.append("Ngày giao hàng dự kiến không được nhỏ hơn ngày đặt hàng. ");
+            if (!po.getExpectedDeliveryDate().after(po.getOrderDate())) {
+                errorMsg.append("Ngày giao hàng dự kiến phải lớn hơn ngày đặt hàng. ");
                 return false;
             }
         }

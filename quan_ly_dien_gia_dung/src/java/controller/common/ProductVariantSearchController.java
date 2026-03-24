@@ -21,7 +21,7 @@ import java.util.Map;
  * AJAX endpoint: tìm kiếm product variants theo keyword, categoryId, brandId.
  * URL: /product-variant/search
  * Params: keyword, categoryId (optional), brandId (optional)
- * Returns: JSON array of {variantId, sku, productName, costPrice}
+ * Returns: JSON array of {variantId, sku, productName, unitName, costPrice}
  */
 @WebServlet(name = "ProductVariantSearchController", urlPatterns = {"/product-variant/search"})
 public class ProductVariantSearchController extends HttpServlet {
@@ -68,6 +68,7 @@ public class ProductVariantSearchController extends HttpServlet {
             m.put("variantId", v.getVariantId());
             m.put("sku", v.getSku());
             m.put("productName", v.getProductName() != null ? v.getProductName() : "");
+            m.put("unitName", v.getUnitName() != null ? v.getUnitName() : "");
             m.put("costPrice", v.getCostPrice());
             result.add(m);
         }
