@@ -5,12 +5,13 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Transaction Detail</title>
+        <title>Chi tiết giao dịch kho</title>
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <meta content="" name="keywords">
         <meta content="" name="description">
@@ -48,14 +49,14 @@
                         <div class="col-12">
                             <div class="bg-white rounded shadow-sm p-4">
                                 <div class="d-flex justify-content-between mb-3">
-                                    <h5 class="mb-0">Transaction Detail</h5>
+                                    <h5 class="mb-0">Chi tiết giao dịch kho</h5>
                                     <a href="inventory-transactions" class="btn btn-secondary btn-sm">
                                         ← Quay lại
                                     </a>
                                 </div>
                                 <table class="table table-bordered align-middle">
                                     <tr>
-                                        <th width="220">Transaction ID</th>
+                                        <th width="220">Mã giao dịch</th>
                                         <td>TRX${t.transactionId}</td>
                                     </tr>
                                     <tr>
@@ -69,7 +70,13 @@
                                                   ${t.transactionType == 'import' ? 'bg-success' :
                                                     t.transactionType == 'export' ? 'bg-danger' :
                                                     t.transactionType == 'adjustment' ? 'bg-primary' : 'bg-warning'}">
-                                                      ${t.transactionType}
+                                                      <c:choose>
+                                                          <c:when test="${t.transactionType == 'import'}">Nhập kho</c:when>
+                                                          <c:when test="${t.transactionType == 'export'}">Xuất kho</c:when>
+                                                          <c:when test="${t.transactionType == 'adjustment'}">Điều chỉnh</c:when>
+                                                          <c:when test="${t.transactionType == 'inventory_check'}">Kiểm kê</c:when>
+                                                          <c:otherwise>${t.transactionType}</c:otherwise>
+                                                      </c:choose>
                                                   </span>
                                             </td>
                                         </tr>
@@ -88,8 +95,13 @@
                                             <td>${t.quantityAfter}</td>
                                         </tr>
                                         <tr>
-                                            <th>Reference</th>
-                                            <td>${t.referenceType} - ${t.referenceId}</td>
+                                            <th>Tham chiếu</th>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${not empty t.referenceDisplay}">${t.referenceDisplay}</c:when>
+                                                    <c:otherwise>${t.referenceType} - ${t.referenceId}</c:otherwise>
+                                                </c:choose>
+                                            </td>
                                         </tr>
                                         <tr>
                                             <th>Tạo ra bởi</th>

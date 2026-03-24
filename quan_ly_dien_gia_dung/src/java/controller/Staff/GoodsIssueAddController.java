@@ -17,6 +17,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -384,6 +386,17 @@ public class GoodsIssueAddController extends HttpServlet {
         if (issueDate == null || issueDate.trim().isEmpty()) {
             request.setAttribute("issueDateError", "Vui lòng chọn ngày xuất");
             hasErrors = true;
+        } else {
+            try {
+                LocalDate selectedDate = LocalDate.parse(issueDate.trim());
+                if (selectedDate.isBefore(LocalDate.now())) {
+                    request.setAttribute("issueDateError", "Ngày xuất không được nhỏ hơn ngày hiện tại");
+                    hasErrors = true;
+                }
+            } catch (DateTimeParseException ex) {
+                request.setAttribute("issueDateError", "Ngày xuất không hợp lệ");
+                hasErrors = true;
+            }
         }
 
         if (receiverName == null || receiverName.trim().isEmpty()) {

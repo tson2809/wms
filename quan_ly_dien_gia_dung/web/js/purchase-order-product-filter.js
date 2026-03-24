@@ -41,11 +41,13 @@
                 item.dataset.variantId  = v.variantId;
                 item.dataset.sku        = v.sku;
                 item.dataset.productName = v.productName;
+                item.dataset.unitName   = v.unitName || '';
                 item.dataset.costPrice  = v.costPrice || 0;
                 item.dataset.unitName   = v.unitName || '';
                 item.addEventListener('click', function() {
                     addProductRow(this.dataset.variantId, this.dataset.sku,
-                        this.dataset.productName, this.dataset.costPrice, this.dataset.unitName);
+                        this.dataset.productName, this.dataset.unitName, this.dataset.costPrice);
+
                     closeDd();
                 });
                 dd.appendChild(item);
@@ -74,7 +76,7 @@
     // ── Add product row ─────────────────────────────────────────────────
     var rowIndex = 0; // 0 is the first static row
 
-    function addProductRow(variantId, sku, productName, costPrice, unitName) {
+    function addProductRow(variantId, sku, productName, unitName, costPrice) {
         // Check duplicate
         var existing = document.querySelector('.variant-id-input[value="' + variantId + '"]');
         if (existing) {

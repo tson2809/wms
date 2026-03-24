@@ -129,15 +129,25 @@
                                     
                                     <div class="mb-3">
                                         <label class="form-label">Nguồn cung cấp</label>
-                                        <select class="form-select" name="supplierId">
-                                            <option value="SALE" ${(supplierIdValue == 'SALE' || (empty poSupplierIdValue && empty param.supplierId)) ? 'selected' : ''}>Đầu vào từ Sale</option>
-                                            <c:forEach items="${suppliers}" var="s">
-                                                <option value="${s.supplierId}" 
-                                                    ${(not empty poSupplierIdValue && poSupplierIdValue == s.supplierId) || (param.supplierId ne 'SALE' and param.supplierId eq s.supplierId) ? 'selected' : ''}>
-                                                    ${s.supplierName}
-                                                </option>
-                                            </c:forEach>
-                                        </select>
+                                        <c:choose>
+                                            <c:when test="${not empty salesReturnId}">
+                                                <select class="form-select" name="supplierId" disabled>
+                                                    <option value="SALE" selected>Đầu vào từ Sale</option>
+                                                </select>
+                                                <input type="hidden" name="supplierId" value="SALE">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <select class="form-select" name="supplierId">
+                                                    <option value="SALE" ${(supplierIdValue == 'SALE' || (empty poSupplierIdValue && empty param.supplierId)) ? 'selected' : ''}>Đầu vào từ Sale</option>
+                                                    <c:forEach items="${suppliers}" var="s">
+                                                        <option value="${s.supplierId}" 
+                                                            ${(not empty poSupplierIdValue && poSupplierIdValue == s.supplierId) || (param.supplierId ne 'SALE' and param.supplierId eq s.supplierId) ? 'selected' : ''}>
+                                                            ${s.supplierName}
+                                                        </option>
+                                                    </c:forEach>
+                                                </select>
+                                            </c:otherwise>
+                                        </c:choose>
                                         <c:if test="${not empty supplierIdError}">
                                             <small class="text-danger">${supplierIdError}</small>
                                         </c:if>
