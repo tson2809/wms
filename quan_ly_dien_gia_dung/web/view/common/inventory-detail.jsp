@@ -97,7 +97,7 @@
                                                 <td>${p.variantName}</td>
                                             </tr>
                                             <tr>
-                                                <th>Giá vốn</th>
+                                                <th>Giá nhập</th>
                                                 <td>
                                                     <fmt:formatNumber value="${p.costPrice}" type="number" groupingUsed="true"/>
                                                 </td>

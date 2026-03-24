@@ -61,7 +61,7 @@
                                         <input class="form-control" value="${variant[0]}" readonly>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Giá vốn hiện tại</label>
+                                        <label class="form-label">Giá nhập hiện tại</label>
                                         <input class="form-control"
                                                value="<fmt:formatNumber value='${variant[1]}' type='number' groupingUsed='true'/>"
                                                readonly>
@@ -73,7 +73,7 @@
                                                readonly>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Giá vốn mới</label>
+                                        <label class="form-label">Giá nhập mới</label>
                                         <input class="form-control"
                                                type="number"
                                                name="newCost"
