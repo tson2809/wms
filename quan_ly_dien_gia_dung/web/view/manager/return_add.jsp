@@ -172,7 +172,11 @@
 
             function initDate() {
                 var rd = document.getElementById('returnDate');
-                if (rd && !rd.value) rd.valueAsDate = new Date();
+                if (rd) {
+                    var today = new Date().toISOString().split('T')[0];
+                    rd.min = today;
+                    if (!rd.value) rd.valueAsDate = new Date();
+                }
             }
 
             function toggleSearch() {
@@ -393,6 +397,12 @@
 
             $('#returnForm').on('submit', function(e) {
                 e.preventDefault();
+                var dateVal = $('#returnDate').val();
+                var today = new Date().toISOString().split('T')[0];
+                if (dateVal && dateVal < today) {
+                    alert('Ngày trả không được nhỏ hơn ngày hiện tại.');
+                    return false;
+                }
                 if (products.length === 0) {
                     alert('Vui lòng thêm ít nhất một sản phẩm.');
                     return false;

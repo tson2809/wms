@@ -50,6 +50,9 @@ public class SupplierAddController extends HttpServlet {
         if (supplierName == null || supplierName.isBlank()) {
             request.setAttribute("errorSupplierName", "Tên nhà cung cấp không được để trống.");
             hasError = true;
+        } else if (supplierDAO.isSupplierNameExists(supplierName.trim())) {
+            request.setAttribute("errorSupplierName", "Tên nhà cung cấp đã tồn tại.");
+            hasError = true;
         }
 
         if (contactPerson == null || contactPerson.isBlank()) {

@@ -46,9 +46,10 @@
                                         <!-- Avatar -->
                                         <div class="col-md-4 text-center">
                                             <img id="avatarPreview"
-                                                 <img src="${pageContext.request.contextPath}/${user.avatar}?t=${System.currentTimeMillis()}"
-                                                 class="rounded-circle mb-3"
-                                                 style="width:150px;height:150px;object-fit:cover">
+                                                src="${pageContext.request.contextPath}/${user.avatar}?t=${avatarCacheBuster}"
+                                                class="rounded-circle mb-3"
+                                                style="width:150px;height:150px;object-fit:cover"
+                                                alt="avatar">
 
                                             <div class="mb-3">
                                                 <input class="form-control"

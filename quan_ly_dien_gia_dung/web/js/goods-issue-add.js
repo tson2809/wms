@@ -418,6 +418,17 @@
 
     // ── Form submit ──────────────────────────────────────────────────
     $('#issueForm').on('submit', function(e) {
+        var dateEl = document.getElementById('issueDate');
+        if (dateEl && dateEl.value) {
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            var selected = new Date(dateEl.value + 'T00:00:00');
+            if (selected < today) {
+                e.preventDefault();
+                alert('Ngày xuất không được nhỏ hơn ngày hiện tại!');
+                return false;
+            }
+        }
         if (!products.length) {
             e.preventDefault(); alert('Vui lòng thêm ít nhất một sản phẩm!'); return false;
         }
@@ -441,11 +452,13 @@
         if (!$(e.target).closest('#searchProduct, #searchDropdown').length) $('#searchDropdown').hide();
     });
 
-    // ── Init date (DOMContentLoaded để inline script của JSP pre-fill trước) ─
-    document.addEventListener('DOMContentLoaded', function() {
-        var dateEl = document.getElementById('issueDate');
-        if (dateEl && !dateEl.value) { dateEl.valueAsDate = new Date(); }
-    });
+    // ── Init: min date + today (giống goods-receipt-add) ───────────
+    var todayStr = new Date().toISOString().split('T')[0];
+    var issueDateEl = document.getElementById('issueDate');
+    if (issueDateEl) {
+        issueDateEl.setAttribute('min', todayStr);
+        issueDateEl.valueAsDate = new Date();
+    }
 
     // ── Restore from server (validation error) ───────────────────────
     var jsonEl = document.getElementById('goods-issue-add-products-json');
