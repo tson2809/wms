@@ -44,7 +44,7 @@
                                 <button type="submit" name="range" value="this_week" class="btn btn-sm ${selectedRange == 'this_week' ? 'btn-primary' : 'btn-outline-primary'}">Tuần này</button>
                                 <button type="submit" name="range" value="this_month" class="btn btn-sm ${selectedRange == 'this_month' ? 'btn-primary' : 'btn-outline-primary'}">Tháng này</button>
                                 <button type="submit" name="range" value="this_quarter" class="btn btn-sm ${selectedRange == 'this_quarter' ? 'btn-primary' : 'btn-outline-primary'}">Quý này</button>
-                                <button type="submit" name="range" value="ytd" class="btn btn-sm ${selectedRange == 'ytd' ? 'btn-primary' : 'btn-outline-primary'}">YTD</button>
+                                <button type="submit" name="range" value="year" class="btn btn-sm ${selectedRange == 'year' ? 'btn-primary' : 'btn-outline-primary'}">Năm</button>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -60,9 +60,6 @@
                         </div>
                     </form>
                 </div>
-                <div class="mt-3">
-                    <small class="text-muted">So sánh kỳ trước: ${prevFromDate} đến ${prevToDate}</small>
-                </div>
             </div>
 
             <div class="row g-4 mb-4">
@@ -72,7 +69,6 @@
                         <div class="ms-3 text-end">
                             <p class="mb-1">Dòng tiền ròng</p>
                             <h5 class="mb-0"><fmt:formatNumber value="${summary.netCashFlow}" type="number" maxFractionDigits="0" /></h5>
-                            <small class="${deltaNetCashFlow >= 0 ? 'text-success' : 'text-danger'}">${deltaNetCashFlow >= 0 ? '+' : ''}<fmt:formatNumber value="${deltaNetCashFlow}" type="number" maxFractionDigits="2" />%</small>
                         </div>
                     </div>
                 </div>
@@ -82,7 +78,6 @@
                         <div class="ms-3 text-end">
                             <p class="mb-1">Tiền vào</p>
                             <h5 class="mb-0"><fmt:formatNumber value="${summary.cashIn}" type="number" maxFractionDigits="0" /></h5>
-                            <small class="text-muted">Phải thu ước tính: <fmt:formatNumber value="${summary.estimatedReceivable}" type="number" maxFractionDigits="0" /></small>
                         </div>
                     </div>
                 </div>
@@ -92,7 +87,6 @@
                         <div class="ms-3 text-end">
                             <p class="mb-1">Tiền ra</p>
                             <h5 class="mb-0"><fmt:formatNumber value="${summary.cashOut}" type="number" maxFractionDigits="0" /></h5>
-                            <small class="text-muted">Phải trả ước tính: <fmt:formatNumber value="${summary.estimatedPayable}" type="number" maxFractionDigits="0" /></small>
                         </div>
                     </div>
                 </div>
@@ -146,8 +140,38 @@
             <div class="row g-4 mb-4">
                 <div class="col-12">
                     <div class="bg-light rounded p-4 h-100">
-                        <h6 class="mb-3">Xu hướng theo tháng</h6>
-                        <canvas id="monthlyFlowChart" height="110"></canvas>
+                        <h6 class="mb-3">Bảng tổng hợp theo tháng</h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Tháng</th>
+                                        <th class="text-end">Giá trị nhập kho</th>
+                                        <th class="text-end">Giá trị xuất kho</th>
+                                        <th class="text-end">Doanh số đơn Sale</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:choose>
+                                        <c:when test="${not empty monthlyFlows}">
+                                            <c:forEach var="row" items="${monthlyFlows}">
+                                                <tr>
+                                                    <td>${row.monthLabel}</td>
+                                                    <td class="text-end"><fmt:formatNumber value="${row.importValue}" type="number" maxFractionDigits="0" /></td>
+                                                    <td class="text-end"><fmt:formatNumber value="${row.exportValue}" type="number" maxFractionDigits="0" /></td>
+                                                    <td class="text-end"><fmt:formatNumber value="${row.salesValue}" type="number" maxFractionDigits="0" /></td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-4">Không có dữ liệu trong khoảng thời gian đã chọn.</td>
+                                            </tr>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -201,75 +225,7 @@
 
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="${pageContext.request.contextPath}/lib/chart/chart.min.js"></script>
 <script src="${pageContext.request.contextPath}/js/loadComponents.js"></script>
 <script src="${pageContext.request.contextPath}/js/main.js"></script>
-
-<script>
-    (function () {
-        const monthLabels = [
-            <c:forEach var="row" items="${monthlyFlows}" varStatus="st">"${row.monthLabel}"<c:if test="${!st.last}">,</c:if></c:forEach>
-        ];
-        const importValues = [
-            <c:forEach var="row" items="${monthlyFlows}" varStatus="st">${row.importValue}<c:if test="${!st.last}">,</c:if></c:forEach>
-        ];
-        const exportValues = [
-            <c:forEach var="row" items="${monthlyFlows}" varStatus="st">${row.exportValue}<c:if test="${!st.last}">,</c:if></c:forEach>
-        ];
-        const salesValues = [
-            <c:forEach var="row" items="${monthlyFlows}" varStatus="st">${row.salesValue}<c:if test="${!st.last}">,</c:if></c:forEach>
-        ];
-
-        const monthlyCanvas = document.getElementById("monthlyFlowChart");
-        if (monthlyCanvas) {
-            new Chart(monthlyCanvas, {
-                data: {
-                    labels: monthLabels,
-                    datasets: [
-                        {
-                            type: "bar",
-                            label: "Nhập kho",
-                            data: importValues,
-                            backgroundColor: "rgba(25, 135, 84, 0.65)",
-                            borderColor: "rgba(25, 135, 84, 1)",
-                            borderWidth: 1
-                        },
-                        {
-                            type: "bar",
-                            label: "Xuất kho",
-                            data: exportValues,
-                            backgroundColor: "rgba(220, 53, 69, 0.65)",
-                            borderColor: "rgba(220, 53, 69, 1)",
-                            borderWidth: 1
-                        },
-                        {
-                            type: "line",
-                            label: "Doanh số đơn Sale",
-                            data: salesValues,
-                            borderColor: "rgba(13, 110, 253, 1)",
-                            backgroundColor: "rgba(13, 110, 253, 0.15)",
-                            fill: false,
-                            tension: 0.3,
-                            yAxisID: "y"
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: "top"
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-    })();
-</script>
 </body>
 </html>
