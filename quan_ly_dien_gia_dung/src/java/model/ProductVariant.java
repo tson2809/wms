@@ -18,6 +18,7 @@ public class ProductVariant {
     private int quantity;
     private String status; 
     private Timestamp createdAt;
+    private String unitName;
 
     public ProductVariant() {
     }
@@ -116,6 +117,14 @@ public class ProductVariant {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getUnitName() {
+        return unitName;
+    }
+
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
     }
 
     @Override

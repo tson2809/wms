@@ -116,7 +116,7 @@
                             <c:forEach items="${details}" var="detail" varStatus="status">
                                 <div class="product-row" data-index="${status.index}">
                                     <div class="row align-items-end">
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">Sản phẩm <span class="text-danger">*</span></label>
                                             <select class="form-select variant-select" name="variantIds[]" required onchange="updateProductInfo(this)" ${viewOnly ? 'disabled' : ''}>
                                                 <option value="">-- Chọn sản phẩm --</option>
@@ -124,13 +124,18 @@
                                                     <option value="${variant.variantId}" 
                                                             data-sku="${variant.sku}"
                                                             data-cost="${variant.costPrice}"
+                                                            data-unit="${variant.unitName}"
                                                             ${variant.variantId == detail.variantId ? 'selected' : ''}>
                                                         ${variant.sku}
                                                     </option>
                                                 </c:forEach>
                                             </select>
                                         </div>
-                                        <div class="col-md-2">
+                                        <div class="col-md-1">
+                                            <label class="form-label">ĐVT</label>
+                                            <input type="text" class="form-control unit-input" value="${detail.unitName}" readonly>
+                                        </div>
+                                        <div class="col-md-3">
                                             <label class="form-label">Số lượng <span class="text-danger">*</span></label>
                                             <input type="number" class="form-control quantity-input" name="quantities[]" 
                                                    min="1" value="${detail.quantity}" required onchange="calculateTotal(this)" ${viewOnly ? 'disabled' : ''}>
@@ -145,17 +150,13 @@
                                             <input type="text" class="form-control total-input" 
                                                    value="<fmt:formatNumber value='${detail.totalAmount}' pattern='#,##0'/> VNĐ" readonly>
                                         </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">Ghi chú</label>
-                                            <input type="text" class="form-control" name="detailNotes[]" value="${detail.notes}" ${viewOnly ? 'disabled' : ''}>
-                                        </div>
-                                        <c:if test="${status.index > 0 and not viewOnly}">
-                                            <div class="col-md-12 mt-2 text-end">
-                                                <button type="button" class="btn btn-danger btn-sm" onclick="removeProductRow(this)">
-                                                    <i class="fa fa-trash"></i> Xóa
+                                        <div class="col-md-1 d-flex align-items-end">
+                                            <c:if test="${not viewOnly}">
+                                                <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeProductRow(this)">
+                                                    <i class="fa fa-trash"></i>
                                                 </button>
-                                            </div>
-                                        </c:if>
+                                            </c:if>
+                                        </div>
                                     </div>
                                 </div>
                             </c:forEach>
@@ -209,6 +210,8 @@
             newRow.querySelectorAll('input, select').forEach(input => {
                 if (input.type === 'number') {
                     input.value = input.name.includes('quantities') ? '1' : '';
+                } else if (input.classList.contains('unit-input')) {
+                    input.value = '';
                 } else if (input.type !== 'text' || !input.readOnly) {
                     input.value = '';
                 }
@@ -217,15 +220,10 @@
                 }
             });
 
-            const existingRemoveBtn = newRow.querySelector('.btn-danger');
-            if (existingRemoveBtn) {
-                existingRemoveBtn.closest('.col-md-12').remove();
+            const existingRemoveBtn = newRow.querySelector('.col-md-1');
+            if (existingRemoveBtn && !existingRemoveBtn.querySelector('button')) {
+                existingRemoveBtn.innerHTML = '<button type="button" class="btn btn-danger btn-sm w-100" onclick="removeProductRow(this)"><i class="fa fa-trash"></i></button>';
             }
-
-            const removeBtn = document.createElement('div');
-            removeBtn.className = 'col-md-12 mt-2 text-end';
-            removeBtn.innerHTML = '<button type="button" class="btn btn-danger btn-sm" onclick="removeProductRow(this)"><i class="fa fa-trash"></i> Xóa</button>';
-            newRow.querySelector('.row').appendChild(removeBtn);
 
             container.appendChild(newRow);
             productIndex++;
@@ -240,12 +238,16 @@
             const option = select.options[select.selectedIndex];
             const row = select.closest('.product-row');
             const priceInput = row.querySelector('.price-input');
+            const unitInput = row.querySelector('.unit-input');
             
             if (option.value) {
                 const costPrice = option.getAttribute('data-cost');
+                const unitName = option.getAttribute('data-unit');
                 priceInput.value = costPrice || '';
+                unitInput.value = unitName || '';
             } else {
                 priceInput.value = '';
+                unitInput.value = '';
             }
             calculateTotal(select);
         }

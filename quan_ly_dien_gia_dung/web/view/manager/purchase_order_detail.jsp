@@ -112,11 +112,15 @@
                         <c:forEach items="${details}" var="detail" varStatus="status">
                             <div class="product-row">
                                 <div class="row align-items-end">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">Sản phẩm <span class="text-danger">*</span></label>
                                         <select class="form-select" disabled>
                                             <option selected>${detail.sku} - ${detail.productName}</option>
                                         </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">ĐVT</label>
+                                        <input type="text" class="form-control" value="${detail.unitName}" disabled>
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label">Số lượng <span class="text-danger">*</span></label>
@@ -126,13 +130,9 @@
                                         <label class="form-label">Đơn giá <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" value="${detail.unitPrice}" disabled>
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-3">
                                         <label class="form-label">Thành tiền</label>
                                         <input type="text" class="form-control" value="<fmt:formatNumber value='${detail.unitPrice * detail.quantity}' pattern='#,##0'/> VNĐ" disabled>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Ghi chú</label>
-                                        <input type="text" class="form-control" value="${detail.notes}" disabled>
                                     </div>
                                 </div>
                             </div>

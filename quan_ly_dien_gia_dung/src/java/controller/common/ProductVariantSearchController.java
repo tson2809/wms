@@ -69,6 +69,7 @@ public class ProductVariantSearchController extends HttpServlet {
             m.put("sku", v.getSku());
             m.put("productName", v.getProductName() != null ? v.getProductName() : "");
             m.put("costPrice", v.getCostPrice());
+            m.put("unitName", v.getUnitName() != null ? v.getUnitName() : "");
             result.add(m);
         }
 
