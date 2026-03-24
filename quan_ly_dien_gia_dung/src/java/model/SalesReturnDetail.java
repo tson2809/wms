@@ -15,7 +15,6 @@ public class SalesReturnDetail {
     private String unitName;
     private int quantity;
     private BigDecimal originalPrice;
-    private BigDecimal refundPrice;
     private BigDecimal totalRefund;
 
     public SalesReturnDetail() {
@@ -83,14 +82,6 @@ public class SalesReturnDetail {
 
     public void setOriginalPrice(BigDecimal originalPrice) {
         this.originalPrice = originalPrice;
-    }
-
-    public BigDecimal getRefundPrice() {
-        return refundPrice;
-    }
-
-    public void setRefundPrice(BigDecimal refundPrice) {
-        this.refundPrice = refundPrice;
     }
 
     public BigDecimal getTotalRefund() {
