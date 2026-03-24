@@ -76,7 +76,7 @@
     // ── Add product row ─────────────────────────────────────────────────
     var rowIndex = 0; // 0 is the first static row
 
-    function addProductRow(variantId, sku, productName, unitName, costPrice) {
+    function addProductRow(variantId, sku, productName, unitName, costPrice, quantity) {
         // Check duplicate
         var existing = document.querySelector('.variant-id-input[value="' + variantId + '"]');
         if (existing) {
@@ -86,6 +86,7 @@
         }
 
         rowIndex++;
+        var initialQty = quantity || 1;
         var container = document.getElementById('productContainer');
         var row = document.createElement('div');
         row.className = 'product-row';
@@ -103,7 +104,7 @@
                 '</div>' +
                 '<div class="col-md-3">' +
                     '<label class="form-label">Số lượng <span class="text-danger">*</span></label>' +
-                    '<input type="number" class="form-control quantity-input" name="quantities[]" min="1" value="1" required onchange="poCalcTotal(this)">' +
+                    '<input type="number" class="form-control quantity-input" name="quantities[]" min="1" value="' + initialQty + '" required onchange="poCalcTotal(this)">' +
                 '</div>' +
                 '<div class="col-md-2">' +
                     '<label class="form-label">Đơn giá <span class="text-danger">*</span></label>' +
@@ -120,6 +121,7 @@
         container.appendChild(row);
         poCalcTotal(row.querySelector('.quantity-input'));
     }
+    window.addProductRow = addProductRow;
 
     window.poRemoveRow = function(btn) {
         var row = btn.closest('.product-row');

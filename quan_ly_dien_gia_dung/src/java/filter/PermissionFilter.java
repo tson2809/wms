@@ -124,7 +124,7 @@ public class PermissionFilter implements Filter {
         String path = httpRequest.getRequestURI().substring(contextPath.length());
         String method = httpRequest.getMethod();
 
-        boolean allowed = checkPermission(path, method, httpRequest, userPermissions);
+        boolean allowed = checkPermission(path, method, httpRequest, userPermissions, user);
         if (!allowed) {
             String fallbackPath = resolveFallbackPath(user, userPermissions);
             if (fallbackPath != null && !fallbackPath.equals(path)) {
@@ -146,7 +146,7 @@ public class PermissionFilter implements Filter {
         return loadedPermissions;
     }
 
-    private boolean checkPermission(String path, String method, HttpServletRequest request, Set<String> permissions) {
+    private boolean checkPermission(String path, String method, HttpServletRequest request, Set<String> permissions, User user) {
         if ("/goods-receipt-add".equals(path)) {
             return hasPermission(permissions, CREATE_GOODS_RECEIPT);
         }
@@ -315,7 +315,8 @@ public class PermissionFilter implements Filter {
                 return false;
             }
             if ("POST".equalsIgnoreCase(method) && "cancel".equals(request.getParameter("action"))) {
-                return hasPermission(permissions, CANCEL_PURCHASE_ORDER);
+                // Cho phép nếu có quyền cancel HOẶC là Staff (để Controller xử lý tiếp check Sale order)
+                return hasPermission(permissions, CANCEL_PURCHASE_ORDER) || (user != null && user.getRoleId() == 3);
             }
             return true;
         }
@@ -329,7 +330,8 @@ public class PermissionFilter implements Filter {
                 return false;
             }
             if ("POST".equalsIgnoreCase(method)) {
-                return hasPermission(permissions, EDIT_PURCHASE_ORDER);
+                // Cho phép nếu có quyền edit HOẶC là Sale (để Controller xử lý tiếp check chủ sở hữu)
+                return hasPermission(permissions, EDIT_PURCHASE_ORDER) || (user != null && user.getRoleId() == 4);
             }
             return true;
         }
