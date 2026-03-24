@@ -13,7 +13,6 @@ public class ReturnOrderDetail {
     private int variantId;
     private int quantity;
     private BigDecimal originalPrice;
-    private BigDecimal refundPrice;
     private BigDecimal totalRefund;
 
     
@@ -64,14 +63,6 @@ public class ReturnOrderDetail {
 
     public void setOriginalPrice(BigDecimal originalPrice) {
         this.originalPrice = originalPrice;
-    }
-
-    public BigDecimal getRefundPrice() {
-        return refundPrice;
-    }
-
-    public void setRefundPrice(BigDecimal refundPrice) {
-        this.refundPrice = refundPrice;
     }
 
     public BigDecimal getTotalRefund() {

@@ -140,7 +140,6 @@ public class SalesReturnAddController extends HttpServlet {
             Object variantIdObj = item.get("variantId");
             Object qtyObj = item.get("quantity");
             Object originalPriceObj = item.get("originalPrice");
-            Object refundPriceObj = item.get("refundPrice");
 
             if (variantIdObj == null || qtyObj == null) continue;
 
@@ -151,15 +150,10 @@ public class SalesReturnAddController extends HttpServlet {
                     ? new java.math.BigDecimal(originalPriceObj.toString())
                     : java.math.BigDecimal.ZERO;
 
-            java.math.BigDecimal refundPrice = refundPriceObj != null
-                    ? new java.math.BigDecimal(refundPriceObj.toString())
-                    : java.math.BigDecimal.ZERO;
-
             d.setVariantId(variantId);
             d.setQuantity(quantity);
             d.setOriginalPrice(originalPrice);
-            d.setRefundPrice(refundPrice);
-            d.setTotalRefund(refundPrice.multiply(java.math.BigDecimal.valueOf(quantity)));
+            d.setTotalRefund(originalPrice.multiply(java.math.BigDecimal.valueOf(quantity)));
 
             // Loại các dòng không hợp lệ (số lượng <= 0) để tránh tạo lỗi ở DAO.
             if (d.getVariantId() > 0 && d.getQuantity() > 0) {
