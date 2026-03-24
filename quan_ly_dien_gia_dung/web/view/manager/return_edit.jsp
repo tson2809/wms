@@ -61,13 +61,12 @@
                                             <th style="width:80px">Đơn vị</th>
                                             <th style="width:70px">Số lượng</th>
                                             <th style="width:100px">Giá nhập</th>
-                                            <th style="width:100px">Giá trả lại</th>
                                             <th style="width:100px">Thành tiền</th>
                                             <th style="width:50px"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="productTableBody">
-                                        <tr><td colspan="8" class="text-center text-muted py-4">Chưa có sản phẩm.</td></tr>
+                                        <tr><td colspan="7" class="text-center text-muted py-4">Chưa có sản phẩm.</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -210,7 +209,7 @@
                 if (isCompleted) {
                     $('#supplierId, #returnDate, #returnCode, #description').prop('readonly', true).prop('disabled', true);
                     $('#searchProduct, #btnSearchProduct').prop('disabled', true);
-                    $('#productTableBody .refund-cell, #productTableBody .serial-btn, #productTableBody .del-btn').prop('disabled', true);
+                    $('#productTableBody .serial-btn, #productTableBody .del-btn').prop('disabled', true);
                     $('#refundStatus').prop('disabled', false);
                     $('#btnSubmit').text('Cập nhật trạng thái hoàn tiền').show();
                     return;
@@ -237,7 +236,6 @@
                         name: p.name || p.productName || '',
                         unit: p.unit || '',
                         originalPrice: Number(p.originalPrice) || 0,
-                        refundPrice: Number(p.refundPrice) || 0,
                         quantity: Number(p.quantity) || 0,
                         serials: []
                     };
@@ -257,8 +255,7 @@
                         '<td>' + (item.name || '') + '</td><td>' + (item.unit || '') + '</td>' +
                         '<td><input type="number" class="form-control form-control-sm qty-cell" readonly value="' + item.quantity + '" data-pid="' + item.id + '" style="width:55px"></td>' +
                         '<td class="text-end">' + formatCurrency(item.originalPrice) + '</td>' +
-                        '<td><input type="number" class="form-control form-control-sm refund-cell" min="0" step="1000" value="' + item.refundPrice + '" data-pid="' + item.id + '" style="width:85px" ' + (isCompleted || isViewOnly ? 'readonly' : '') + '></td>' +
-                        '<td class="text-end subtotal-cell" data-pid="' + item.id + '">' + formatCurrency(item.quantity * item.refundPrice) + '</td>' +
+                        '<td class="text-end subtotal-cell" data-pid="' + item.id + '">' + formatCurrency(item.quantity * item.originalPrice) + '</td>' +
                         '<td>' + (isPending ? '<button type="button" class="btn btn-sm btn-danger del-btn" data-pid="' + item.id + '"><i class="fas fa-times"></i></button>' : '') + '</td></tr>';
                     $('#productTableBody').append(row);
                 });
@@ -292,7 +289,7 @@
                 if (isPending && products.length > 0) {
                     products = [];
                     productIdGen = 1;
-                    $('#productTableBody').html('<tr><td colspan="8" class="text-center text-muted py-4">Chưa có sản phẩm.</td></tr>');
+                    $('#productTableBody').html('<tr><td colspan="7" class="text-center text-muted py-4">Chưa có sản phẩm.</td></tr>');
                     updateTotal();
                 }
             });
@@ -326,7 +323,7 @@
                                 $a.on('click', function(ev) {
                                     ev.preventDefault();
                                     if (products.some(function(x) { return x.variantId === p.variantId; })) return;
-                                    var item = { id: productIdGen++, variantId: p.variantId, code: code, name: name, unit: unit, originalPrice: price, refundPrice: price, quantity: 0, serials: [] };
+                                    var item = { id: productIdGen++, variantId: p.variantId, code: code, name: name, unit: unit, originalPrice: price, quantity: 0, serials: [] };
                                     products.push(item);
                                     $('#productTableBody tr:has(td[colspan])').remove();
                                     var row = '<tr data-pid="' + item.id + '">' +
@@ -334,7 +331,6 @@
                                         '<td>' + name + '</td><td>' + unit + '</td>' +
                                         '<td><input type="number" class="form-control form-control-sm qty-cell" readonly value="0" data-pid="' + item.id + '" style="width:55px"></td>' +
                                         '<td class="text-end">' + formatCurrency(price) + '</td>' +
-                                        '<td><input type="number" class="form-control form-control-sm refund-cell" min="0" step="1000" value="' + price + '" data-pid="' + item.id + '" style="width:85px"></td>' +
                                         '<td class="text-end subtotal-cell" data-pid="' + item.id + '">0 ₫</td>' +
                                         '<td><button type="button" class="btn btn-sm btn-danger del-btn" data-pid="' + item.id + '"><i class="fas fa-times"></i></button></td></tr>';
                                     $('#productTableBody').append(row);
@@ -355,17 +351,11 @@
                 loadProducts('');
             });
 
-            $(document).on('input', '.refund-cell', function() {
-                var id = $(this).data('pid');
-                var p = products.find(function(x) { return x.id === id; });
-                if (p) { p.refundPrice = parseFloat($(this).val()) || 0; updateTotal(); }
-            });
-
             $(document).on('click', '.del-btn', function() {
                 var id = $(this).data('pid');
                 products = products.filter(function(x) { return x.id !== id; });
                 $('tr[data-pid="' + id + '"]').remove();
-                if (products.length === 0) $('#productTableBody').html('<tr><td colspan="8" class="text-center text-muted py-4">Chưa có sản phẩm.</td></tr>');
+                if (products.length === 0) $('#productTableBody').html('<tr><td colspan="7" class="text-center text-muted py-4">Chưa có sản phẩm.</td></tr>');
                 updateTotal();
             });
 
@@ -463,7 +453,7 @@
             function updateTotal() {
                 var total = 0;
                 products.forEach(function(p) {
-                    var q = p.quantity || 0, pr = p.refundPrice || 0;
+                    var q = p.quantity || 0, pr = p.originalPrice || 0;
                     var sub = q * pr;
                     total += sub;
                     $('.subtotal-cell[data-pid="' + p.id + '"]').text(formatCurrency(sub));
@@ -516,7 +506,7 @@
                     var serials = p.serials || [];
                     var ids = serials.filter(function(s) { return s && (s.serialId != null && s.serialId !== undefined); }).map(function(s) { return s.serialId; });
                     var nums = serials.filter(function(s) { return s && s.serialNumber && (s.serialId == null || s.serialId === undefined); }).map(function(s) { return s.serialNumber; });
-                    return { variantId: p.variantId, quantity: p.quantity, originalPrice: p.originalPrice || 0, refundPrice: p.refundPrice || 0, serialIds: ids, serialNumbers: nums };
+                    return { variantId: p.variantId, quantity: p.quantity, originalPrice: p.originalPrice || 0, serialIds: ids, serialNumbers: nums };
                 });
                 $('#productsData').val(JSON.stringify(payload));
                 var $btn = $('#btnSubmit');

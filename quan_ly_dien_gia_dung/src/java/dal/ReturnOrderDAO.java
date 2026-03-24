@@ -219,7 +219,7 @@ public class ReturnOrderDAO extends DBContext {
         List<ReturnOrderDetail> list = new ArrayList<>();
         String sql = """
                 SELECT rod.return_detail_id, rod.return_order_id, rod.variant_id, rod.quantity,
-                       rod.original_price, rod.refund_price, rod.total_refund,
+                       rod.original_price, rod.total_refund,
                        pv.sku AS variant_sku, p.product_name, u.unit_name
                 FROM return_order_details rod
                 INNER JOIN product_variants pv ON rod.variant_id = pv.variant_id
@@ -238,7 +238,6 @@ public class ReturnOrderDAO extends DBContext {
                 d.setVariantId(rs.getInt("variant_id"));
                 d.setQuantity(rs.getInt("quantity"));
                 d.setOriginalPrice(rs.getBigDecimal("original_price"));
-                d.setRefundPrice(rs.getBigDecimal("refund_price"));
                 d.setTotalRefund(rs.getBigDecimal("total_refund"));
                 d.setVariantSku(rs.getString("variant_sku"));
                 d.setProductName(rs.getString("product_name"));
@@ -295,17 +294,16 @@ public class ReturnOrderDAO extends DBContext {
                 psDel.setInt(1, returnOrderId);
                 psDel.executeUpdate();
             }
-            String sqlDetail = "INSERT INTO return_order_details (return_order_id, variant_id, quantity, original_price, refund_price, total_refund) VALUES (?, ?, ?, ?, ?, ?)";
+            String sqlDetail = "INSERT INTO return_order_details (return_order_id, variant_id, quantity, original_price, total_refund) VALUES (?, ?, ?, ?, ?)";
             String sqlSerial = "INSERT INTO return_order_serials (return_detail_id, serial_id) VALUES (?, ?)";
             for (ReturnOrderDetail d : details) {
                 try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail, PreparedStatement.RETURN_GENERATED_KEYS)) {
-                    java.math.BigDecimal totalRefund = d.getRefundPrice().multiply(java.math.BigDecimal.valueOf(d.getQuantity()));
+                    java.math.BigDecimal totalRefund = d.getOriginalPrice().multiply(java.math.BigDecimal.valueOf(d.getQuantity()));
                     psDetail.setInt(1, returnOrderId);
                     psDetail.setInt(2, d.getVariantId());
                     psDetail.setInt(3, d.getQuantity());
                     psDetail.setBigDecimal(4, d.getOriginalPrice());
-                    psDetail.setBigDecimal(5, d.getRefundPrice());
-                    psDetail.setBigDecimal(6, totalRefund);
+                    psDetail.setBigDecimal(5, totalRefund);
                     psDetail.executeUpdate();
                     ResultSet rsDetail = psDetail.getGeneratedKeys();
                     int detailId = rsDetail.next() ? rsDetail.getInt(1) : 0;
@@ -530,18 +528,17 @@ public class ReturnOrderDAO extends DBContext {
                 }
             }
 
-            String sqlDetail = "INSERT INTO return_order_details (return_order_id, variant_id, quantity, original_price, refund_price, total_refund) VALUES (?, ?, ?, ?, ?, ?)";
+            String sqlDetail = "INSERT INTO return_order_details (return_order_id, variant_id, quantity, original_price, total_refund) VALUES (?, ?, ?, ?, ?)";
             String sqlSerial = "INSERT INTO return_order_serials (return_detail_id, serial_id) VALUES (?, ?)";
 
             for (ReturnOrderDetail d : details) {
                 try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail, PreparedStatement.RETURN_GENERATED_KEYS)) {
-                    java.math.BigDecimal totalRefund = d.getRefundPrice().multiply(java.math.BigDecimal.valueOf(d.getQuantity()));
+                    java.math.BigDecimal totalRefund = d.getOriginalPrice().multiply(java.math.BigDecimal.valueOf(d.getQuantity()));
                     psDetail.setInt(1, returnOrderId);
                     psDetail.setInt(2, d.getVariantId());
                     psDetail.setInt(3, d.getQuantity());
                     psDetail.setBigDecimal(4, d.getOriginalPrice());
-                    psDetail.setBigDecimal(5, d.getRefundPrice());
-                    psDetail.setBigDecimal(6, totalRefund);
+                    psDetail.setBigDecimal(5, totalRefund);
                     psDetail.executeUpdate();
 
                     ResultSet rsDetail = psDetail.getGeneratedKeys();

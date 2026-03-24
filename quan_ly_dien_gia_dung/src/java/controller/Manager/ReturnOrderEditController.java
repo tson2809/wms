@@ -166,7 +166,7 @@ public class ReturnOrderEditController extends HttpServlet {
             BigDecimal totalRefund = BigDecimal.ZERO;
             for (ReturnOrderDetail d : details) {
                 totalRefund = totalRefund.add(
-                        d.getRefundPrice().multiply(BigDecimal.valueOf(d.getQuantity())));
+                        d.getOriginalPrice().multiply(BigDecimal.valueOf(d.getQuantity())));
             }
             String refundStatus = request.getParameter("refundStatus");
             if (refundStatus == null || refundStatus.trim().isEmpty()) refundStatus = "not_refunded";
@@ -233,7 +233,6 @@ public class ReturnOrderEditController extends HttpServlet {
             sb.append("\"name\":\"").append(escapeJson(d.getProductName())).append("\",");
             sb.append("\"unit\":\"").append(escapeJson(d.getUnitName())).append("\",");
             sb.append("\"originalPrice\":").append(d.getOriginalPrice() != null ? d.getOriginalPrice() : 0).append(",");
-            sb.append("\"refundPrice\":").append(d.getRefundPrice() != null ? d.getRefundPrice() : 0).append(",");
             sb.append("\"quantity\":").append(d.getQuantity()).append(",");
             sb.append("\"serialIds\":[");
             if (d.getSerials() != null) {
@@ -324,7 +323,6 @@ public class ReturnOrderEditController extends HttpServlet {
             int variantId = extractInt(obj, "variantId");
             int quantity = extractInt(obj, "quantity");
             BigDecimal originalPrice = extractBigDecimal(obj, "originalPrice");
-            BigDecimal refundPrice = extractBigDecimal(obj, "refundPrice");
             List<Integer> serialIds = extractIntArray(obj, "serialIds");
             List<String> serialNumbers = extractStringArray(obj, "serialNumbers");
             for (String sn : serialNumbers) {
@@ -333,13 +331,11 @@ public class ReturnOrderEditController extends HttpServlet {
                 if (sid != null && !serialIds.contains(sid)) serialIds.add(sid);
             }
             if (originalPrice == null) originalPrice = BigDecimal.ZERO;
-            if (refundPrice == null || refundPrice.compareTo(BigDecimal.ZERO) == 0) refundPrice = originalPrice;
             if (variantId > 0 && quantity > 0 && !serialIds.isEmpty()) {
                 ReturnOrderDetail detail = new ReturnOrderDetail();
                 detail.setVariantId(variantId);
                 detail.setQuantity(quantity);
                 detail.setOriginalPrice(originalPrice);
-                detail.setRefundPrice(refundPrice);
                 List<ReturnOrderSerial> serials = new ArrayList<>();
                 for (int sid : serialIds) {
                     ReturnOrderSerial rs = new ReturnOrderSerial();
