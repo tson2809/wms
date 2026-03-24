@@ -56,9 +56,10 @@ public class InventoryTransactionDAO extends DBContext {
             + "  WHEN it.reference_type = 'inventory_sheet' THEN COALESCE(isf.sheet_code, CONCAT('IS-', it.reference_id)) "
             + "  ELSE CONCAT(COALESCE(it.reference_type, 'N/A'), '-', COALESCE(CAST(it.reference_id AS CHAR), 'N/A')) "
             + "END AS reference_display, "
-                + "u.full_name, it.transaction_date, it.notes "
+                + "u.full_name, it.transaction_date, it.notes, p.product_name "
                 + "FROM inventory_transactions it "
                 + "JOIN product_variants pv ON it.variant_id = pv.variant_id "
+                + "JOIN products p ON pv.product_id = p.product_id "
             + "LEFT JOIN goods_receipts gr ON it.reference_type = 'goods_receipt' AND it.reference_id = gr.receipt_id "
             + "LEFT JOIN goods_issues gi ON it.reference_type = 'goods_issue' AND it.reference_id = gi.issue_id "
             + "LEFT JOIN inventory_sheets isf ON it.reference_type = 'inventory_sheet' AND it.reference_id = isf.sheet_id "
@@ -130,6 +131,7 @@ public class InventoryTransactionDAO extends DBContext {
                 InventoryTransaction t = new InventoryTransaction();
                 t.setTransactionId(rs.getInt("transaction_id"));
                 t.setSku(rs.getString("sku"));
+                t.setProductName(rs.getString("product_name"));
                 t.setTransactionType(rs.getString("transaction_type"));
                 t.setQuantityChange(rs.getInt("quantity_change"));
                 t.setReferenceType(rs.getString("reference_type"));
@@ -245,9 +247,10 @@ public class InventoryTransactionDAO extends DBContext {
             + "  WHEN it.reference_type = 'inventory_sheet' THEN COALESCE(isf.sheet_code, CONCAT('IS-', it.reference_id)) "
             + "  ELSE CONCAT(COALESCE(it.reference_type, 'N/A'), '-', COALESCE(CAST(it.reference_id AS CHAR), 'N/A')) "
             + "END AS reference_display, "
-                + "u.full_name, it.transaction_date, it.notes "
+                + "u.full_name, it.transaction_date, it.notes, p.product_name "
                 + "FROM inventory_transactions it "
                 + "JOIN product_variants pv ON it.variant_id = pv.variant_id "
+                + "JOIN products p ON pv.product_id = p.product_id "
             + "LEFT JOIN goods_receipts gr ON it.reference_type = 'goods_receipt' AND it.reference_id = gr.receipt_id "
             + "LEFT JOIN goods_issues gi ON it.reference_type = 'goods_issue' AND it.reference_id = gi.issue_id "
             + "LEFT JOIN inventory_sheets isf ON it.reference_type = 'inventory_sheet' AND it.reference_id = isf.sheet_id "
@@ -260,6 +263,7 @@ public class InventoryTransactionDAO extends DBContext {
                 InventoryTransaction t = new InventoryTransaction();
                 t.setTransactionId(rs.getInt("transaction_id"));
                 t.setSku(rs.getString("sku"));
+                t.setProductName(rs.getString("product_name"));
                 t.setTransactionType(rs.getString("transaction_type"));
                 t.setQuantityChange(rs.getInt("quantity_change"));
                 t.setQuantityBefore(rs.getInt("quantity_before"));

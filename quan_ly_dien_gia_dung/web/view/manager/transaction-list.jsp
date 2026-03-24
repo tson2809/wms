@@ -148,6 +148,7 @@
                                     <tr>
                                         <th>STT</th>
                                         <th>TRX ID</th>
+                                        <th>Tên sản phẩm</th>
                                         <th>SKU</th>
                                         <th>Loại</th>
                                         <th>Số lượng</th>
@@ -163,6 +164,7 @@
                                         <tr>
                                             <td>${loop.index + 1}</td>
                                             <td>TRX${t.transactionId}</td>
+                                            <td>${t.productName}</td>
                                             <td>${t.sku}</td>
                                             <td>
                                                 <span class="badge-type type-${t.transactionType}">
