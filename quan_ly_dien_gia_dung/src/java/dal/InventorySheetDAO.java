@@ -205,7 +205,7 @@ public class InventorySheetDAO extends DBContext {
     public List<ProductInventory> getSheetDetails(int sheetId) {
         List<ProductInventory> list = new ArrayList<>();
         String sql
-                = "SELECT d.detail_id, p.product_name, pv.sku, "
+                = "SELECT d.detail_id, d.variant_id, p.product_name, pv.sku, "
                 + "d.system_quantity, d.counted_quantity "
                 + "FROM inventory_sheet_details d "
                 + "JOIN product_variants pv ON d.variant_id = pv.variant_id "
@@ -217,6 +217,7 @@ public class InventorySheetDAO extends DBContext {
             while (rs.next()) {
                 ProductInventory pi = new ProductInventory();
                 pi.setDetailId(rs.getInt("detail_id"));
+                pi.setVariantId(rs.getInt("variant_id"));
                 pi.setProductName(rs.getString("product_name"));
                 pi.setSku(rs.getString("sku"));
                 pi.setSystemQuantity(rs.getInt("system_quantity"));
@@ -273,7 +274,14 @@ public class InventorySheetDAO extends DBContext {
         StringBuilder sql = new StringBuilder("""
        SELECT s.sheet_id, s.sheet_code, s.inventory_date, s.status,
                       s.created_by,
-                      c.category_name, u.full_name
+                      c.category_name, u.full_name,
+                      EXISTS (
+                          SELECT 1 FROM inventory_sheet_details d 
+                          JOIN product_variants pv ON d.variant_id = pv.variant_id
+                          WHERE d.sheet_id = s.sheet_id 
+                          AND d.counted_quantity < d.system_quantity
+                          AND (SELECT COUNT(*) FROM product_serials WHERE variant_id = d.variant_id AND status = 'in_stock') > pv.quantity
+                      ) AS needs_resolution
         FROM inventory_sheets s
         LEFT JOIN categories c ON s.category_id = c.category_id
         LEFT JOIN users u ON s.created_by = u.user_id
@@ -321,6 +329,7 @@ public class InventorySheetDAO extends DBContext {
                 s.setCategoryName(rs.getString("category_name"));
                 s.setCreatedByName(rs.getString("full_name"));
                 s.setCreatedBy(rs.getInt("created_by"));
+                s.setNeedsResolution(rs.getBoolean("needs_resolution"));
                 list.add(s);
             }
 
@@ -440,6 +449,12 @@ public class InventorySheetDAO extends DBContext {
                 ?, ?, ?, ?, ?, ?)
     """;
 
+        String insertSerial = """
+        INSERT INTO product_serials 
+        (variant_id, serial_number, status, notes)
+        VALUES (?, ?, 'in_stock', ?)
+    """;
+
         String updateSheet = """
         UPDATE inventory_sheets
         SET status = 'approved', approved_by = ?
@@ -447,7 +462,12 @@ public class InventorySheetDAO extends DBContext {
     """;
         try (Connection con = getConnection()) {
             con.setAutoCommit(false);
-            try (PreparedStatement ps1 = con.prepareStatement(selectDetails); PreparedStatement ps2 = con.prepareStatement(updateVariant); PreparedStatement ps3 = con.prepareStatement(insertTransaction); PreparedStatement ps4 = con.prepareStatement(updateSheet)) {
+            try (PreparedStatement ps1 = con.prepareStatement(selectDetails); 
+                 PreparedStatement ps2 = con.prepareStatement(updateVariant); 
+                 PreparedStatement ps3 = con.prepareStatement(insertTransaction); 
+                 PreparedStatement psSerial = con.prepareStatement(insertSerial);
+                 PreparedStatement ps4 = con.prepareStatement(updateSheet)) {
+                 
                 ps1.setInt(1, sheetId);
                 ResultSet rs = ps1.executeQuery();
                 while (rs.next()) {
@@ -456,10 +476,12 @@ public class InventorySheetDAO extends DBContext {
                     int countedQty = rs.getInt("counted_quantity");
                     int currentQty = rs.getInt("quantity");
                     int difference = countedQty - systemQty;
+                    
                     if (difference != 0) {
                         ps2.setInt(1, countedQty);
                         ps2.setInt(2, variantId);
                         ps2.executeUpdate();
+                        
                         ps3.setInt(1, variantId);
                         ps3.setInt(2, sheetId);
                         ps3.setInt(3, difference);
@@ -468,6 +490,17 @@ public class InventorySheetDAO extends DBContext {
                         ps3.setInt(6, approvedBy);
                         ps3.setString(7, "Điều chỉnh tồn kho sau kiểm kê");
                         ps3.executeUpdate();
+                        
+                        // Nếu thừa số lượng (surplus), auto generate serials
+                        if (difference > 0) {
+                            for (int i = 0; i < difference; i++) {
+                                String serialNumber = "INV-SN-" + variantId + "-" + System.currentTimeMillis() + "-" + i;
+                                psSerial.setInt(1, variantId);
+                                psSerial.setString(2, serialNumber);
+                                psSerial.setString(3, "Generated from Inventory Sheet #" + sheetId);
+                                psSerial.executeUpdate();
+                            }
+                        }
                     }
                 }
                 ps4.setInt(1, approvedBy);
