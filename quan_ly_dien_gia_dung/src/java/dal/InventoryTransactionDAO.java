@@ -281,4 +281,78 @@ public class InventoryTransactionDAO extends DBContext {
         }
         return null;
     }
+
+    public String getChartDataJson(
+            Integer variantId,
+            String keyword,
+            String dateFrom,
+            String dateTo
+    ) {
+        StringBuilder json = new StringBuilder("[");
+        String sql = "SELECT pv.sku, p.product_name, "
+                   + "SUM(CASE WHEN it.quantity_change > 0 THEN it.quantity_change ELSE 0 END) as total_increase, "
+                   + "SUM(CASE WHEN it.quantity_change < 0 THEN ABS(it.quantity_change) ELSE 0 END) as total_decrease "
+                   + "FROM inventory_transactions it "
+                   + "JOIN product_variants pv ON it.variant_id = pv.variant_id "
+                   + "JOIN products p ON pv.product_id = p.product_id "
+                   + "WHERE 1=1 "
+                   + "AND (? IS NULL OR it.variant_id = ?) "
+                   + "AND (? IS NULL OR pv.sku LIKE ?) "
+                   + "AND (? IS NULL OR DATE(it.transaction_date) >= ?) "
+                   + "AND (? IS NULL OR DATE(it.transaction_date) <= ?) "
+                   + "GROUP BY pv.sku, p.product_name "
+                   + "ORDER BY total_increase DESC, total_decrease DESC LIMIT 20";
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setObject(1, variantId);
+            ps.setObject(2, variantId);
+
+            ps.setObject(3, keyword);
+            ps.setString(4, keyword == null ? null : "%" + keyword + "%");
+
+            if (dateFrom == null) {
+                ps.setNull(5, Types.DATE);
+                ps.setNull(6, Types.DATE);
+            } else {
+                ps.setString(5, dateFrom);
+                ps.setString(6, dateFrom);
+            }
+
+            if (dateTo == null) {
+                ps.setNull(7, Types.DATE);
+                ps.setNull(8, Types.DATE);
+            } else {
+                ps.setString(7, dateTo);
+                ps.setString(8, dateTo);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            boolean first = true;
+            while (rs.next()) {
+                if (!first) {
+                    json.append(",");
+                }
+                first = false;
+                
+                String sku = rs.getString("sku");
+                if (sku != null) sku = sku.replace("\"", "\\\"").replace("\n", "").replace("\r", "");
+                else sku = "";
+                
+                String pName = rs.getString("product_name");
+                if (pName != null) pName = pName.replace("\"", "\\\"").replace("\n", "").replace("\r", "");
+                else pName = "";
+
+                json.append("{")
+                    .append("\"sku\":\"").append(sku).append("\",")
+                    .append("\"productName\":\"").append(pName).append("\",")
+                    .append("\"increase\":").append(rs.getInt("total_increase")).append(",")
+                    .append("\"decrease\":").append(rs.getInt("total_decrease"))
+                    .append("}");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        json.append("]");
+        return json.toString();
+    }
 }
