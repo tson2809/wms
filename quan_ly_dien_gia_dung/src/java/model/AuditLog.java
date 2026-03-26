@@ -9,7 +9,6 @@ public class AuditLog {
     private String username;
     private String actionType;
     private String tableName;
-    private Integer recordId;
     private String oldValues;
     private String newValues;
     private String ipAddress;
@@ -54,14 +53,6 @@ public class AuditLog {
 
     public void setTableName(String tableName) {
         this.tableName = tableName;
-    }
-
-    public Integer getRecordId() {
-        return recordId;
-    }
-
-    public void setRecordId(Integer recordId) {
-        this.recordId = recordId;
     }
 
     public String getOldValues() {

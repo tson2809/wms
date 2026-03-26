@@ -2,10 +2,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
     <head>
         <meta charset="UTF-8">
-        <title>Edit User</title>
+        <title>Cập nhật người dùng</title>
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -34,7 +34,7 @@
                             <div class="bg-light rounded p-4">
                                 <h5 class="mb-4">
                                     <i class="fa fa-user-edit me-2"></i>
-                                    Edit User Information
+                                    Cập nhật thông tin người dùng
                                 </h5>
 
                                 <form method="post" enctype="multipart/form-data">
@@ -65,7 +65,7 @@
                                             <div class="row g-3">
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Username</label>
+                                                    <label class="form-label">Tên đăng nhập</label>
                                                     <input type="text" class="form-control"
                                                            name="username" value="${user.userName}" >
                                                     <c:if test="${not empty usernameError}">
@@ -85,7 +85,7 @@
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Full Name</label>
+                                                    <label class="form-label">Họ và tên</label>
                                                     <input type="text" class="form-control"
                                                            name="fullName"
                                                            value="${user.fullName}">
@@ -95,7 +95,7 @@
                                                 </div>
 
                                                 <div class="col-12">
-                                                    <label class="form-label">Address</label>
+                                                    <label class="form-label">Địa chỉ</label>
                                                     <input type="text" class="form-control"
                                                            name="address"
                                                            value="${user.address}">
@@ -105,7 +105,7 @@
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Role</label>
+                                                    <label class="form-label">Vai trò</label>
                                                     <select class="form-select" name="roleId"
                                                             ${sessionScope.user != null && sessionScope.user.userId == user.userId ? "disabled" : ""}>
                                                         <c:forEach items="${roles}" var="r">
@@ -126,16 +126,16 @@
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Status</label>
+                                                    <label class="form-label">Trạng thái</label>
                                                     <select class="form-select" name="isActive">
                                                         <option value="true"
-                                                                ${user.isActive ? "selected" : ""}>Active</option>
+                                                                ${user.isActive ? "selected" : ""}>Đang hoạt động</option>
                                                         <option value="false"
                                                                 ${!user.isActive ? "selected" : ""}
-                                                                ${sessionScope.user != null && sessionScope.user.userId == user.userId ? "disabled" : ""}>Inactive</option>
+                                                                ${sessionScope.user != null && sessionScope.user.userId == user.userId ? "disabled" : ""}>Ngưng hoạt động</option>
                                                     </select>
                                                     <c:if test="${sessionScope.user != null && sessionScope.user.userId == user.userId}">
-                                                        <small class="text-muted">Bạn không thể tự chuyển trạng thái tài khoản của mình sang Inactive.</small>
+                                                        <small class="text-muted">Bạn không thể tự chuyển trạng thái tài khoản của mình sang ngưng hoạt động.</small>
                                                     </c:if>
                                                     <c:if test="${not empty statusError}">
                                                         <small class="text-danger">${statusError}</small>
@@ -144,7 +144,7 @@
 
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Phone</label>
+                                                    <label class="form-label">Số điện thoại</label>
                                                     <input type="text" class="form-control"
                                                            name="phone"
                                                            value="${user.phone}">
@@ -166,9 +166,9 @@
                                     </div>
 
                                     <div class="text-end mt-4">
-                                        <a href="user-list" class="btn btn-secondary me-2">Cancel</a>
+                                        <a href="user-list" class="btn btn-secondary me-2">Hủy</a>
                                         <button type="submit" class="btn btn-primary">
-                                            Save Changes
+                                            Lưu thay đổi
                                         </button>
                                     </div>
 

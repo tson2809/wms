@@ -100,11 +100,6 @@
                                             type="button" onclick="searchProduct()">
                                         Tìm kiếm
                                     </button>
-                                    <button class="btn btn-success d-flex align-items-center justify-content-center px-4"
-                                            style="height: 40px; white-space: nowrap; min-width: 120px;"
-                                            type="button" id="importFileBtn">
-                                        Import File
-                                    </button>
                                 </div>
                             </div>
 
@@ -137,15 +132,6 @@
                         <div class="col-lg-3">
                             <div class="bg-light rounded p-4">
                                 <form id="issueForm" method="post" action="${pageContext.request.contextPath}/goods-issue-add">
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Mã phiếu xuất</label>
-                                        <input type="text" class="form-control" name="issueCode"
-                                               placeholder="VD: PX001" value="${param.issueCode}">
-                                        <c:if test="${not empty issueCodeError}">
-                                            <small class="text-danger">${issueCodeError}</small>
-                                        </c:if>
-                                    </div>
 
                                     <div class="mb-3">
                                         <label class="form-label">Ngày xuất</label>
@@ -209,7 +195,6 @@
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/main.js?v=1"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
         <script>
             window.GOODS_ISSUE_ADD = {
                 contextPath: '${pageContext.request.contextPath}',
@@ -228,40 +213,6 @@
             </script>
         </c:if>
         <script src="${pageContext.request.contextPath}/js/goods-issue-add.js?v=3"></script>
-
-        <!-- Modal Import Excel -->
-        <div class="modal fade" id="importModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Import File Excel</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Chọn file Excel (.xlsx, .xls)</label>
-                            <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls">
-                            <small class="text-muted">
-                                File Excel cần có các cột: <strong>SKU, Serial Numbers</strong>
-                            </small>
-                        </div>
-                        <div class="alert alert-info" role="alert">
-                            <strong>Hướng dẫn:</strong>
-                            <ul class="mb-0">
-                                <li>Cột <strong>SKU</strong>: Mã sản phẩm (bắt buộc)</li>
-                                <li>Cột <strong>Serial Numbers</strong>: Các serial cách nhau bằng dấu phẩy (,) — serial phải đang tồn tại trong kho</li>
-                            </ul>
-                        </div>
-                        <div id="importError" class="alert alert-danger" style="display: none;"></div>
-                        <div id="importSuccess" class="alert alert-success" style="display: none;"></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" class="btn btn-primary" id="processImport">Import</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Modal chọn serial -->
         <div class="modal fade" id="serialModal" tabindex="-1">

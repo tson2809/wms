@@ -69,18 +69,6 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 </head>
 <body>
-    <%
-        java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-        boolean canCreatePurchaseOrder = userPermissions != null && userPermissions.contains("create purchase order");
-        boolean canEditPurchaseOrder = userPermissions != null && userPermissions.contains("edit purchase order");
-        boolean canCancelPurchaseOrder = userPermissions != null && userPermissions.contains("cancel purchase order");
-        boolean canClaimPurchaseOrder = userPermissions != null && userPermissions.contains("claim purchase order");
-        
-        pageContext.setAttribute("canCreatePurchaseOrder", canCreatePurchaseOrder);
-        pageContext.setAttribute("canEditPurchaseOrder", canEditPurchaseOrder);
-        pageContext.setAttribute("canCancelPurchaseOrder", canCancelPurchaseOrder);
-        pageContext.setAttribute("canClaimPurchaseOrder", canClaimPurchaseOrder);
-    %>
     <div class="container-fluid position-relative d-flex p-0">
         <!-- Sidebar -->
         <c:choose>
@@ -123,19 +111,15 @@
                         Danh sách đơn đặt hàng
                     </h5>
                     <div class="d-flex gap-2">
-                        <c:if test="${roleId == 2}">
-                            <% if (canCreatePurchaseOrder) { %>
+                        <c:if test="${sessionScope.user.role.roleId == 2}">
                             <a href="${pageContext.request.contextPath}/purchase-order/create" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i> Tạo đơn đặt hàng
                             </a>
-                            <% } %>
                         </c:if>
-                        <c:if test="${roleId == 4}">
-                            <% if (canCreatePurchaseOrder) { %>
+                        <c:if test="${sessionScope.user.role.roleId == 4}">
                             <a href="${pageContext.request.contextPath}/sale-order/create" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i> Tạo đơn đặt hàng
                             </a>
-                            <% } %>
                         </c:if>
                     </div>
                 </div>
@@ -296,12 +280,8 @@
                                                     </c:otherwise>
                                                 </c:choose>
 
-                                                                                                <%-- Hiển thị nút Hủy cho:
-                                                     1. User có quyền cancel purchase order (ngoại trừ Sale/roleId=4, Sale có block riêng bên dưới)
-                                                     2. Staff (roleId=3) cụ thể cho Sale orders (empty supplierName)
-                                                --%>
-                                                <c:set var="canStaffCancelSale" value="${roleId == 3 and empty po.supplierName}"/>
-                                                <c:if test="${(canCancelPurchaseOrder and roleId != 4 and (po.status == 'draft' or po.status == 'submitted')) or (canStaffCancelSale and (po.status == 'draft' or po.status == 'submitted'))}">
+                                                                                                <%-- Manager/Staff: hủy đơn khi đang draft hoặc submitted --%>
+                                                                                                <c:if test="${(sessionScope.user.role.roleId == 2 or sessionScope.user.role.roleId == 3) and (po.status == 'draft' or po.status == 'submitted')}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/list"
                                                           onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');" style="display:inline">
                                                         <input type="hidden" name="action" value="cancel">
@@ -313,8 +293,7 @@
                                                 </c:if>
 
                                                 <%-- Staff: Nhận đơn (chỉ draft, chưa có người nhận) --%>
-                                                <% if (canClaimPurchaseOrder) { %>
-                                                <c:if test="${po.status == 'draft' and empty po.approvedByName}">
+                                                                                                <c:if test="${sessionScope.user.role.roleId == 3 and po.status == 'draft' and empty po.approvedByName}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/claim"
                                                           onsubmit="return confirm('Bạn muốn nhận đơn đặt hàng này?');" style="display:inline">
                                                         <input type="hidden" name="id" value="${po.purchaseOrderId}">
@@ -323,7 +302,6 @@
                                                         </button>
                                                     </form>
                                                 </c:if>
-                                                <% } %>
 
                                                 <%-- Staff: Tạo phiếu nhập kho (PO có NCC, submitted, là người phụ trách) --%>
                                                 <c:if test="${roleId == 3 and not empty po.supplierName and po.status == 'submitted' and po.approvedBy == currentUserId}">
@@ -341,9 +319,8 @@
                                                     </a>
                                                 </c:if>
 
-                                                                                                <%-- Sale: Hủy đơn (chỉ khi draft) --%>
-                                                                                                <% if (canCancelPurchaseOrder) { %>
-                                                                                                <c:if test="${roleId == 4 and po.status == 'draft'}">
+                                                                                                <%-- Sale: chỉ hủy draft do chính mình tạo và là sale order --%>
+                                                                                                <c:if test="${sessionScope.user.role.roleId == 4 and po.status == 'draft' and empty po.supplierName and po.createdBy == currentUserId}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/list"
                                                           onsubmit="return confirm('Bạn có chắc muốn hủy đơn này?');" style="display:inline">
                                                         <input type="hidden" name="action" value="cancel">
@@ -353,7 +330,6 @@
                                                         </button>
                                                     </form>
                                                 </c:if>
-                                                <% } %>
 
                                             </div>
                                         </td>

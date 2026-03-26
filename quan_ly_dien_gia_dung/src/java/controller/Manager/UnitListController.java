@@ -31,7 +31,7 @@ public class UnitListController extends HttpServlet {
         try { numberPerPage = Integer.parseInt(perPageParam); } catch (Exception e) {}
         try { page = Integer.parseInt(pageParam); } catch (Exception e) {}
 
-        List<Unit> allUnits = unitDAO.getAllUnits();
+        List<Unit> allUnits = unitDAO.getAllUnitsForManagement();
 
         // Filter by search
         if (!search.trim().isEmpty()) {
@@ -69,20 +69,24 @@ public class UnitListController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String deleteIdParam = request.getParameter("deleteId");
-        if (deleteIdParam != null) {
+        String toggleIdParam = request.getParameter("toggleId");
+        if (toggleIdParam != null) {
             String message;
             String messageType;
             try {
-                int id = Integer.parseInt(deleteIdParam);
-                if (unitDAO.isUnitUsed(id)) {
-                    message = "Không thể xóa đơn vị này vì đang được sử dụng cho sản phẩm.";
+                int id = Integer.parseInt(toggleIdParam);
+                Unit unit = unitDAO.getUnitById(id);
+                if (unit == null) {
+                    message = "Không tìm thấy đơn vị.";
                     messageType = "danger";
-                } else if (unitDAO.deleteUnit(id)) {
-                    message = "Xóa đơn vị thành công.";
+                } else if ("active".equalsIgnoreCase(unit.getStatus()) && unitDAO.isUnitUsed(id)) {
+                    message = "Không thể ngưng hoạt động đơn vị này vì đang được sử dụng bởi sản phẩm.";
+                    messageType = "danger";
+                } else if (unitDAO.toggleUnitStatus(id)) {
+                    message = "Cập nhật trạng thái đơn vị thành công.";
                     messageType = "success";
                 } else {
-                    message = "Không thể xóa đơn vị. Vui lòng thử lại.";
+                    message = "Không thể cập nhật trạng thái đơn vị. Vui lòng thử lại.";
                     messageType = "danger";
                 }
             } catch (NumberFormatException e) {

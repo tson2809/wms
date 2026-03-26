@@ -1,7 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
     <head>
         <meta charset="utf-8">
@@ -53,7 +53,7 @@
                                             <div class="row g-3">
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Username</label>
+                                                    <label class="form-label">Tên đăng nhập</label>
                                                     <input type="text" class="form-control" name="username" value="${username}">
                                                     <c:if test="${not empty usernameError}">
                                                         <small class="text-danger">${usernameError}</small>
@@ -69,7 +69,7 @@
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Full Name</label>
+                                                    <label class="form-label">Họ và tên</label>
                                                     <input type="text" class="form-control" name="fullName" value="${fullName}">
                                                     <c:if test="${not empty fullNameError}">
                                                         <small class="text-danger">${fullNameError}</small>
@@ -77,7 +77,7 @@
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Phone</label>
+                                                    <label class="form-label">Số điện thoại</label>
                                                     <input type="text" class="form-control" name="phone" value="${phone}">
                                                     <c:if test="${not empty phoneError}">
                                                         <small class="text-danger">${phoneError}</small>
@@ -85,7 +85,7 @@
                                                 </div>
 
                                                 <div class="col-12">
-                                                    <label class="form-label">Address</label>
+                                                    <label class="form-label">Địa chỉ</label>
                                                     <input type="text" class="form-control" name="address" value="${address}">
                                                     <c:if test="${not empty addressError}">
                                                         <small class="text-danger">${addressError}</small>
@@ -93,7 +93,7 @@
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Role</label>
+                                                    <label class="form-label">Vai trò</label>
                                                     <select class="form-select" name="roleId">
                                                         <c:forEach items="${roles}" var="r">
                                                             <option value="${r.roleId}" ${
@@ -108,15 +108,15 @@
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Status</label>
+                                                    <label class="form-label">Trạng thái</label>
                                                     <select class="form-select" name="isActive">
-                                                        <option value="true" ${(empty isActive || isActive) ? "selected" : ""}>Active</option>
-                                                        <option value="false" ${(!empty isActive && !isActive) ? "selected" : ""}>Inactive</option>
+                                                        <option value="true" ${(empty isActive || isActive) ? "selected" : ""}>Đang hoạt động</option>
+                                                        <option value="false" ${(!empty isActive && !isActive) ? "selected" : ""}>Ngưng hoạt động</option>
                                                     </select>
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Password</label>
+                                                    <label class="form-label">Mật khẩu</label>
                                                     <input type="password" class="form-control" name="password">
                                                     <c:if test="${not empty passwordError}">
                                                         <small class="text-danger">${passwordError}</small>
@@ -124,7 +124,7 @@
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Confirm Password</label>
+                                                    <label class="form-label">Xác nhận mật khẩu</label>
                                                     <input type="password" class="form-control" name="confirmPassword">
                                                     <c:if test="${not empty confirmPasswordError}">
                                                         <small class="text-danger">${confirmPasswordError}</small>
@@ -134,8 +134,8 @@
                                             </div>
 
                                             <div class="text-end mt-4">
-                                                <a href="${pageContext.request.contextPath}/user-list" class="btn btn-secondary me-2">Cancel</a>
-                                                <button type="submit" class="btn btn-primary">Create User</button>
+                                                <a href="${pageContext.request.contextPath}/user-list" class="btn btn-secondary me-2">Hủy</a>
+                                                <button type="submit" class="btn btn-primary">Tạo người dùng</button>
                                             </div>
                                         </div>
                                     </div>

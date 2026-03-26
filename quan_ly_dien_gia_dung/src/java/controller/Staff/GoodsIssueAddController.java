@@ -368,6 +368,11 @@ public class GoodsIssueAddController extends HttpServlet {
     private void handleCreateIssue(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String issueCode = request.getParameter("issueCode");
+        if (issueCode == null || issueCode.trim().isEmpty()) {
+            issueCode = goodsIssueDAO.generateNextIssueCode();
+        } else {
+            issueCode = issueCode.trim();
+        }
         String issueType = normalizeIssueType(request.getParameter("issueType"));
         String issueDate = request.getParameter("issueDate");
         String receiverName = request.getParameter("receiverName");
@@ -376,12 +381,12 @@ public class GoodsIssueAddController extends HttpServlet {
 
         boolean hasErrors = false;
 
-        if (issueCode == null || issueCode.trim().isEmpty()) {
-            request.setAttribute("issueCodeError", "Vui lòng nhập mã phiếu xuất");
-            hasErrors = true;
-        } else if (goodsIssueDAO.issueCodeExists(issueCode.trim())) {
-            request.setAttribute("issueCodeError", "Mã phiếu xuất đã tồn tại");
-            hasErrors = true;
+        if (goodsIssueDAO.issueCodeExists(issueCode)) {
+            issueCode = goodsIssueDAO.generateNextIssueCode();
+            if (goodsIssueDAO.issueCodeExists(issueCode)) {
+                request.setAttribute("generalError", "Không thể tạo mã phiếu xuất tự động. Vui lòng thử lại.");
+                hasErrors = true;
+            }
         }
 
         if (issueDate == null || issueDate.trim().isEmpty()) {
@@ -449,13 +454,26 @@ public class GoodsIssueAddController extends HttpServlet {
                 notesWithPo = notesWithPo + "\n[PO_ID:" + purchaseOrderId + "]";
             }
 
-            boolean success = goodsIssueDAO.createGoodsIssue(
-                    issueCode.trim(), issueType, issueDate,
-                    receiverName.trim(), notesWithPo.trim(),
-                    user.getUserId(), details, returnOrderId);
+            boolean success = false;
+            String createdIssueCode = issueCode;
+            for (int attempt = 0; attempt < 3; attempt++) {
+                if (attempt > 0) {
+                    createdIssueCode = goodsIssueDAO.generateNextIssueCode();
+                }
+                success = goodsIssueDAO.createGoodsIssue(
+                        createdIssueCode, issueType, issueDate,
+                        receiverName.trim(), notesWithPo.trim(),
+                        user.getUserId(), details, returnOrderId);
+                if (success) {
+                    break;
+                }
+                if (!goodsIssueDAO.issueCodeExists(createdIssueCode)) {
+                    break;
+                }
+            }
 
             if (success) {
-                Integer issueId = goodsIssueDAO.getIssueIdByIssueCode(issueCode.trim());
+                Integer issueId = goodsIssueDAO.getIssueIdByIssueCode(createdIssueCode);
                 boolean completed = issueId != null
                         && goodsIssueDAO.updateGoodsIssueStatus(issueId, "completed", user.getUserId());
                 if (!completed) {

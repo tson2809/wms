@@ -16,10 +16,10 @@ public class AuditLogDAO extends DBContext {
         return value != null && !value.trim().isEmpty();
     }
 
-    public void insertAuditLog(Integer userId, String actionType, String tableName, Integer recordId) {
+    public void insertAuditLog(Integer userId, String actionType, String tableName) {
         String sql = """
-                     INSERT INTO audit_logs (user_id, action_type, table_name, record_id)
-                     VALUES (?, ?, ?, ?)
+                     INSERT INTO audit_logs (user_id, action_type, table_name)
+                     VALUES (?, ?, ?)
                      """;
         try (Connection conn = this.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -30,11 +30,6 @@ public class AuditLogDAO extends DBContext {
             }
             ps.setString(2, actionType);
             ps.setString(3, tableName);
-            if (recordId == null) {
-                ps.setNull(4, java.sql.Types.INTEGER);
-            } else {
-                ps.setInt(4, recordId);
-            }
             ps.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(AuditLogDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -91,7 +86,7 @@ public class AuditLogDAO extends DBContext {
 
         StringBuilder sql = new StringBuilder("""
                      SELECT al.log_id, al.user_id, u.username, al.action_type,
-                    al.table_name, al.record_id
+                    al.table_name
                      FROM audit_logs al
                      LEFT JOIN users u ON al.user_id = u.user_id
                      WHERE 1=1
@@ -138,8 +133,6 @@ public class AuditLogDAO extends DBContext {
                     log.setUsername(rs.getString("username"));
                     log.setActionType(rs.getString("action_type"));
                     log.setTableName(rs.getString("table_name"));
-                    int recordId = rs.getInt("record_id");
-                    log.setRecordId(rs.wasNull() ? null : recordId);
                     logs.add(log);
                 }
             }

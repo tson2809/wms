@@ -6,12 +6,6 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%
-    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-    boolean canCreateSupplier = userPermissions != null && userPermissions.contains("create supplier");
-    boolean canEditSupplier = userPermissions != null && userPermissions.contains("edit supplier");
-    boolean canDeactivateSupplier = userPermissions != null && userPermissions.contains("deactivate supplier");
-%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -136,9 +130,9 @@
                         <div class="col-12 supplier-list-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0 fw-semibold">Danh sách nhà cung cấp</h5>
-                                <% if (canCreateSupplier) { %>
+                                <c:if test="${sessionScope.user.role.roleId == 2}">
                                 <a href="${pageContext.request.contextPath}/supplier-add" class="btn btn-primary">Thêm nhà cung cấp</a>
-                                <% } %>
+                                </c:if>
                             </div>
                             <form action="${pageContext.request.contextPath}/supplier-list" method="post" class="mb-3 supplier-filter-form">
                                 <input type="hidden" name="numberPerPage" value="${numberPerPage}">
@@ -159,8 +153,8 @@
                                         <label class="form-label">Trạng thái</label>
                                         <select name="status" class="form-select" onchange="this.form.submit()">
                                             <option value="">Tất cả</option>
-                                            <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
-                                            <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
+                                            <option value="active" ${status == 'active' ? 'selected' : ''}>Đang hoạt động</option>
+                                            <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Ngưng hoạt động</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
@@ -199,41 +193,41 @@
                                             <td>${s.phone}</td>
                                             <td>
                                                 <span class="status-dot ${s.status == 'active' ? 'status-active' : 'status-inactive'}"></span>
-                                                ${s.status == 'active' ? 'Active' : 'Inactive'}
+                                                ${s.status == 'active' ? 'Đang hoạt động' : 'Ngưng hoạt động'}
                                             </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
-                                                    <% if (canEditSupplier) { %>
+                                                    <c:if test="${sessionScope.user.role.roleId == 2}">
                                                     <a href="${pageContext.request.contextPath}/supplier-detail?id=${s.supplierId}"
                                                        class="action-btn action-edit" title="Chỉnh sửa">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
-                                                    <% } %>
-                                                    <% if (canDeactivateSupplier) { %>
+                                                    </c:if>
+                                                    <c:if test="${sessionScope.user.role.roleId == 2}">
                                                     <c:choose>
                                                         <c:when test="${s.status == 'active'}">
-                                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn deactive nhà cung cấp này?')">
+                                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn ngưng hoạt động nhà cung cấp này?')">
                                                                 <input type="hidden" name="id" value="${s.supplierId}">
                                                                 <input type="hidden" name="status" value="inactive">
-                                                                <button type="submit" class="btn btn-sm btn-secondary" title="Deactive">
+                                                                <button type="submit" class="btn btn-sm btn-secondary" title="Ngưng hoạt động">
                                                                     <i class="fa fa-user-slash"></i>
                                                                 </button>
                                                             </form>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn active nhà cung cấp này?')">
+                                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn bật hoạt động nhà cung cấp này?')">
                                                                 <input type="hidden" name="id" value="${s.supplierId}">
                                                                 <input type="hidden" name="status" value="active">
-                                                                <button type="submit" class="btn btn-sm btn-success" title="Active">
+                                                                <button type="submit" class="btn btn-sm btn-success" title="Bật hoạt động">
                                                                     <i class="fa fa-user-check"></i>
                                                                 </button>
                                                             </form>
                                                         </c:otherwise>
                                                     </c:choose>
-                                                    <% } %>
-                                                    <% if (!canEditSupplier && !canDeactivateSupplier) { %>
+                                                    </c:if>
+                                                    <c:if test="${sessionScope.user.role.roleId != 2}">
                                                         <span class="text-muted small">-</span>
-                                                    <% } %>
+                                                    </c:if>
                                                 </div>
                                             </td>
                                         </tr>

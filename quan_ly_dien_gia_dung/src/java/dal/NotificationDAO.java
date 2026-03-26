@@ -33,12 +33,11 @@ public class NotificationDAO extends DBContext {
             while (rs.next()) {
                 int notificationId = rs.getInt("notification_id");
                 int creatorId = rs.getInt("creator_id");
-                String notificationType = rs.getString("notification_type");
                 String title = rs.getString("title");
                 String content = rs.getString("content");
                 Timestamp createdAt = rs.getTimestamp("created_at");
                 Notification n = new Notification(notificationId, notificationId,
-                        notificationType, title, content, createdAt);
+                        title, content, createdAt);
                 list.add(n);
             }
         } catch (SQLException ex) {
@@ -63,12 +62,11 @@ public class NotificationDAO extends DBContext {
             while (rs.next()) {
                 int notificationId = rs.getInt("notification_id");
                 int creatorId = rs.getInt("creator_id");
-                String notificationType = rs.getString("notification_type");
                 String title = rs.getString("title");
                 String content = rs.getString("content");
                 Timestamp createdAt = rs.getTimestamp("created_at");
                 Notification n = new Notification(notificationId, creatorId,
-                        notificationType, title, content, createdAt);
+                        title, content, createdAt);
                 list.add(n);
             }
             }
@@ -89,11 +87,10 @@ public class NotificationDAO extends DBContext {
                 if (rs.next()) {
                     int id = rs.getInt("notification_id");
                     int creatorId = rs.getInt("creator_id");
-                    String notificationType = rs.getString("notification_type");
                     String title = rs.getString("title");
                     String content = rs.getString("content");
                     Timestamp createdAt = rs.getTimestamp("created_at");
-                    return new Notification(id, creatorId, notificationType, title, content, createdAt);
+                    return new Notification(id, creatorId, title, content, createdAt);
                 }
             }
         } catch (SQLException ex) {
@@ -105,15 +102,14 @@ public class NotificationDAO extends DBContext {
     public int insertNotification(Notification s) {
         int n = 0;
         String sql = """
-                INSERT INTO notifications (creator_id, notification_type, title, content)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO notifications (creator_id, title, content)
+                VALUES (?, ?, ?)
                 """;
         try (Connection conn = this.getConnection();
              PreparedStatement pre = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pre.setInt(1, s.getCreatorId());
-            pre.setString(2, s.getNotificationType());
-            pre.setString(3, s.getTitle());
-            pre.setString(4, s.getContent());
+            pre.setString(2, s.getTitle());
+            pre.setString(3, s.getContent());
             n = pre.executeUpdate();
             if (n > 0) {
                 try (ResultSet keys = pre.getGeneratedKeys()) {
@@ -131,44 +127,20 @@ public class NotificationDAO extends DBContext {
     public int updateNotification(Notification s) {
         int n = 0;
         String sql = """
-                UPDATE notifications SET creator_id = ?, notification_type = ?, title = ?, content = ?
+                UPDATE notifications SET creator_id = ?, title = ?, content = ?
                 WHERE notification_id = ?
                 """;
         try (Connection conn = this.getConnection();
              PreparedStatement pre = conn.prepareStatement(sql)) {
             pre.setInt(1, s.getCreatorId());
-            pre.setString(2, s.getNotificationType());
-            pre.setString(3, s.getTitle());
-            pre.setString(4, s.getContent());
-            pre.setInt(5, s.getNotificationId());
+            pre.setString(2, s.getTitle());
+            pre.setString(3, s.getContent());
+            pre.setInt(4, s.getNotificationId());
             n = pre.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(SupplierDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return n;
-    }
-
-    public List<String> getNotificationTypes() {
-        List<String> types = new ArrayList<>();
-        String sql = """
-                 SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_NAME = 'notifications' 
-                 AND COLUMN_NAME = 'notification_type'
-                 """;
-        try (Connection conn = this.getConnection();
-             PreparedStatement st = conn.prepareStatement(sql);
-             ResultSet rs = st.executeQuery()) {
-            if (rs.next()) {
-                String columnType = rs.getString("COLUMN_TYPE");
-                columnType = columnType.substring(5, columnType.length() - 1);
-                String[] split = columnType.split(",");
-                for (String s : split) {
-                    types.add(s.replace("'", ""));
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println(e);
-        }
-        return types;
     }
 
     public int deleteNotification(int notificationId) {

@@ -83,14 +83,13 @@
                                         <th>Người dùng</th>
                                         <th>Hành động</th>
                                         <th>Bảng</th>
-                                        <th>Record ID</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <c:choose>
                                         <c:when test="${empty logs}">
                                             <tr>
-                                                <td colspan="5" class="text-center text-muted">Không có dữ liệu nhật ký.</td>
+                                                <td colspan="4" class="text-center text-muted">Không có dữ liệu nhật ký.</td>
                                             </tr>
                                         </c:when>
                                         <c:otherwise>
@@ -100,7 +99,6 @@
                                                     <td>${empty log.username ? '-' : log.username}</td>
                                                     <td>${log.actionType}</td>
                                                     <td>${empty log.tableName ? '-' : log.tableName}</td>
-                                                    <td>${empty log.recordId ? '-' : log.recordId}</td>
                                                 </tr>
                                             </c:forEach>
                                         </c:otherwise>
