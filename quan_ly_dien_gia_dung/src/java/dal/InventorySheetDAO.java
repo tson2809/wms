@@ -493,8 +493,28 @@ public class InventorySheetDAO extends DBContext {
                         
                         // Nếu thừa số lượng (surplus), auto generate serials
                         if (difference > 0) {
-                            for (int i = 0; i < difference; i++) {
-                                String serialNumber = "INV-SN-" + variantId + "-" + System.currentTimeMillis() + "-" + i;
+                            int maxIndex = 0;
+                            String prefix = "V" + variantId + "S";
+                            String sqlMax = "SELECT serial_number FROM product_serials WHERE variant_id = ? AND serial_number LIKE ?";
+                            try (PreparedStatement psMax = con.prepareStatement(sqlMax)) {
+                                psMax.setInt(1, variantId);
+                                psMax.setString(2, prefix + "%");
+                                try (ResultSet rsMax = psMax.executeQuery()) {
+                                    while (rsMax.next()) {
+                                        String sn = rsMax.getString(1);
+                                        try {
+                                            int idx = Integer.parseInt(sn.substring(prefix.length()));
+                                            if (idx > maxIndex) {
+                                                maxIndex = idx;
+                                            }
+                                        } catch (Exception e) {}
+                                    }
+                                }
+                            }
+                            
+                            for (int i = 1; i <= difference; i++) {
+                                int nextIdx = maxIndex + i;
+                                String serialNumber = prefix + String.format("%03d", nextIdx); // padded to at least 3 digits
                                 psSerial.setInt(1, variantId);
                                 psSerial.setString(2, serialNumber);
                                 psSerial.setString(3, "Generated from Inventory Sheet #" + sheetId);
