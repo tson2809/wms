@@ -265,7 +265,9 @@
             type: 'POST',
             data: {
                 action: 'checkSerial',
-                serial: value
+                serial: value,
+                supplierId: $('select[name="supplierId"]').val() || $('input[name="supplierId"]').val() || '',
+                salesReturnId: $('input[name="salesReturnId"]').val() || ''
             },
             async: false,
             success: function(response) {
@@ -358,7 +360,12 @@
                                 $.ajax({
                                     url: addUrl,
                                     type: 'POST',
-                                    data: { action: 'checkSerial', serial: serial },
+                                    data: {
+                                        action: 'checkSerial',
+                                        serial: serial,
+                                        supplierId: $('select[name="supplierId"]').val() || $('input[name="supplierId"]').val() || '',
+                                        salesReturnId: $('input[name="salesReturnId"]').val() || ''
+                                    },
                                     dataType: 'json',
                                     async: false,
                                     success: function(response) {
@@ -396,7 +403,12 @@
                                 $.ajax({
                                     url: addUrl,
                                     type: 'POST',
-                                    data: { action: 'checkSerial', serial: serial },
+                                    data: {
+                                        action: 'checkSerial',
+                                        serial: serial,
+                                        supplierId: $('select[name="supplierId"]').val() || $('input[name="supplierId"]').val() || '',
+                                        salesReturnId: $('input[name="salesReturnId"]').val() || ''
+                                    },
                                     dataType: 'json',
                                     async: false,
                                     success: function(response) {

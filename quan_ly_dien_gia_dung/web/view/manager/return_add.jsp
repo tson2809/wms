@@ -1,6 +1,7 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html>
     <head>
@@ -157,6 +158,11 @@
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/main.js"></script>
+        <c:if test="${not empty productsJsonValue}">
+            <div id="return-add-products-json" style="display:none">
+                <c:out value="${fn:replace(productsJsonValue, '</', '&lt;/')}" escapeXml="false"/>
+            </div>
+        </c:if>
         <script>
         (function() {
             var products = [];
@@ -294,13 +300,13 @@
                     if (e.key === 'Enter') { e.preventDefault(); addSerialManual(); }
                 });
 
-                $('#serialModalBody').on('click', '.remove-tag', function() {
+                $('#serialModalBody').off('click', '.remove-tag').on('click', '.remove-tag', function() {
                     var i = parseInt($(this).data('i'), 10);
                     currentSerials.splice(i, 1);
                     renderSerialModal(products.find(function(x) { return x.id === currentProductId; }));
                 });
 
-                $('#btnLoadSerials').on('click', function() {
+                $('#btnLoadSerials').off('click').on('click', function() {
                     if (!product || !product.variantId) return;
                     $.ajax({
                         url: ctx + '/return-add',
@@ -387,6 +393,76 @@
                 $('#totalRefundAmount').val(total);
             }
 
+            function renderProductsTableFromState() {
+                var $tbody = $('#productTableBody');
+                $tbody.empty();
+                if (!products || products.length === 0) {
+                    $tbody.html('<tr><td colspan="7" class="text-center text-muted py-4">Chưa có sản phẩm. Chọn NCC và tìm kiếm để thêm.</td></tr>');
+                    return;
+                }
+                products.forEach(function(item) {
+                    if (!item.id) {
+                        item.id = productIdGen++;
+                    }
+                    var row = '<tr data-pid="' + item.id + '">' +
+                        '<td><span class="me-1">' + (item.code || '') + '</span><button type="button" class="btn btn-sm btn-outline-primary serial-btn" data-pid="' + item.id + '"><i class="fas fa-barcode me-1"></i>Chọn serial</button></td>' +
+                        '<td>' + (item.name || '') + '</td><td>' + (item.unit || '') + '</td>' +
+                        '<td><input type="number" class="form-control form-control-sm qty-cell" readonly value="' + (item.quantity || 0) + '" data-pid="' + item.id + '" style="width:55px"></td>' +
+                        '<td class="text-end">' + formatCurrency(Number(item.originalPrice || 0)) + '</td>' +
+                        '<td class="text-end subtotal-cell" data-pid="' + item.id + '">' + formatCurrency(Number(item.originalPrice || 0) * Number(item.quantity || 0)) + '</td>' +
+                        '<td><button type="button" class="btn btn-sm btn-danger del-btn" data-pid="' + item.id + '"><i class="fas fa-times"></i></button></td></tr>';
+                    $tbody.append(row);
+                    if (item.id >= productIdGen) {
+                        productIdGen = item.id + 1;
+                    }
+                });
+            }
+
+            function normalizeRestoredProducts(raw) {
+                if (!Array.isArray(raw)) return [];
+                var normalized = [];
+                raw.forEach(function(item) {
+                    if (!item || !item.variantId) return;
+                    var serials = [];
+                    if (Array.isArray(item.serials) && item.serials.length) {
+                        serials = item.serials.map(function(s) {
+                            if (s && typeof s === 'object') {
+                                return {
+                                    serialId: s.serialId != null ? s.serialId : null,
+                                    serialNumber: s.serialNumber != null ? String(s.serialNumber) : ''
+                                };
+                            }
+                            return { serialId: null, serialNumber: String(s || '') };
+                        }).filter(function(s) { return s.serialNumber; });
+                    } else {
+                        var serialIds = Array.isArray(item.serialIds) ? item.serialIds : [];
+                        var serialNumbers = Array.isArray(item.serialNumbers) ? item.serialNumbers : [];
+                        if (serialIds.length) {
+                            serialIds.forEach(function(id) {
+                                if (id != null) serials.push({ serialId: id, serialNumber: '' });
+                            });
+                        }
+                        if (serialNumbers.length) {
+                            serialNumbers.forEach(function(sn) {
+                                if (sn != null && String(sn).trim()) serials.push({ serialId: null, serialNumber: String(sn).trim() });
+                            });
+                        }
+                    }
+
+                    normalized.push({
+                        id: item.id != null ? item.id : productIdGen++,
+                        variantId: item.variantId,
+                        code: item.code || item.sku || '',
+                        name: item.name || item.productName || '',
+                        unit: item.unit || '',
+                        originalPrice: Number(item.originalPrice || 0),
+                        quantity: item.quantity != null ? Number(item.quantity) : serials.length,
+                        serials: serials
+                    });
+                });
+                return normalized;
+            }
+
             $('#returnForm').on('submit', function(e) {
                 e.preventDefault();
                 var dateVal = $('#returnDate').val();
@@ -410,9 +486,14 @@
                     var ids = serials.filter(function(s) { return s && (s.serialId != null && s.serialId !== undefined); }).map(function(s) { return s.serialId; });
                     var nums = serials.filter(function(s) { return s && s.serialNumber && (s.serialId == null || s.serialId === undefined); }).map(function(s) { return s.serialNumber; });
                     return {
+                        id: p.id,
                         variantId: p.variantId,
+                        code: p.code || '',
+                        name: p.name || '',
+                        unit: p.unit || '',
                         quantity: p.quantity,
                         originalPrice: p.originalPrice || 0,
+                        serials: serials,
                         serialIds: ids,
                         serialNumbers: nums
                     };
@@ -453,6 +534,19 @@
             $(function() {
                 initDate();
                 toggleSearch();
+                var persisted = document.getElementById('return-add-products-json');
+                if (persisted) {
+                    try {
+                        var txt = (persisted.textContent || '').trim();
+                        if (txt) {
+                            products = normalizeRestoredProducts(JSON.parse(txt));
+                            renderProductsTableFromState();
+                            updateTotal();
+                        }
+                    } catch (e) {
+                        // ignore malformed persisted payload
+                    }
+                }
             });
         })();
         </script>
