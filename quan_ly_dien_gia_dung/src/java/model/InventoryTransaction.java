@@ -14,6 +14,7 @@ public class InventoryTransaction {
 
     private int transactionId;
     private String sku;
+    private String productName;
     private String transactionType;
     private int quantityChange;
     private String referenceType;
@@ -56,6 +57,14 @@ public class InventoryTransaction {
 
     public void setSku(String sku) {
         this.sku = sku;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public String getTransactionType() {

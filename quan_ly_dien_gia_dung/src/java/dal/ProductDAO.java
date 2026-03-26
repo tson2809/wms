@@ -1319,16 +1319,33 @@ AND v.status = 'active'
         return map;
     }
 
-    public List<String[]> getSerialList(int variantId) {
+    public int countSerialList(int variantId) {
+        String sql = "SELECT COUNT(*) FROM product_serials WHERE variant_id = ?";
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<String[]> getSerialList(int variantId, int page, int pageSize) {
         List<String[]> list = new ArrayList<>();
         String sql = """
         SELECT serial_number, status, created_at
         FROM product_serials
         WHERE variant_id = ?
         ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
     """;
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, variantId);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, (page - 1) * pageSize);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 String[] s = new String[3];

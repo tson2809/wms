@@ -148,7 +148,7 @@ public class ReturnOrderAddController extends HttpServlet {
         }
 
         if (hasErrors) {
-            forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription);
+            forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription, productsJson);
             return;
         }
 
@@ -157,7 +157,7 @@ public class ReturnOrderAddController extends HttpServlet {
             Date returnDate = Date.valueOf(safeReturnDate);
             if (returnDate.toLocalDate().isBefore(LocalDate.now())) {
                 request.setAttribute("returnDateError", "Ngày trả không được nhỏ hơn ngày hiện tại");
-                forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription);
+                forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription, productsJson);
                 return;
             }
 
@@ -165,7 +165,7 @@ public class ReturnOrderAddController extends HttpServlet {
             if (details.isEmpty()) {
                 request.setAttribute("productsError",
                         "Không có sản phẩm nào với serial hợp lệ. Vui lòng dùng 'Load serial trong kho' hoặc nhập serial đúng có trong kho.");
-                forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription);
+                forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription, productsJson);
                 return;
             }
 
@@ -186,15 +186,15 @@ public class ReturnOrderAddController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/return-order-list");
             } else {
                 request.setAttribute("generalError", "Có lỗi khi tạo đơn trả hàng. Vui lòng thử lại.");
-                forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription);
+                forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription, productsJson);
             }
         } catch (IllegalArgumentException e) {
             request.setAttribute("generalError", "Ngày trả không hợp lệ.");
-            forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription);
+            forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription, productsJson);
         } catch (Exception ex) {
             ex.printStackTrace();
             request.setAttribute("generalError", "Lỗi: " + ex.getMessage());
-            forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription);
+            forwardWithError(request, response, safeSupplier, safeReturnDate, safeReturnCode, safeDescription, productsJson);
         }
     }
 
@@ -203,13 +203,14 @@ public class ReturnOrderAddController extends HttpServlet {
      * Dùng request attribute (không dùng param vì param là từ request parameter).
      */
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response,
-            String supplierIdValue, String returnDateValue, String returnCodeValue, String descriptionValue)
+            String supplierIdValue, String returnDateValue, String returnCodeValue, String descriptionValue, String productsJsonValue)
             throws ServletException, IOException {
         request.setAttribute("suppliers", supplierDAO.getActiveSuppliers());
         request.setAttribute("supplierIdValue", supplierIdValue != null ? supplierIdValue : "");
         request.setAttribute("returnDateValue", returnDateValue != null ? returnDateValue : "");
         request.setAttribute("returnCodeValue", returnCodeValue != null ? returnCodeValue : "");
         request.setAttribute("descriptionValue", descriptionValue != null ? descriptionValue : "");
+        request.setAttribute("productsJsonValue", productsJsonValue != null ? productsJsonValue : "");
         request.getRequestDispatcher("/view/manager/return_add.jsp").forward(request, response);
     }
 

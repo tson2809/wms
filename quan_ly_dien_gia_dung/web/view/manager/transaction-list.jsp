@@ -142,12 +142,33 @@
                             </div>
                         </form>
 
+                        <!-- Chart Container -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="card border-0 shadow-sm p-3 h-100">
+                                    <h6 class="mb-3 text-center">Top Sản Phẩm Nhập Kho (Tăng)</h6>
+                                    <div style="position: relative; height: 300px; width: 100%;">
+                                        <canvas id="increaseChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm p-3 h-100">
+                                    <h6 class="mb-3 text-center">Top Sản Phẩm Xuất Kho (Giảm)</h6>
+                                    <div style="position: relative; height: 300px; width: 100%;">
+                                        <canvas id="decreaseChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="inventory-table">
                             <table class="table align-middle">
                                 <thead>
                                     <tr>
                                         <th>STT</th>
                                         <th>TRX ID</th>
+                                        <th>Tên sản phẩm</th>
                                         <th>SKU</th>
                                         <th>Loại</th>
                                         <th>Số lượng</th>
@@ -163,6 +184,7 @@
                                         <tr>
                                             <td>${loop.index + 1}</td>
                                             <td>TRX${t.transactionId}</td>
+                                            <td>${t.productName}</td>
                                             <td>${t.sku}</td>
                                             <td>
                                                 <span class="badge-type type-${t.transactionType}">
@@ -325,5 +347,65 @@
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Directly parse JSON array from Java
+            const chartData = ${empty chartDataJson ? '[]' : chartDataJson};
+
+            if (chartData.length === 0) return;
+
+            // Form labels using SKU and Product Name. E.g: "SKU123" or "SKU123 - Name"
+            const labels = chartData.map(item => item.sku + (item.productName ? ' - ' + item.productName : ''));
+            const increaseData = chartData.map(item => item.increase);
+            const decreaseData = chartData.map(item => item.decrease);
+
+            // Chart for Increase
+            const incCtx = document.getElementById('increaseChart').getContext('2d');
+            new Chart(incCtx, {
+                type: 'bar', // Using vertical bars
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Số lượng Nhập (Tăng)',
+                        data: increaseData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Chart for Decrease
+            const decCtx = document.getElementById('decreaseChart').getContext('2d');
+            new Chart(decCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Số lượng Xuất (Giảm)',
+                        data: decreaseData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        });
+    </script>
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
 </html>

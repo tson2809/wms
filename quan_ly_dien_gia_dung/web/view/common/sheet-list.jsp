@@ -159,6 +159,12 @@
                                                         View
                                                     </a>
                                                 </c:if>
+                                                <c:if test="${s.status == 'approved' && s.needsResolution && currentUser.roleId == 2}">
+                                                    <a href="${pageContext.request.contextPath}/inventory-sheet-resolve-deficit?id=${s.sheetId}"
+                                                       class="btn btn-sm btn-outline-info">
+                                                        Kiểm kê kho
+                                                    </a>
+                                                </c:if>
                                                 <c:if test="${s.status == 'draft' && currentUser.userId == s.createdBy}">
                                                     <a href="${pageContext.request.contextPath}/inventory-sheet-edit?id=${s.sheetId}"
                                                        class="btn btn-sm btn-outline-warning">

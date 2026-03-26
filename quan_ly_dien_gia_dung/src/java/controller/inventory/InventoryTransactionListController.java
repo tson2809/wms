@@ -127,7 +127,10 @@ public class InventoryTransactionListController extends HttpServlet {
 
         int totalPages = (int) Math.ceil((double) total / pageSize);
 
+        String chartDataJson = dao.getChartDataJson(variantId, keyword, dateFrom, dateTo);
+
         request.setAttribute("transactions", list);
+        request.setAttribute("chartDataJson", chartDataJson);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("activePage", "inventoryTransaction");
