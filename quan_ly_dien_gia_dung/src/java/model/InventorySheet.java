@@ -23,8 +23,16 @@ public class InventorySheet {
     private Integer approvedBy;
     private String notes;
     private Timestamp createdAt;
+    
+    private boolean needsResolution;
 
-    public int getSheetId() {
+    public boolean isNeedsResolution() {
+        return needsResolution;
+    }
+
+    public void setNeedsResolution(boolean needsResolution) {
+        this.needsResolution = needsResolution;
+    }    public int getSheetId() {
         return sheetId;
     }
 

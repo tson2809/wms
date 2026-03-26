@@ -60,7 +60,11 @@
                                         <td>TRX${t.transactionId}</td>
                                     </tr>
                                     <tr>
-                                        <th>Sản phẩm (SKU)</th>
+                                        <th>Tên sản phẩm</th>
+                                        <td>${t.productName}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>SKU</th>
                                         <td>${t.sku}</td>
                                     </tr>
                                     <tr>

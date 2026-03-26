@@ -64,12 +64,29 @@ public class InventoryDetailController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int variantId = Integer.parseInt(request.getParameter("variantId"));
+        
+        int page = 1;
+        int pageSize = 10;
+        try {
+            page = Integer.parseInt(request.getParameter("page"));
+        } catch (Exception ignored) {
+        }
+        
         ProductInventory p = productDAO.getInventoryDetail(variantId);
         Map<String, Integer> serialSummary = productDAO.getSerialSummary(variantId);
-        List<String[]> serialList = productDAO.getSerialList(variantId);
+        List<String[]> serialList = productDAO.getSerialList(variantId, page, pageSize);
+        int totalSerials = productDAO.countSerialList(variantId);
+        int totalPages = 1;
+        if (totalSerials > 0) {
+            totalPages = (int) Math.ceil((double) totalSerials / pageSize);
+        }
+        
         request.setAttribute("p", p);
         request.setAttribute("serialSummary", serialSummary);
         request.setAttribute("serialList", serialList);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        
         request.getRequestDispatcher("/view/common/inventory-detail.jsp").forward(request, response);
     }
 

@@ -288,10 +288,31 @@
                                                             <c:choose>
                                                                 <c:when test="${sessionScope.user.role.roleId == 4}">
                                                                     <a href="${pageContext.request.contextPath}/sales-return-edit?id=${sr.salesReturnId}"
-                                                                       class="action-btn action-view"
-                                                                       title="Chỉnh sửa đơn trả hàng">
-                                                                        <iconify-icon icon="lucide:edit-2"></iconify-icon>
-                                                                    </a>
+                                                                               class="action-btn action-view"
+                                                                               title="Chỉnh sửa đơn trả hàng">
+                                                                                <iconify-icon icon="lucide:edit-2"></iconify-icon>
+                                                                            </a>
+                                                                            <c:if test="${sr.status == 'pending' && sr.receivedBy == null}">
+                                                                                <form action="${pageContext.request.contextPath}/sales-return-list"
+                                                                                      method="post"
+                                                                                      class="d-inline"
+                                                                                      onsubmit="return confirm('Bạn xác nhận hủy đơn trả hàng này?');">
+                                                                                    <input type="hidden" name="id" value="${sr.salesReturnId}">
+                                                                                    <input type="hidden" name="action" value="cancel">
+                                                                                    <input type="hidden" name="search" value="${search}">
+                                                                                    <input type="hidden" name="orderStatus" value="${orderStatus}">
+                                                                                    <input type="hidden" name="refundStatus" value="${refundStatus}">
+                                                                                    <input type="hidden" name="page" value="${currentPage}">
+                                                                                    <input type="hidden" name="numberPerPage" value="${numberPerPage}">
+                                                                                    <button type="submit"
+                                                                                            class="action-btn action-view"
+                                                                                            title="Hủy đơn trả hàng"
+                                                                                            style="cursor:pointer;">
+                                                                                        <iconify-icon icon="lucide:x"></iconify-icon>
+                                                                                    </button>
+                                                                                </form>
+                                                                            </c:if>
+                                                                            
                                                                 </c:when>
                                                                 <c:when test="${sessionScope.user.role.roleId == 3}">
                                                                     <c:if test="${sr.status == 'pending' && sr.receivedBy == null}">
