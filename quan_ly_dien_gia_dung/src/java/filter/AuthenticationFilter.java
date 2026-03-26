@@ -4,7 +4,6 @@
  */
 package filter;
 
-import dal.RoleDAO;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,9 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import model.User;
 import model.Role;
 
@@ -34,8 +30,6 @@ import model.Role;
     "/purchase-order/*", "/sale-order/*", "/return-order-*", "/sales-return-*"
 })
 public class AuthenticationFilter implements Filter {
-
-    private final RoleDAO roleDAO = new RoleDAO();
 
 
     @Override
@@ -70,9 +64,6 @@ public class AuthenticationFilter implements Filter {
             return;
         }
 
-        // Always refresh session permissions so role changes apply immediately.
-        refreshSessionPermissions(session, user);
-
         String path = requestURI.substring(contextPath.length());
 
         // Kiểm tra quyền truy cập trang dựa trên role
@@ -81,9 +72,7 @@ public class AuthenticationFilter implements Filter {
 
         // Nếu không có quyền truy cập
         if (!hasAccess) {
-            @SuppressWarnings("unchecked")
-            Set<String> userPermissions = (Set<String>) session.getAttribute("userPermissions");
-            String redirectUrl = getRedirectUrlByRole(roleNameLower, userPermissions);
+            String redirectUrl = getRedirectUrlByRole(roleNameLower);
             httpResponse.sendRedirect(contextPath + redirectUrl);
             return;
         }
@@ -160,62 +149,19 @@ public class AuthenticationFilter implements Filter {
         return path.startsWith("/sales-return-");
     }
 
-    private void refreshSessionPermissions(HttpSession session, User user) {
-        try {
-            List<String> permissionNames = roleDAO.getRolePermissionNames(user.getRoleId());
-            Set<String> userPermissions = new HashSet<>(permissionNames);
-            session.setAttribute("userPermissions", userPermissions);
-        } catch (Exception ignored) {
-        }
-    }
-
-    private String getRedirectUrlByRole(String roleName, Set<String> permissions) {
+    private String getRedirectUrlByRole(String roleName) {
         switch (roleName.toLowerCase()) {
             case "admin":
                 return "/user-list";
             case "manager":
                 return "/manager-report";
             case "sale":
-                return getPermissionBasedLanding(permissions, "/sales-return-list");
+                return "/purchase-order/list";
             case "staff":
-                return getPermissionBasedLanding(permissions, "/purchase-order/list");
+                return "/purchase-order/list";
             default:
                 return "/login";
         }
-    }
-
-    private String getPermissionBasedLanding(Set<String> permissions, String fallback) {
-        if (permissions == null || permissions.isEmpty()) {
-            return fallback;
-        }
-        if (permissions.contains("view inventory")) {
-            return "/inventory-list";
-        }
-        if (permissions.contains("view supplier")) {
-            return "/supplier-list";
-        }
-        if (permissions.contains("view category")) {
-            return "/category-list";
-        }
-        if (permissions.contains("view brand")) {
-            return "/brand-list";
-        }
-        if (permissions.contains("view unit")) {
-            return "/unit-list";
-        }
-        if (permissions.contains("view product")) {
-            return "/product-list";
-        }
-        if (permissions.contains("view purchase order")) {
-            return "/purchase-order/list";
-        }
-        if (permissions.contains("view goods receipt")) {
-            return "/goods-receipt-list";
-        }
-        if (permissions.contains("view goods issue")) {
-            return "/goods-issue-list";
-        }
-        return fallback;
     }
 
 }
