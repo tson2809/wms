@@ -586,6 +586,37 @@ public class SalesReturnDAO extends DBContext {
         return false;
     }
 
+    /**
+     * Sale hủy đơn trả hàng khi đang ở trạng thái 'pending' (chờ xử lý).
+     * Chỉ cho phép hủy đơn do chính user tạo và chưa được nhận (received_by IS NULL).
+     * An toàn: không hủy nếu đã có goods_receipts mà status != 'cancelled'.
+     */
+    public boolean cancelPendingSalesReturn(int salesReturnId, int userId) {
+        String sql = """
+            UPDATE sales_returns
+            SET status = 'cancelled',
+                received_by = NULL
+            WHERE sales_return_id = ?
+              AND status = 'pending'
+              AND created_by = ?
+              AND received_by IS NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM goods_receipts gr
+                  WHERE gr.sales_return_id = sales_returns.sales_return_id
+                    AND gr.status <> 'cancelled'
+              )
+        """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, salesReturnId);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(SalesReturnDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     public boolean completeSalesReturn(int salesReturnId) {
         String sql = """
             UPDATE sales_returns

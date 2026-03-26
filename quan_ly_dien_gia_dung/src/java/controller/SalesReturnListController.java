@@ -2,6 +2,8 @@ package controller;
 
 import dal.SalesReturnDAO;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -91,6 +93,59 @@ public class SalesReturnListController extends HttpServlet {
         request.setAttribute("refundStatus", refundStatus != null ? refundStatus : "");
 
         request.getRequestDispatcher("/view/common/sales_return_list.jsp").forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        User user = (User) request.getSession().getAttribute("user");
+        if (user == null || user.getRole() == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String action = request.getParameter("action");
+        if ("cancel".equalsIgnoreCase(action)) {
+            // Sale được hủy đơn khi đơn đang ở trạng thái pending (chờ xử lý)
+            if (user.getRole().getRoleId() == 4) {
+                Integer salesReturnId = parsePositiveInt(request.getParameter("id"));
+                if (salesReturnId != null) {
+                    dao.cancelPendingSalesReturn(salesReturnId, user.getUserId());
+                }
+            }
+            response.sendRedirect(buildRedirectUrl(request));
+            return;
+        }
+
+        doGet(request, response);
+    }
+
+    private Integer parsePositiveInt(String s) {
+        if (s == null || s.trim().isEmpty()) return null;
+        try {
+            int n = Integer.parseInt(s.trim());
+            return n > 0 ? n : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private String buildRedirectUrl(HttpServletRequest request) {
+        StringBuilder q = new StringBuilder(request.getContextPath() + "/sales-return-list");
+        String[] params = {"search", "orderStatus", "refundStatus", "page", "numberPerPage"};
+        try {
+            boolean first = true;
+            for (String p : params) {
+                String v = request.getParameter(p);
+                if (v != null && !v.trim().isEmpty()) {
+                    q.append(first ? "?" : "&").append(p).append("=").append(URLEncoder.encode(v.trim(), "UTF-8"));
+                    first = false;
+                }
+            }
+        } catch (UnsupportedEncodingException e) {
+            // UTF-8 luôn được hỗ trợ
+        }
+        return q.toString();
     }
 }
 

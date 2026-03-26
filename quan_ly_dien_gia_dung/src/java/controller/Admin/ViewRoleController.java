@@ -100,7 +100,6 @@ public class ViewRoleController extends HttpServlet {
             String roleIdStr = request.getParameter("roleId");
             String roleName = request.getParameter("roleName");
             String roleDescription = request.getParameter("roleDescription");
-            String isActiveStr = request.getParameter("isActive");
             
             // Validation
             if (roleIdStr == null || roleName == null || roleName.trim().isEmpty()) {
@@ -115,15 +114,12 @@ public class ViewRoleController extends HttpServlet {
                 response.sendRedirect("ViewRole?error=true");
                 return;
             }
-            
-            boolean isActive = "true".equals(isActiveStr);
-            
+
             // Tạo Role object
             Role role = new Role();
             role.setRoleId(roleId);
             role.setRoleName(roleName.trim());
             role.setRoleDescription(roleDescription != null ? roleDescription.trim() : "");
-            role.setIsActive(isActive);
             
             // Update vào database
             int rowsAffected = roleDAO.updateRole(role);
