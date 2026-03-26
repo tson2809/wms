@@ -92,9 +92,6 @@
                                     <button class="btn btn-primary d-flex align-items-center justify-content-center px-4" style="height: 40px; white-space: nowrap; min-width: 100px;" type="button" id="btnSearchProduct" onclick="searchProduct()" disabled>
                                         Tìm kiếm
                                     </button>
-                                    <button class="btn btn-success d-flex align-items-center justify-content-center px-4" style="height: 40px; white-space: nowrap; min-width: 120px;" type="button" id="importFileBtn">
-                                        Import File
-                                    </button>
                                 </div>
                             </div>
                             
@@ -215,7 +212,6 @@
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/main.js?v=1"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
         <script>
             window.GOODS_RECEIPT_ADD = {
                 contextPath: '${pageContext.request.contextPath}',
@@ -242,41 +238,6 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" id="saveSerials">Lưu</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Modal for Import Excel -->
-        <div class="modal fade" id="importModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Import File Excel</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Chọn file Excel (.xlsx, .xls)</label>
-                            <input type="file" class="form-control" id="excelFile" accept=".xlsx,.xls">
-                            <small class="text-muted">
-                                File Excel cần có các cột: <strong>SKU, Quantity, Serial Numbers</strong>
-                            </small>
-                        </div>
-                        <div class="alert alert-info" role="alert">
-                            <strong>Hướng dẫn:</strong>
-                            <ul class="mb-0">
-                                <li>Cột <strong>SKU</strong>: Mã sản phẩm (bắt buộc)</li>
-                                <li>Cột <strong>Quantity</strong>: Số lượng (bắt buộc)</li>
-                                <li>Cột <strong>Serial Numbers</strong>: Các serial cách nhau bằng dấu phẩy (,)</li>
-                            </ul>
-                        </div>
-                        <div id="importError" class="alert alert-danger" style="display: none;"></div>
-                        <div id="importSuccess" class="alert alert-success" style="display: none;"></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" class="btn btn-primary" id="processImport">Import</button>
                     </div>
                 </div>
             </div>

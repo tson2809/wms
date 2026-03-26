@@ -153,8 +153,8 @@
                                         <label class="form-label">Trạng thái</label>
                                         <select name="status" class="form-select" onchange="this.form.submit()">
                                             <option value="">Tất cả</option>
-                                            <option value="active" ${status == 'active' ? 'selected' : ''}>Active</option>
-                                            <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive</option>
+                                            <option value="active" ${status == 'active' ? 'selected' : ''}>Đang hoạt động</option>
+                                            <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Ngưng hoạt động</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
@@ -193,7 +193,7 @@
                                             <td>${s.phone}</td>
                                             <td>
                                                 <span class="status-dot ${s.status == 'active' ? 'status-active' : 'status-inactive'}"></span>
-                                                ${s.status == 'active' ? 'Active' : 'Inactive'}
+                                                ${s.status == 'active' ? 'Đang hoạt động' : 'Ngưng hoạt động'}
                                             </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
@@ -206,19 +206,19 @@
                                                     <c:if test="${sessionScope.user.role.roleId == 2}">
                                                     <c:choose>
                                                         <c:when test="${s.status == 'active'}">
-                                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn deactive nhà cung cấp này?')">
+                                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn ngưng hoạt động nhà cung cấp này?')">
                                                                 <input type="hidden" name="id" value="${s.supplierId}">
                                                                 <input type="hidden" name="status" value="inactive">
-                                                                <button type="submit" class="btn btn-sm btn-secondary" title="Deactive">
+                                                                <button type="submit" class="btn btn-sm btn-secondary" title="Ngưng hoạt động">
                                                                     <i class="fa fa-user-slash"></i>
                                                                 </button>
                                                             </form>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn active nhà cung cấp này?')">
+                                                            <form method="post" action="${pageContext.request.contextPath}/supplier-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn bật hoạt động nhà cung cấp này?')">
                                                                 <input type="hidden" name="id" value="${s.supplierId}">
                                                                 <input type="hidden" name="status" value="active">
-                                                                <button type="submit" class="btn btn-sm btn-success" title="Active">
+                                                                <button type="submit" class="btn btn-sm btn-success" title="Bật hoạt động">
                                                                     <i class="fa fa-user-check"></i>
                                                                 </button>
                                                             </form>

@@ -55,12 +55,9 @@ public class NotificationListController extends HttpServlet {
         String searchNormalized = (search != null && !search.trim().isEmpty())
                 ? search.trim().replaceAll("\\s+", " ")
                 : null;
-        String notificationType = request.getParameter("notificationType");
         String sort = request.getParameter("sort");
         String pageRaw = request.getParameter("page");
         String numberPerPageRaw = request.getParameter("numberPerPage");
-        
-        List<String> allTypes = notificationDAO.getNotificationTypes();
         
         int page = 1;
         int numberPerPage = 10;
@@ -87,12 +84,6 @@ public class NotificationListController extends HttpServlet {
             list = new ArrayList<>(notificationDAO.getAllNotifications());
         }
 
-        // Filter by notification type
-        if (notificationType != null && !notificationType.trim().isEmpty()
-                && !"ALL".equalsIgnoreCase(notificationType)) {
-            list.removeIf(n -> !notificationType.equalsIgnoreCase(n.getNotificationType()));
-        }
-
         // Sort
         if ("title_asc".equals(sort)) {
             list.sort((a, b) -> a.getTitle().compareToIgnoreCase(b.getTitle()));
@@ -111,11 +102,9 @@ public class NotificationListController extends HttpServlet {
         List<Notification> paginatedList = (fromIndex < totalNotifications)
                 ? list.subList(fromIndex, toIndex)
                 : Collections.emptyList();
-        
-        request.setAttribute("allTypes", allTypes);
+
         request.setAttribute("notifications", paginatedList);
         request.setAttribute("search", search != null ? search : "");
-        request.setAttribute("notificationType", notificationType != null ? notificationType : "");
         request.setAttribute("sort", sort != null ? sort : "");
         request.setAttribute("page", page);
         request.setAttribute("listOfPage", listOfPage);
