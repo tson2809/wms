@@ -10,7 +10,9 @@
             || currentURI.contains("/user-detail")
             || currentURI.contains("/UpdateUser")
             || currentURI.contains("/user-toggle-status")) ? "active" : "";
-    String permissionActive = currentURI.contains("/viewpermission") ? "active" : "";
+        String permissionActive = (currentURI.contains("/view-permission")
+            || currentURI.contains("/viewpermission")
+            || currentURI.contains("/view/admin/viewpermission.jsp")) ? "active" : "";
     String roleActive = (currentURI.contains("/ViewRole") || currentURI.contains("/viewrole")) ? "active" : "";
     String auditLogActive = currentURI.contains("/audit-log-list") ? "active" : "";
 
@@ -97,7 +99,7 @@
             </a>
             <div class="navbar-nav w-100">
                 <a href="${pageContext.request.contextPath}/user-list" class="nav-item nav-link <%= userListActive %>"><i class="fa fa-solid fa-user me-2"></i>Quản lý người dùng</a>
-                <a href="${pageContext.request.contextPath}/viewpermission" class="nav-item nav-link <%= permissionActive %>"><i class="fa fa-user-shield me-2"></i>Quyền hệ thống</a>
+                <a href="${pageContext.request.contextPath}/view-permission" class="nav-item nav-link <%= permissionActive %>"><i class="fa fa-user-shield me-2"></i>Quyền hệ thống</a>
                 <a href="${pageContext.request.contextPath}/ViewRole" class="nav-item nav-link <%= roleActive %>"><i class="fa fa-users-cog me-2"></i>Quản lí cấp bậc</a>
                 <a href="${pageContext.request.contextPath}/audit-log-list" class="nav-item nav-link <%= auditLogActive %>"><i class="fa fa-history me-2"></i>Nhật ký hệ thống</a>
             </div>

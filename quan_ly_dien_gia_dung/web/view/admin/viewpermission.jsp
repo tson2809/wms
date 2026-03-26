@@ -76,8 +76,8 @@
                                         <table class="table table-bordered table-hover">
                                             <thead class="table-primary">
                                                 <tr>
-                                                    <th style="width: 25%">Permission</th>
-                                                    <th style="width: 35%">Description</th>
+                                                    <th style="width: 25%">Danh sách</th>
+                                                    <th style="width: 35%">Mô tả</th>
                                                     <c:forEach var="role" items="${allRoles}">
                                                         <th class="text-center role-column" data-role-id="${role.roleId}" style="width: 11%">${role.roleName}</th>
                                                     </c:forEach>

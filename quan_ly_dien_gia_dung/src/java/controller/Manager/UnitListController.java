@@ -75,7 +75,14 @@ public class UnitListController extends HttpServlet {
             String messageType;
             try {
                 int id = Integer.parseInt(toggleIdParam);
-                if (unitDAO.toggleUnitStatus(id)) {
+                Unit unit = unitDAO.getUnitById(id);
+                if (unit == null) {
+                    message = "Không tìm thấy đơn vị.";
+                    messageType = "danger";
+                } else if ("active".equalsIgnoreCase(unit.getStatus()) && unitDAO.isUnitUsed(id)) {
+                    message = "Không thể ngưng hoạt động đơn vị này vì đang được sử dụng bởi sản phẩm.";
+                    messageType = "danger";
+                } else if (unitDAO.toggleUnitStatus(id)) {
                     message = "Cập nhật trạng thái đơn vị thành công.";
                     messageType = "success";
                 } else {
