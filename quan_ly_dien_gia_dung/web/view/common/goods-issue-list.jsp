@@ -1,12 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%
-    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-    boolean canCreateGoodsIssue = userPermissions != null && userPermissions.contains("create goods issue");
-    boolean canEditGoodsIssue = userPermissions != null && userPermissions.contains("edit goods issue");
-    boolean canApproveGoodsIssue = userPermissions != null && userPermissions.contains("approve goods issue");
-%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -143,16 +137,16 @@
                         <div class="col-12 issue-list-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0 fw-semibold">Danh sách phiếu xuất kho</h5>
-                                <% if (canCreateGoodsIssue) { %>
+                                <c:if test="${sessionScope.user.role.roleId == 3}">
                                     <a href="${pageContext.request.contextPath}/goods-issue-add" class="btn btn-primary">Tạo phiếu xuất kho</a>
-                                <% } %>
+                                </c:if>
                             </div>
 
                             <form action="${pageContext.request.contextPath}/goods-issue-list" method="post" class="mb-3 issue-filter-form">
                                 <input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                 <input type="hidden" name="page" value="1">
                                 <div class="row g-3 align-items-end">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">Tìm kiếm</label>
                                         <input type="text" name="search" value="${search}" class="form-control" placeholder="Mã phiếu, người nhận...">
                                     </div>
@@ -166,34 +160,20 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Trạng thái</label>
-                                        <select name="status" class="form-select" onchange="this.form.submit()">
-                                            <option value="">Tất cả</option>
-                                            <option value="draft"     ${status == 'draft'     ? 'selected' : ''}>Nháp</option>
-                                            <option value="completed" ${status == 'completed' ? 'selected' : ''}>Hoàn thành</option>
-                                            <option value="cancelled" ${status == 'cancelled' ? 'selected' : ''}>Đã hủy</option>
-                                        </select>
+                                        <label class="form-label">Từ ngày</label>
+                                        <input type="date" name="fromDate" class="form-control" value="${fromDate}">
                                     </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">&nbsp;</label>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Đến ngày</label>
+                                        <input type="date" name="toDate" class="form-control" value="${toDate}" id="giToDateInput">
+                                    </div>
+                                </div>
+                                <div class="row g-3 align-items-end mt-1">
+                                    <div class="col-md-12">
                                         <div class="d-flex flex-nowrap gap-2 align-items-center">
                                             <button type="submit" class="btn btn-primary">Tìm kiếm</button>
                                             <a href="${pageContext.request.contextPath}/goods-issue-list" class="btn btn-secondary">Xóa bộ lọc</a>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="row g-3 align-items-end mt-1">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Từ ngày</label>
-                                        <input type="date" name="fromDate" class="form-control" value="${fromDate}">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Đến ngày</label>
-                                        <input type="date"
-                                               name="toDate"
-                                               class="form-control"
-                                               value="${toDate}"
-                                               id="giToDateInput">
                                     </div>
                                 </div>
                             </form>
@@ -249,16 +229,15 @@
                                                            class="action-btn action-view"
                                                            title="${gi.status == 'draft' ? 'Xem / Duyệt' : 'Xem chi tiết'}">
                                                             <c:choose>
-                                                                <c:when test="${gi.status == 'draft'}">
-                                                                    <iconify-icon icon="<%= canEditGoodsIssue ? "lucide:edit-2" : "lucide:eye" %>"></iconify-icon>
+                                                                <c:when test="${gi.status == 'draft' and sessionScope.user.role.roleId == 3}">
+                                                                    <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                                 </c:when>
                                                                 <c:otherwise>
                                                                     <iconify-icon icon="lucide:eye"></iconify-icon>
                                                                 </c:otherwise>
                                                             </c:choose>
                                                         </a>
-                                                        <% if (canApproveGoodsIssue) { %>
-                                                        <c:if test="${gi.status == 'draft'}">
+                                                        <c:if test="${gi.status == 'draft' and sessionScope.user.role.roleId == 2}">
                                                             <form method="POST" action="${pageContext.request.contextPath}/goods-issue-list"
                                                                   style="display:inline"
                                                                   >
@@ -278,7 +257,6 @@
                                                                 </button>
                                                             </form>
                                                         </c:if>
-                                                        <% } %>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -300,7 +278,6 @@
                                                 <form method="post" action="${pageContext.request.contextPath}/goods-issue-list" class="d-inline">
                                                     <input type="hidden" name="page" value="${page - 1}">
                                                     <input type="hidden" name="search" value="${search}">
-                                                    <input type="hidden" name="status" value="${status}">
                                                     <input type="hidden" name="sort" value="${sort}">
                                                     <input type="hidden" name="fromDate" value="${fromDate}">
                                                     <input type="hidden" name="toDate" value="${toDate}">
@@ -313,7 +290,6 @@
                                             Trang
                                             <form action="${pageContext.request.contextPath}/goods-issue-list" method="post" class="page-jump-form d-inline">
                                                 <input type="hidden" name="search" value="${search}">
-                                                <input type="hidden" name="status" value="${status}">
                                                 <input type="hidden" name="sort" value="${sort}">
                                                 <input type="hidden" name="fromDate" value="${fromDate}">
                                                 <input type="hidden" name="toDate" value="${toDate}">
@@ -330,7 +306,6 @@
                                                 <form method="post" action="${pageContext.request.contextPath}/goods-issue-list" class="d-inline">
                                                     <input type="hidden" name="page" value="${page + 1}">
                                                     <input type="hidden" name="search" value="${search}">
-                                                    <input type="hidden" name="status" value="${status}">
                                                     <input type="hidden" name="sort" value="${sort}">
                                                     <input type="hidden" name="fromDate" value="${fromDate}">
                                                     <input type="hidden" name="toDate" value="${toDate}">
@@ -345,7 +320,6 @@
                                         <form method="post" action="${pageContext.request.contextPath}/goods-issue-list" class="d-inline">
                                             <input type="hidden" name="page" value="1">
                                             <input type="hidden" name="search" value="${search}">
-                                            <input type="hidden" name="status" value="${status}">
                                             <input type="hidden" name="sort" value="${sort}">
                                             <input type="hidden" name="fromDate" value="${fromDate}">
                                             <input type="hidden" name="toDate" value="${toDate}">

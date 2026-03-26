@@ -23,7 +23,7 @@ public class PermissionDAO extends DBContext {
     public List<Permission> getAllPermission() {
         List<Permission> list = new ArrayList<>();
         String sql = """
-                     SELECT * FROM permissions order by permission_id desc
+                     SELECT * FROM permissions order by permission_id asc
                      """;       
         try (Connection conn = this.getConnection();
              PreparedStatement pre = conn.prepareStatement(sql);

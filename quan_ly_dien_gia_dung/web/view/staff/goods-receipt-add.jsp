@@ -165,14 +165,6 @@
                                     </div>
                                     
                                     <div class="mb-3">
-                                        <label class="form-label">Mã phiếu nhập</label>
-                                        <input type="text" class="form-control" name="receiptCode" placeholder="Nhập mã phiếu (VD: PN001)" value="${param.receiptCode}">
-                                        <c:if test="${not empty receiptCodeError}">
-                                            <small class="text-danger">${receiptCodeError}</small>
-                                        </c:if>
-                                    </div>
-                                    
-                                    <div class="mb-3">
                                         <label class="form-label">Mã đơn hàng</label>
                                         <input type="text" class="form-control" name="purchaseOrderCode" placeholder="Nhập mã đơn hàng (nếu có)" value="${not empty purchaseOrderCodeValue ? purchaseOrderCodeValue : param.purchaseOrderCode}" ${not empty purchaseOrderCodeValue ? 'readonly' : ''}>
                                     </div>

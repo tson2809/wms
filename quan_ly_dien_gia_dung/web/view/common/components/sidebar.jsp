@@ -1,33 +1,7 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<c:set var="roleId" value="${sessionScope.user.role.roleId}" />
 <%
-    model.User currentUser = (model.User) session.getAttribute("user");
-    String roleName = "";
-    if (currentUser != null && currentUser.getRole() != null && currentUser.getRole().getRoleName() != null) {
-        roleName = currentUser.getRole().getRoleName().toLowerCase();
-    }
-
-    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-    if (currentUser != null) {
-        try {
-            dal.RoleDAO roleDAO = new dal.RoleDAO();
-            java.util.List<String> permissionNames = roleDAO.getRolePermissionNames(currentUser.getRoleId());
-            userPermissions = new java.util.HashSet<>(permissionNames);
-            session.setAttribute("userPermissions", userPermissions);
-        } catch (Exception e) {
-            // Keep last known permission set if DB refresh fails.
-        }
-    }
-    boolean canViewGoodsReceipt = userPermissions != null && userPermissions.contains("view goods receipt");
-    boolean canViewGoodsIssue = userPermissions != null && userPermissions.contains("view goods issue");
-    boolean canViewInventory = userPermissions != null && userPermissions.contains("view inventory");
-    boolean canViewSupplier = userPermissions != null && userPermissions.contains("view supplier");
-    boolean canViewCategory = userPermissions != null && userPermissions.contains("view category");
-    boolean canViewBrand = userPermissions != null && userPermissions.contains("view brand");
-    boolean canViewUnit = userPermissions != null && userPermissions.contains("view unit");
-    boolean canViewProduct = userPermissions != null && userPermissions.contains("view product");
-    boolean canViewPurchaseOrder = userPermissions != null && userPermissions.contains("view purchase order");
-
     String currentURI = request.getRequestURI();
 
         String userListActive = (currentURI.contains("/user-list")
@@ -116,7 +90,8 @@
 
 <div class="sidebar pe-6 pb-5">
     <nav class="navbar bg-light navbar-light">
-        <% if ("admin".equals(roleName)) { %>
+        <c:choose>
+        <c:when test="${roleId == 1}">
             <a href="${pageContext.request.contextPath}/user-list" class="navbar-brand mx-4 mb-3">
                 <h3 class="text-primary">WMS_HA</h3>
             </a>
@@ -125,80 +100,25 @@
                 <a href="${pageContext.request.contextPath}/viewpermission" class="nav-item nav-link <%= permissionActive %>"><i class="fa fa-user-shield me-2"></i>Quyền hệ thống</a>
                 <a href="${pageContext.request.contextPath}/ViewRole" class="nav-item nav-link <%= roleActive %>"><i class="fa fa-users-cog me-2"></i>Quản lí cấp bậc</a>
                 <a href="${pageContext.request.contextPath}/audit-log-list" class="nav-item nav-link <%= auditLogActive %>"><i class="fa fa-history me-2"></i>Nhật ký hệ thống</a>
-                <% if (canViewInventory) { %>
-                <a href="${pageContext.request.contextPath}/inventory-list" class="nav-item nav-link <%= inventoryListActive %>"><i class="fa fa-boxes me-2"></i>Tồn kho</a>
-                <% } %>
-                <% if (canViewSupplier) { %>
-                <a href="${pageContext.request.contextPath}/supplier-list" class="nav-item nav-link <%= supplierActive %>"><i class="fa fa-truck me-2"></i>Nhà cung cấp</a>
-                <% } %>
-                <% if (canViewPurchaseOrder) { %>
-                <a href="${pageContext.request.contextPath}/purchase-order/list" class="nav-item nav-link <%= purchaseOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
-                <% } %>
-                <% if (canViewGoodsReceipt) { %>
-                <a href="${pageContext.request.contextPath}/goods-receipt-list" class="nav-item nav-link <%= goodsReceiptActive %>"><i class="fa fa-file-import me-2"></i>Phiếu nhập kho</a>
-                <% } %>
-                <% if (canViewGoodsIssue) { %>
-                <a href="${pageContext.request.contextPath}/goods-issue-list" class="nav-item nav-link <%= goodsIssueActive %>"><i class="fa fa-file-export me-2"></i>Phiếu xuất kho</a>
-                <% } %>
-                <% if (canViewProduct) { %>
-                <a href="${pageContext.request.contextPath}/product-list" class="nav-item nav-link <%= productActive %>"><i class="fa fa-box me-2"></i>Sản phẩm</a>
-                <% } %>
-                <% if (canViewCategory) { %>
-                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-tags me-2"></i>Danh mục</a>
-                <% } %>
-                <% if (canViewBrand) { %>
-                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-copyright me-2"></i>Thương hiệu</a>
-                <% } %>
-                <% if (canViewUnit) { %>
-                <a href="${pageContext.request.contextPath}/unit-list" class="nav-item nav-link <%= unitActive %>"><i class="fa fa-ruler me-2"></i>Đơn vị tính</a>
-                <% } %>
-                <% if (canViewInventory) { %>
-                <a href="${pageContext.request.contextPath}/inventory-alert" class="nav-item nav-link <%= inventoryAlertActive %>">
-                    <i class="fa fa-exclamation-triangle me-2"></i>Cảnh Báo
-                    <c:if test="${alertEnabled and alertCount > 0}">
-                        <span class="badge bg-danger ms-2">${alertCount}</span>
-                    </c:if>
-                </a>
-                <a href="${pageContext.request.contextPath}/inventory-transactions" class="nav-item nav-link <%= inventoryTransactionActive %>"><i class="fa fa-clipboard-list me-2"></i>Lịch sử biến động kho</a>
-                <a href="${pageContext.request.contextPath}/inventory-sheet-list" class="nav-item nav-link <%= inventorySheetActive %>"><i class="fa fa-clipboard-check me-2"></i>Quản lý sheet</a>
-                <% } %>
             </div>
-        <% } else if ("manager".equals(roleName)) { %>
+        </c:when>
+        <c:when test="${roleId == 2}">
             <a href="${pageContext.request.contextPath}/manager-report" class="navbar-brand mx-4 mb-3">
                 <h3 class="text-primary">WMS_HA</h3>
             </a>
             <div class="navbar-nav w-100">
                 <a href="${pageContext.request.contextPath}/manager-report" class="nav-item nav-link <%= managerReportActive %>"><i class="fa fa-chart-pie me-2"></i>Báo cáo thống kê</a>
-                <% if (canViewInventory) { %>
                 <a href="${pageContext.request.contextPath}/inventory-list" class="nav-item nav-link <%= inventoryListActive %>"><i class="fa fa-boxes me-2"></i>Tồn kho</a>
-                <% } %>
-                <% if (canViewSupplier) { %>
                 <a href="${pageContext.request.contextPath}/supplier-list" class="nav-item nav-link <%= supplierActive %>"><i class="fa fa-truck me-2"></i>Nhà cung cấp</a>
-                <% } %>
-                <% if (canViewPurchaseOrder) { %>
                 <a href="${pageContext.request.contextPath}/purchase-order/list" class="nav-item nav-link <%= purchaseOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
-                <% } %>
-                <% if (canViewGoodsReceipt) { %>
                 <a href="${pageContext.request.contextPath}/goods-receipt-list" class="nav-item nav-link <%= goodsReceiptActive %>"><i class="fa fa-file-import me-2"></i>Phiếu nhập kho</a>
-                <% } %>
-                <% if (canViewGoodsIssue) { %>
                 <a href="${pageContext.request.contextPath}/goods-issue-list" class="nav-item nav-link <%= goodsIssueActive %>"><i class="fa fa-file-export me-2"></i>Phiếu xuất kho</a>
-                <% } %>
                 <a href="${pageContext.request.contextPath}/return-order-list" class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả về NCC</a>
                 <a href="${pageContext.request.contextPath}/sales-return-list" class="nav-item nav-link <%= salesReturnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả từ Sale</a>
-                <% if (canViewProduct) { %>
                 <a href="${pageContext.request.contextPath}/product-list" class="nav-item nav-link <%= productActive %>"><i class="fa fa-box me-2"></i>Sản phẩm</a>
-                <% } %>
-                <% if (canViewCategory) { %>
                 <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-tags me-2"></i>Danh mục</a>
-                <% } %>
-                <% if (canViewBrand) { %>
                 <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-copyright me-2"></i>Thương hiệu</a>
-                <% } %>
-                <% if (canViewUnit) { %>
                 <a href="${pageContext.request.contextPath}/unit-list" class="nav-item nav-link <%= unitActive %>"><i class="fa fa-ruler me-2"></i>Đơn vị tính</a>
-                <% } %>
-                <% if (canViewInventory) { %>
                 <a href="${pageContext.request.contextPath}/inventory-alert" class="nav-item nav-link <%= inventoryAlertActive %>">
                     <i class="fa fa-exclamation-triangle me-2"></i>Cảnh Báo
                     <c:if test="${alertEnabled and alertCount > 0}">
@@ -207,80 +127,31 @@
                 </a>
                 <a href="${pageContext.request.contextPath}/inventory-transactions" class="nav-item nav-link <%= inventoryTransactionActive %>"><i class="fa fa-clipboard-list me-2"></i>Lịch sử biến động kho</a>
                 <a href="${pageContext.request.contextPath}/inventory-sheet-list" class="nav-item nav-link <%= inventorySheetActive %>"><i class="fa fa-clipboard-check me-2"></i>Quản lý sheet</a>
-                <% } %>
             </div>
-        <% } else if ("staff".equals(roleName)) { %>
+        </c:when>
+        <c:when test="${roleId == 3}">
             <a href="${pageContext.request.contextPath}/inventory-list" class="navbar-brand mx-4 mb-3">
                 <h3 class="text-primary">WMS_HA</h3>
             </a>
             <div class="navbar-nav w-100">
-                <% if (canViewInventory) { %>
                 <a href="${pageContext.request.contextPath}/inventory-list" class="nav-item nav-link <%= inventoryListActive %>"><i class="fa fa-boxes me-2"></i>Tồn kho</a>
-                <% } %>
-                <% if (canViewPurchaseOrder) { %>
                 <a href="${pageContext.request.contextPath}/purchase-order/list" class="nav-item nav-link <%= purchaseOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
-                <% } %>
-                <% if (canViewSupplier) { %>
-                <a href="${pageContext.request.contextPath}/supplier-list" class="nav-item nav-link <%= supplierActive %>"><i class="fa fa-truck me-2"></i>Nhà cung cấp</a>
-                <% } %>
-                <% if (canViewCategory) { %>
-                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-tags me-2"></i>Danh mục</a>
-                <% } %>
-                <% if (canViewBrand) { %>
-                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-copyright me-2"></i>Thương hiệu</a>
-                <% } %>
-                <% if (canViewUnit) { %>
-                <a href="${pageContext.request.contextPath}/unit-list" class="nav-item nav-link <%= unitActive %>"><i class="fa fa-ruler me-2"></i>Đơn vị tính</a>
-                <% } %>
-                <% if (canViewProduct) { %>
-                <a href="${pageContext.request.contextPath}/product-list" class="nav-item nav-link <%= productActive %>"><i class="fa fa-box me-2"></i>Sản phẩm</a>
-                <% } %>
-                <% if (canViewGoodsReceipt) { %>
                 <a href="${pageContext.request.contextPath}/goods-receipt-list" class="nav-item nav-link <%= goodsReceiptActive %>"><i class="fa fa-file-import me-2"></i>Phiếu nhập kho</a>
-                <% } %>
-                <% if (canViewGoodsIssue) { %>
                 <a href="${pageContext.request.contextPath}/goods-issue-list" class="nav-item nav-link <%= goodsIssueActive %>"><i class="fa fa-file-export me-2"></i>Phiếu xuất kho</a>
-                <% } %>
-                <% if (canViewInventory) { %>
                 <a href="${pageContext.request.contextPath}/inventory-sheet-list" class="nav-item nav-link <%= inventorySheetActive %>"><i class="fa fa-clipboard-check me-2"></i>Quản lý sheet</a>
-                <% } %>
                 <a href="${pageContext.request.contextPath}/return-order-list" class="nav-item nav-link <%= returnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả về NCC</a>
                 <a href="${pageContext.request.contextPath}/sales-return-list" class="nav-item nav-link <%= salesReturnActive %>"><i class="fa fa-undo me-2"></i>Đơn trả từ Sale</a>
             </div>
-        <% } else { %>
+        </c:when>
+        <c:otherwise>
             <a href="${pageContext.request.contextPath}/purchase-order/list" class="navbar-brand mx-4 mb-3">
                 <h3 class="text-primary">WMS_HA</h3>
             </a>
             <div class="navbar-nav w-100">
-                <% if (canViewPurchaseOrder) { %>
                 <a href="${pageContext.request.contextPath}/purchase-order/list" class="nav-item nav-link <%= saleOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
-                <% } %>
-                <% if (canViewInventory) { %>
-                <a href="${pageContext.request.contextPath}/inventory-list" class="nav-item nav-link <%= inventoryListActive %>"><i class="fa fa-boxes me-2"></i>Tồn kho</a>
-                <% } %>
-                <% if (canViewSupplier) { %>
-                <a href="${pageContext.request.contextPath}/supplier-list" class="nav-item nav-link <%= supplierActive %>"><i class="fa fa-truck me-2"></i>Nhà cung cấp</a>
-                <% } %>
-                <% if (canViewCategory) { %>
-                <a href="${pageContext.request.contextPath}/category-list" class="nav-item nav-link <%= categoryActive %>"><i class="fa fa-tags me-2"></i>Danh mục</a>
-                <% } %>
-                <% if (canViewBrand) { %>
-                <a href="${pageContext.request.contextPath}/brand-list" class="nav-item nav-link <%= brandActive %>"><i class="fa fa-copyright me-2"></i>Thương hiệu</a>
-                <% } %>
-                <% if (canViewUnit) { %>
-                <a href="${pageContext.request.contextPath}/unit-list" class="nav-item nav-link <%= unitActive %>"><i class="fa fa-ruler me-2"></i>Đơn vị tính</a>
-                <% } %>
-                <% if (canViewProduct) { %>
-                <a href="${pageContext.request.contextPath}/product-list" class="nav-item nav-link <%= productActive %>"><i class="fa fa-box me-2"></i>Sản phẩm</a>
-                <% } %>
-                <% if (canViewGoodsReceipt) { %>
-                <a href="${pageContext.request.contextPath}/goods-receipt-list" class="nav-item nav-link <%= goodsReceiptActive %>"><i class="fa fa-file-import me-2"></i>Phiếu nhập kho</a>
-                <% } %>
-                <% if (canViewGoodsIssue) { %>
-                <a href="${pageContext.request.contextPath}/goods-issue-list" class="nav-item nav-link <%= goodsIssueActive %>"><i class="fa fa-file-export me-2"></i>Phiếu xuất kho</a>
-                <% } %>
                 <a href="${pageContext.request.contextPath}/sales-return-list" class="nav-item nav-link <%= salesReturnActive %>"><i class="fa fa-undo me-2"></i>Trả hàng</a>
             </div>
-        <% } %>
+        </c:otherwise>
+        </c:choose>
     </nav>
 </div>
