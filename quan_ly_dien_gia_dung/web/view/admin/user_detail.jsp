@@ -1,7 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
     <head>
         <meta charset="utf-8">
@@ -41,7 +41,7 @@
                                         <div class="col-md-8">
                                             <div class="row g-3">
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Username</label>
+                                                    <label class="form-label">Tên đăng nhập</label>
                                                     <input type="text" class="form-control" value="${user.userName}" disabled>
                                                 </div>
 
@@ -51,42 +51,42 @@
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Full Name</label>
+                                                    <label class="form-label">Họ và tên</label>
                                                     <input type="text" class="form-control" value="${user.fullName}" disabled>
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Phone</label>
+                                                    <label class="form-label">Số điện thoại</label>
                                                     <input type="text" class="form-control" value="${user.phone}" disabled>
                                                 </div>
 
                                                 <div class="col-12">
-                                                    <label class="form-label">Address</label>
+                                                    <label class="form-label">Địa chỉ</label>
                                                     <input type="text" class="form-control" value="${user.address}" disabled>
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Role</label>
-                                                    <input type="text" class="form-control" value="${user.role != null ? user.role.roleName : 'N/A'}" disabled>
+                                                    <label class="form-label">Vai trò</label>
+                                                    <input type="text" class="form-control" value="${user.role != null ? user.role.roleName : 'Không có'}" disabled>
                                                 </div>
 
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Status</label>
-                                                    <input type="text" class="form-control" value="${user.isActive ? 'Active' : 'Inactive'}" disabled>
+                                                    <label class="form-label">Trạng thái</label>
+                                                    <input type="text" class="form-control" value="${user.isActive ? 'Đang hoạt động' : 'Ngưng hoạt động'}" disabled>
                                                 </div>
 
                                                 <div class="col-12">
-                                                    <label class="form-label">Created At</label>
+                                                    <label class="form-label">Ngày tạo</label>
                                                     <input type="text" class="form-control" value="${user.createAt}" disabled>
                                                 </div>
                                             </div>
 
                                             <div class="text-end mt-4">
                                                 <a href="${pageContext.request.contextPath}/user-list" class="btn btn-secondary me-2">
-                                                    Back
+                                                    Quay lại
                                                 </a>
                                                 <a href="${pageContext.request.contextPath}/UpdateUser?id=${user.userId}" class="btn btn-warning">
-                                                    Edit
+                                                    Chỉnh sửa
                                                 </a>
                                             </div>
                                         </div>

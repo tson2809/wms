@@ -24,7 +24,7 @@ import model.Role;
 @WebFilter(filterName = "AuthenticationFilter", urlPatterns = {
     "/view/admin/*", "/view/manager/*", "/view/sale/*", "/view/staff/*",
     "/user-list", "/user-add", "/user-edit", "/user-detail", "/user-toggle-status", "/UpdateUser",
-    "/viewpermission", "/ViewRole", "/audit-log-list", "/manager-report",
+    "/view-permission", "/ViewRole", "/audit-log-list", "/manager-report",
     "/supplier-*", "/category-*", "/brand-*", "/unit-*", "/product-*",
     "/goods-receipt-*", "/goods-issue-*", "/inventory-*", "/transaction-detail", "/search-user", "/export-inventory",
     "/purchase-order/*", "/sale-order/*", "/return-order-*", "/sales-return-*"
@@ -104,7 +104,7 @@ public class AuthenticationFilter implements Filter {
                 || "/user-detail".equals(path)
                 || "/user-toggle-status".equals(path)
                 || "/UpdateUser".equals(path)
-                || "/viewpermission".equals(path)
+                || "/view-permission".equals(path)
                 || "/ViewRole".equals(path)
                 || "/audit-log-list".equals(path);
     }

@@ -18,7 +18,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>ViewPermissionController</servlet-name>
-        <url-pattern>/viewpermission</url-pattern>
+        <url-pattern>/view-permission</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>UpdateUserController</servlet-name>
