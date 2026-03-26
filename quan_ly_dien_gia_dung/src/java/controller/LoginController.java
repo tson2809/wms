@@ -4,7 +4,6 @@
  */
 package controller;
 
-import dal.RoleDAO;
 import dal.UserDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -15,9 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.User;
@@ -32,7 +28,6 @@ public class LoginController extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(LoginController.class.getName());
     private final UserDAO userDAO = new UserDAO();
-    private final RoleDAO roleDAO = new RoleDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -96,10 +91,6 @@ public class LoginController extends HttpServlet {
         session.setAttribute("userName", fullUser.getFullName());
         session.setAttribute("userRole", fullUser.getRole());
 
-        List<String> permissionNames = roleDAO.getRolePermissionNames(fullUser.getRoleId());
-        Set<String> userPermissions = new HashSet<>(permissionNames);
-        session.setAttribute("userPermissions", userPermissions);
-
         session.setMaxInactiveInterval(30 * 60);
 
         if (rememberMe != null && rememberMe.equals("on")) {
@@ -114,11 +105,11 @@ public class LoginController extends HttpServlet {
             response.addCookie(usernameCookie);
         }
 
-        String redirectUrl = getRedirectUrlByRole(fullUser.getRole(), userPermissions);
+        String redirectUrl = getRedirectUrlByRole(fullUser.getRole());
         response.sendRedirect(request.getContextPath() + redirectUrl);
     }
 
-    private String getRedirectUrlByRole(model.Role role, Set<String> permissions) {
+    private String getRedirectUrlByRole(model.Role role) {
         if (role == null) {
             return "/view/common/login.jsp";
         }
@@ -134,46 +125,12 @@ public class LoginController extends HttpServlet {
             case "manager":
                 return "/manager-report";
             case "sale":
-                return getPermissionBasedLanding(permissions, "/sales-return-list");
+                return "/purchase-order/list";
             case "staff":
-                return getPermissionBasedLanding(permissions, "/purchase-order/list");
+                return "/purchase-order/list";
             default:
                 return "/view/common/login.jsp";
         }
-    }
-
-    private String getPermissionBasedLanding(Set<String> permissions, String fallback) {
-        if (permissions == null || permissions.isEmpty()) {
-            return fallback;
-        }
-        if (permissions.contains("view inventory")) {
-            return "/inventory-list";
-        }
-        if (permissions.contains("view supplier")) {
-            return "/supplier-list";
-        }
-        if (permissions.contains("view category")) {
-            return "/category-list";
-        }
-        if (permissions.contains("view brand")) {
-            return "/brand-list";
-        }
-        if (permissions.contains("view unit")) {
-            return "/unit-list";
-        }
-        if (permissions.contains("view product")) {
-            return "/product-list";
-        }
-        if (permissions.contains("view purchase order")) {
-            return "/purchase-order/list";
-        }
-        if (permissions.contains("view goods receipt")) {
-            return "/goods-receipt-list";
-        }
-        if (permissions.contains("view goods issue")) {
-            return "/goods-issue-list";
-        }
-        return fallback;
     }
 
     @Override
