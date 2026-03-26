@@ -479,7 +479,28 @@ public class GoodsReceiptEditController extends HttpServlet {
     private void handleProductSearch(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String search = request.getParameter("search");
-        String jsonResult = goodsReceiptDAO.searchProductsForReceiptJson(search);
+        String supplierIdStr = request.getParameter("supplierId");
+        Integer supplierId = null;
+        if (supplierIdStr == null || supplierIdStr.trim().isEmpty()) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("[]");
+            return;
+        }
+
+        String safeSupplier = supplierIdStr.trim();
+        if (!"SALE".equalsIgnoreCase(safeSupplier)) {
+            try {
+                supplierId = Integer.parseInt(safeSupplier);
+            } catch (NumberFormatException ex) {
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("[]");
+                return;
+            }
+        }
+
+        String jsonResult = goodsReceiptDAO.searchProductsForReceiptJson(search, supplierId);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(jsonResult);

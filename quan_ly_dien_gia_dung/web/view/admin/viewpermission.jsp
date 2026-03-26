@@ -144,10 +144,10 @@
                                     </c:if>
                                     <div class="mt-4 text-center">
                                         <button type="submit" class="btn btn-success">
-                                            Save Changes
+                                            Lưu thay đổi
                                         </button>
                                         <button type="button" class="btn btn-secondary" onclick="location.reload()">
-                                            Reset
+                                            Hủy
                                         </button>
                                     </div>
                                 </form>

@@ -22,13 +22,56 @@
         }).format(amount);
     }
 
+    function getSupplierIdFromPage() {
+        // Supplier is either from select or hidden input (SALE case).
+        var $sel = $('select[name="supplierId"]').first();
+        var sid = null;
+        if ($sel.length) {
+            // Use selected option to be safe with disabled selects.
+            sid = $sel.find('option:selected').val();
+        }
+        if (!sid) {
+            var $hidden = $('input[name="supplierId"]').first();
+            sid = $hidden.length ? $hidden.val() : null;
+        }
+        if (!sid) return '';
+        return String(sid).trim();
+    }
+
+    function toggleSearchBySupplier() {
+        var supplierId = getSupplierIdFromPage();
+        var enabled = supplierId != null && supplierId.trim() !== '';
+
+        var $search = $('#searchProduct');
+        if ($search.length) {
+            $search.prop('readonly', !enabled);
+            $search.attr('placeholder', enabled ? 'Mã hàng, tên sản phẩm...' : 'Chọn nhà cung cấp trước');
+        }
+
+        var $btn = $('#btnSearchProduct');
+        if ($btn.length) {
+            $btn.prop('disabled', !enabled);
+        }
+
+        if (!enabled) {
+            $('#searchDropdown').hide();
+        }
+    }
+
     function loadProducts(searchValue) {
+        var supplierId = getSupplierIdFromPage();
+        if (!supplierId) {
+            $('#searchDropdown').hide();
+            return;
+        }
+
         $.ajax({
             url: addUrl,
             type: 'POST',
             data: {
                 action: 'searchProduct',
-                search: searchValue
+                search: searchValue,
+                supplierId: supplierId
             },
             dataType: 'json',
             success: function(data) {
@@ -81,7 +124,11 @@
     }
 
     function searchProduct() {
-        loadProducts('');
+        var supplierId = getSupplierIdFromPage();
+        if (!supplierId) return;
+
+        var searchValue = ($('#searchProduct').val() || '').toString().trim();
+        loadProducts(searchValue);
     }
 
     window.searchProduct = searchProduct;
@@ -502,17 +549,50 @@
         loadFromStorage();
     }
 
+    // If supplier is not selected yet, clear restored draft to avoid mismatch.
+    if (!getSupplierIdFromPage()) {
+        products = [];
+        productIdCounter = 1;
+        $('#productTableBody').html(
+            '<tr><td colspan="7" class="text-center text-muted">Chưa có sản phẩm nào. Tìm kiếm để thêm sản phẩm.</td></tr>'
+        );
+        updateTotal();
+        saveToStorage();
+    }
+
     // Search dropdown
+    toggleSearchBySupplier();
+
     $('#searchProduct').on('focus', function() {
-        loadProducts('');
+        if (!getSupplierIdFromPage()) return;
+        loadProducts($(this).val().trim() || '');
     });
 
     $('#searchProduct').on('keyup', function() {
+        if (!getSupplierIdFromPage()) return;
         clearTimeout(searchTimeout);
         var searchValue = $(this).val().trim();
         searchTimeout = setTimeout(function() {
             loadProducts(searchValue);
         }, 300);
+    });
+
+    // When supplier changes, reset current search UI
+    $(document).on('change', 'select[name="supplierId"]', function() {
+        toggleSearchBySupplier();
+        $('#searchProduct').val('');
+        $('#searchDropdown').hide();
+
+        // If staff already added products, changing supplier makes the draft inconsistent.
+        if (products.length > 0) {
+            products = [];
+            productIdCounter = 1;
+            $('#productTableBody').html(
+                '<tr><td colspan="7" class="text-center text-muted">Chưa có sản phẩm nào. Tìm kiếm để thêm sản phẩm.</td></tr>'
+            );
+            updateTotal();
+            saveToStorage();
+        }
     });
 
     $(document).on('click', function(e) {

@@ -439,15 +439,28 @@ public class GoodsReceiptDAO extends DBContext {
     
     // Search products and return JSON for goods receipt (for AJAX)
     public String searchProductsForReceiptJson(String keyword) {
+        return searchProductsForReceiptJson(keyword, null);
+    }
+
+    // If supplierId is provided (not SALE), limit products to those of that supplier.
+    // If supplierId is null, returns products regardless of supplier.
+    public String searchProductsForReceiptJson(String keyword, Integer supplierId) {
         String sql = """
-                     SELECT pv.variant_id, pv.sku, pv.cost_price, 
-                            p.product_name, u.unit_name 
-                     FROM product_variants pv 
-                     INNER JOIN products p ON pv.product_id = p.product_id 
-                     LEFT JOIN units u ON p.unit_id = u.unit_id 
-                     WHERE pv.status = 'active' AND p.status = 'active' 
-                     AND (pv.sku LIKE ? OR p.product_name LIKE ?) 
+                     SELECT pv.variant_id, pv.sku, pv.cost_price,
+                            p.product_name, u.unit_name
+                     FROM product_variants pv
+                     INNER JOIN products p ON pv.product_id = p.product_id
+                     LEFT JOIN units u ON p.unit_id = u.unit_id
+                     WHERE pv.status = 'active' AND p.status = 'active'
+                     AND (pv.sku LIKE ? OR p.product_name LIKE ?)
                      """;
+
+        boolean hasSupplierFilter = supplierId != null && supplierId > 0;
+        if (hasSupplierFilter) {
+            sql += " AND p.supplier_id = ? ";
+        }
+
+        sql += " ORDER BY p.product_name ";
         
         StringBuilder json = new StringBuilder("[");
         String pattern = (keyword != null && !keyword.trim().isEmpty()) 
@@ -457,6 +470,9 @@ public class GoodsReceiptDAO extends DBContext {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, pattern);
             ps.setString(2, pattern);
+            if (hasSupplierFilter) {
+                ps.setInt(3, supplierId);
+            }
             ResultSet rs = ps.executeQuery();
             boolean first = true;
             while (rs.next()) {

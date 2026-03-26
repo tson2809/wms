@@ -15,7 +15,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.sql.Date;
 import java.util.List;
+import java.time.LocalDate;
 import model.GoodsReceipt;
 import model.User;
 
@@ -81,6 +83,19 @@ public class GoodsReceiptListController extends HttpServlet {
                 ? search.trim().replaceAll("\\s+", " ") : null;
         String status = request.getParameter("status");
         String sort = request.getParameter("sort");
+        Date fromDate = parseSqlDate(request.getParameter("fromDate"));
+        Date toDate = parseSqlDate(request.getParameter("toDate"));
+
+        Date todaySql = Date.valueOf(LocalDate.now());
+        if (toDate != null && toDate.after(todaySql)) {
+            toDate = todaySql;
+        }
+
+        if (fromDate != null && toDate != null && fromDate.after(toDate)) {
+            Date temp = fromDate;
+            fromDate = toDate;
+            toDate = temp;
+        }
         String pageRaw = request.getParameter("page");
         String numberPerPageRaw = request.getParameter("numberPerPage");
 
@@ -113,6 +128,20 @@ public class GoodsReceiptListController extends HttpServlet {
             list.removeIf(gr -> !status.equalsIgnoreCase(gr.getStatus()));
         }
 
+        final Date finalFromDate = fromDate;
+        final Date finalToDate = toDate;
+        if (finalFromDate != null || finalToDate != null) {
+            list.removeIf(gr -> {
+                Date rd = gr.getReceiptDate();
+                if (rd == null) {
+                    return false;
+                }
+                boolean beforeFrom = finalFromDate != null && rd.before(finalFromDate);
+                boolean afterTo = finalToDate != null && rd.after(finalToDate);
+                return beforeFrom || afterTo;
+            });
+        }
+
         // Sort
         if ("date_asc".equals(sort)) {
             list.sort((a, b) -> a.getReceiptDate().compareTo(b.getReceiptDate()));
@@ -136,10 +165,23 @@ public class GoodsReceiptListController extends HttpServlet {
         request.setAttribute("search", search != null ? search : "");
         request.setAttribute("status", status != null ? status : "");
         request.setAttribute("sort", sort != null ? sort : "");
+        request.setAttribute("fromDate", fromDate != null ? fromDate.toString() : "");
+        request.setAttribute("toDate", toDate != null ? toDate.toString() : "");
         request.setAttribute("page", page);
         request.setAttribute("listOfPage", listOfPage);
         request.setAttribute("numberPerPage", numberPerPage);
         request.setAttribute("totalReceipts", totalReceipts);
         request.getRequestDispatcher("/view/common/goods-receipt-list.jsp").forward(request, response);
+    }
+
+    private Date parseSqlDate(String param) {
+        try {
+            if (param == null || param.trim().isEmpty()) {
+                return null;
+            }
+            return Date.valueOf(param.trim());
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }
