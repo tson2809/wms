@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.sql.Date;
+import java.time.LocalDate;
 import model.GoodsIssue;
 import model.User;
 
@@ -85,8 +87,15 @@ public class GoodsIssueListController extends HttpServlet {
                 ? search.trim().replaceAll("\\s+", " ") : null;
         String status = request.getParameter("status");
         String sort = request.getParameter("sort");
+        Date fromDate = parseSqlDate(request.getParameter("fromDate"));
+        Date toDate = parseSqlDate(request.getParameter("toDate"));
         String pageRaw = request.getParameter("page");
         String numberPerPageRaw = request.getParameter("numberPerPage");
+
+        Date todaySql = Date.valueOf(LocalDate.now());
+        if (toDate != null && toDate.after(todaySql)) {
+            toDate = todaySql;
+        }
 
         int page = 1;
         int numberPerPage = 10;
@@ -107,6 +116,28 @@ public class GoodsIssueListController extends HttpServlet {
 
         if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status)) {
             list.removeIf(gi -> !status.equalsIgnoreCase(gi.getStatus()));
+        }
+
+        if (fromDate != null && toDate != null && fromDate.after(toDate)) {
+            Date temp = fromDate;
+            fromDate = toDate;
+            toDate = temp;
+        }
+
+        final Date finalFromDate = fromDate;
+        final Date finalToDate = toDate;
+        if (finalFromDate != null || finalToDate != null) {
+            final LocalDate finalFromLocal = finalFromDate != null ? finalFromDate.toLocalDate() : null;
+            final LocalDate finalToLocal = finalToDate != null ? finalToDate.toLocalDate() : null;
+            list.removeIf(gi -> {
+                if (gi.getIssueDate() == null) {
+                    return false;
+                }
+                LocalDate issueLocal = gi.getIssueDate().toLocalDateTime().toLocalDate();
+                boolean beforeFrom = finalFromLocal != null && issueLocal.isBefore(finalFromLocal);
+                boolean afterTo = finalToLocal != null && issueLocal.isAfter(finalToLocal);
+                return beforeFrom || afterTo;
+            });
         }
 
         if ("date_asc".equals(sort)) {
@@ -131,10 +162,23 @@ public class GoodsIssueListController extends HttpServlet {
         request.setAttribute("search", search != null ? search : "");
         request.setAttribute("status", status != null ? status : "");
         request.setAttribute("sort", sort != null ? sort : "");
+        request.setAttribute("fromDate", fromDate != null ? fromDate.toString() : "");
+        request.setAttribute("toDate", toDate != null ? toDate.toString() : "");
         request.setAttribute("page", page);
         request.setAttribute("listOfPage", listOfPage);
         request.setAttribute("numberPerPage", numberPerPage);
         request.setAttribute("totalIssues", total);
         request.getRequestDispatcher("/view/common/goods-issue-list.jsp").forward(request, response);
+    }
+
+    private Date parseSqlDate(String param) {
+        try {
+            if (param == null || param.trim().isEmpty()) {
+                return null;
+            }
+            return Date.valueOf(param.trim());
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }

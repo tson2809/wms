@@ -84,11 +84,12 @@
                             <div class="bg-light rounded p-2 mb-3">
                                 <div class="d-flex gap-2 align-items-stretch position-relative">
                                     <div class="flex-grow-1 position-relative">
-                                        <input type="text" id="searchProduct" class="form-control" style="height: 40px;" placeholder="Mã hàng, tên sản phẩm...">
+                                        <input type="text" id="searchProduct" class="form-control" style="height: 40px;" readonly
+                                               placeholder="Chọn nhà cung cấp trước">
                                         <div id="searchDropdown" class="dropdown-menu w-100" style="display: none; max-height: 300px; overflow-y: auto;">
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary d-flex align-items-center justify-content-center px-4" style="height: 40px; white-space: nowrap; min-width: 100px;" type="button" onclick="searchProduct()">
+                                    <button class="btn btn-primary d-flex align-items-center justify-content-center px-4" style="height: 40px; white-space: nowrap; min-width: 100px;" type="button" id="btnSearchProduct" onclick="searchProduct()" disabled>
                                         Tìm kiếm
                                     </button>
                                     <button class="btn btn-success d-flex align-items-center justify-content-center px-4" style="height: 40px; white-space: nowrap; min-width: 120px;" type="button" id="importFileBtn">
@@ -138,7 +139,8 @@
                                             </c:when>
                                             <c:otherwise>
                                                 <select class="form-select" name="supplierId">
-                                                    <option value="SALE" ${(supplierIdValue == 'SALE' || (empty poSupplierIdValue && empty param.supplierId)) ? 'selected' : ''}>Đầu vào từ Sale</option>
+                                                    <option value="" ${(empty poSupplierIdValue && empty param.supplierId) ? 'selected' : ''}>-- Chọn nhà cung cấp --</option>
+                                                    <option value="SALE" ${(supplierIdValue == 'SALE' || (param.supplierId ne null && param.supplierId eq 'SALE')) ? 'selected' : ''}>Đầu vào từ Sale</option>
                                                     <c:forEach items="${suppliers}" var="s">
                                                         <option value="${s.supplierId}" 
                                                             ${(not empty poSupplierIdValue && poSupplierIdValue == s.supplierId) || (param.supplierId ne 'SALE' and param.supplierId eq s.supplierId) ? 'selected' : ''}>
@@ -231,7 +233,7 @@
         <c:if test="${not empty productsJson}">
             <div id="goods-receipt-add-products-json" style="display:none"><c:out value="${fn:replace(productsJson, '</', '&lt;/')}" escapeXml="false"/></div>
         </c:if>
-        <script src="${pageContext.request.contextPath}/js/goods-receipt-add.js?v=2"></script>
+        <script src="${pageContext.request.contextPath}/js/goods-receipt-add.js?v=3"></script>
         
         <!-- Modal for Serial Numbers -->
         <div class="modal fade" id="serialModal" tabindex="-1">

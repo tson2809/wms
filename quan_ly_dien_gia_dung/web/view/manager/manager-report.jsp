@@ -107,23 +107,29 @@
                     <div class="bg-light rounded p-4 h-100">
                         <p class="mb-2 text-muted">Giá trị nhập kho</p>
                         <h5><fmt:formatNumber value="${summary.totalImportValue}" type="number" maxFractionDigits="0" /></h5>
-                        <small class="text-muted">Số lượng nhập: <fmt:formatNumber value="${summary.totalImportQuantity}" type="number" /></small>
-                        <div class="mt-2"><a href="${pageContext.request.contextPath}/goods-receipt-list" class="small">Xem chi tiết</a></div>
+                        <small class="text-muted">Số phiếu nhập: <fmt:formatNumber value="${summary.completedReceiptCount}" type="number" /></small>
+                        <div class="mt-2">
+                            <a href="${pageContext.request.contextPath}/goods-receipt-list?fromDate=${fromDate}&toDate=${toDate}&status=completed"
+                               class="small">Xem chi tiết</a>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                     <div class="bg-light rounded p-4 h-100">
                         <p class="mb-2 text-muted">Giá trị xuất kho</p>
                         <h5><fmt:formatNumber value="${summary.totalExportValue}" type="number" maxFractionDigits="0" /></h5>
-                        <small class="text-muted">Số lượng xuất: <fmt:formatNumber value="${summary.totalExportQuantity}" type="number" /></small>
-                        <div class="mt-2"><a href="${pageContext.request.contextPath}/goods-issue-list" class="small">Xem chi tiết</a></div>
+                        <small class="text-muted">Số phiếu xuất: <fmt:formatNumber value="${summary.completedIssueCount}" type="number" /></small>
+                        <div class="mt-2">
+                            <a href="${pageContext.request.contextPath}/goods-issue-list?fromDate=${fromDate}&toDate=${toDate}&status=completed"
+                               class="small">Xem chi tiết</a>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
                     <div class="bg-light rounded p-4 h-100">
                         <p class="mb-2 text-muted">Mua hàng (PO NCC)</p>
                         <h5><fmt:formatNumber value="${summary.totalPurchaseValue}" type="number" maxFractionDigits="0" /></h5>
-                        <small class="text-muted">Phiếu nhập hoàn tất: <fmt:formatNumber value="${summary.completedReceiptCount}" type="number" /></small>
+                        <small class="text-muted">Số PO NCC hoàn tất: <fmt:formatNumber value="${summary.completedPurchaseOrderCount}" type="number" /></small>
                         <div class="mt-2"><a href="${pageContext.request.contextPath}/purchase-order/list" class="small">Xem chi tiết</a></div>
                     </div>
                 </div>
@@ -131,7 +137,7 @@
                     <div class="bg-light rounded p-4 h-100">
                         <p class="mb-2 text-muted">Bán hàng (đơn Sale)</p>
                         <h5><fmt:formatNumber value="${summary.totalSalesValue}" type="number" maxFractionDigits="0" /></h5>
-                        <small class="text-muted">Phiếu xuất xác nhận: <fmt:formatNumber value="${summary.completedIssueCount}" type="number" /></small>
+                        <small class="text-muted">Số đơn Sale hoàn tất: <fmt:formatNumber value="${summary.completedSaleOrderCount}" type="number" /></small>
                         <div class="mt-2"><a href="${pageContext.request.contextPath}/purchase-order/list?orderType=sale" class="small">Xem chi tiết</a></div>
                     </div>
                 </div>
@@ -176,45 +182,223 @@
                 </div>
             </div>
 
-            <div class="row g-4">
+            <div class="row g-4 mb-4">
                 <div class="col-12">
-                    <div class="bg-light rounded p-4">
+                    <div class="bg-light rounded p-4 h-100">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0">Top biến thể theo lưu chuyển nhập xuất</h6>
-                            <small class="text-muted">Giá trị lớn nhất theo tổng khối lượng nhập + xuất</small>
+                            <h6 class="mb-0">Inventory Value nâng cao (Snapshot)</h6>
+                            <small class="text-muted">Giá trị tại ${toDate} + chuỗi snapshot theo ${inventoryValueGranularityLabel}</small>
                         </div>
-                        <div class="table-responsive">
+
+                        <form method="get" action="${pageContext.request.contextPath}/manager-report" class="row g-3 align-items-end mb-3">
+                            <input type="hidden" name="fromDate" value="${fromDate}">
+                            <input type="hidden" name="toDate" value="${toDate}">
+                            <div class="col-auto">
+                                <label class="form-label mb-1">Giá trị tồn theo</label>
+                                <select name="invValueGranularity" class="form-select" onchange="this.form.submit()">
+                                    <option value="day" ${inventoryValueGranularity == 'day' ? 'selected' : ''}>Ngày</option>
+                                    <option value="week" ${inventoryValueGranularity == 'week' ? 'selected' : ''}>Tuần</option>
+                                    <option value="month" ${inventoryValueGranularity == 'month' ? 'selected' : ''}>Tháng</option>
+                                </select>
+                            </div>
+                        </form>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <div class="bg-light rounded p-4 h-100">
+                                    <p class="mb-2 text-muted">Tổng giá trị tồn kho</p>
+                                    <h5 class="mb-0">
+                                        <fmt:formatNumber value="${inventoryValueTotal}" type="number" maxFractionDigits="0" />
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mb-4">
                             <table class="table table-striped align-middle mb-0">
                                 <thead>
                                     <tr>
-                                        <th>SKU</th>
-                                        <th>Sản phẩm</th>
-                                        <th class="text-end">SL nhập</th>
-                                        <th class="text-end">SL xuất</th>
-                                        <th class="text-end">SL ròng</th>
+                                        <th>Danh mục</th>
+                                        <th class="text-end">Giá trị tồn</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <c:choose>
-                                        <c:when test="${not empty topVariantFlows}">
-                                            <c:forEach var="row" items="${topVariantFlows}">
+                                        <c:when test="${not empty inventoryValueByCategory}">
+                                            <c:forEach var="row" items="${inventoryValueByCategory}">
                                                 <tr>
-                                                    <td>${row.sku}</td>
-                                                    <td>${row.productName}</td>
-                                                    <td class="text-end"><fmt:formatNumber value="${row.importQuantity}" type="number" /></td>
-                                                    <td class="text-end"><fmt:formatNumber value="${row.exportQuantity}" type="number" /></td>
-                                                    <td class="text-end"><fmt:formatNumber value="${row.netQuantity}" type="number" /></td>
+                                                    <td>${row.categoryName}</td>
+                                                    <td class="text-end">
+                                                        <fmt:formatNumber value="${row.value}" type="number" maxFractionDigits="0" />
+                                                    </td>
                                                 </tr>
                                             </c:forEach>
                                         </c:when>
                                         <c:otherwise>
                                             <tr>
-                                                <td colspan="5" class="text-center text-muted py-4">Không có dữ liệu trong khoảng thời gian đã chọn.</td>
+                                                <td colspan="2" class="text-center text-muted py-4">Không có dữ liệu Inventory Value.</td>
                                             </tr>
                                         </c:otherwise>
                                     </c:choose>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Mốc ${inventoryValueGranularityLabel}</th>
+                                        <th class="text-end">Giá trị tồn</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:choose>
+                                        <c:when test="${not empty inventoryValueTrend}">
+                                            <c:forEach var="p" items="${inventoryValueTrend}">
+                                                <tr>
+                                                    <td>${p.label}</td>
+                                                    <td class="text-end">
+                                                        <fmt:formatNumber value="${p.value}" type="number" maxFractionDigits="0" />
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <tr>
+                                                <td colspan="2" class="text-center text-muted py-4">Không có dữ liệu chuỗi snapshot trong khoảng thời gian đã chọn.</td>
+                                            </tr>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="bg-light rounded p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-column flex-md-row">
+                            <div>
+                                <h6 class="mb-0">Top biến thể</h6>
+                                <small class="text-muted">Chọn chế độ hiển thị</small>
+                            </div>
+
+                            <div class="btn-group" role="group" aria-label="top-variant-mode">
+                                <button type="button" class="btn btn-sm btn-primary" id="topModeBtnImport" onclick="setTopVariantMode('import')">Top nhập</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="topModeBtnExport" onclick="setTopVariantMode('export')">Top xuất</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="topModeBtnRisk" onclick="setTopVariantMode('risk')">Top tồn cao (risk)</button>
+                            </div>
+                        </div>
+
+                        <div id="topModeTableImport">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Top nhập nhiều</h6>
+                                <small class="text-muted">Theo SL nhập (từ ${fromDate} đến ${toDate})</small>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>SKU</th>
+                                            <th>Sản phẩm</th>
+                                            <th class="text-end">SL nhập</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:choose>
+                                            <c:when test="${not empty topImportVariants}">
+                                                <c:forEach var="row" items="${topImportVariants}">
+                                                    <tr>
+                                                        <td>${row.sku}</td>
+                                                        <td>${row.productName}</td>
+                                                        <td class="text-end"><fmt:formatNumber value="${row.importQuantity}" type="number" /></td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted py-4">Không có dữ liệu.</td>
+                                                </tr>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="topModeTableExport" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Top xuất nhiều</h6>
+                                <small class="text-muted">Theo SL xuất (từ ${fromDate} đến ${toDate})</small>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>SKU</th>
+                                            <th>Sản phẩm</th>
+                                            <th class="text-end">SL xuất</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:choose>
+                                            <c:when test="${not empty topExportVariants}">
+                                                <c:forEach var="row" items="${topExportVariants}">
+                                                    <tr>
+                                                        <td>${row.sku}</td>
+                                                        <td>${row.productName}</td>
+                                                        <td class="text-end"><fmt:formatNumber value="${row.exportQuantity}" type="number" /></td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted py-4">Không có dữ liệu.</td>
+                                                </tr>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="topModeTableRisk" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Top tồn cao (risk)</h6>
+                                <small class="text-muted">Snapshot tồn tại ${toDate}</small>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>SKU</th>
+                                            <th>Sản phẩm</th>
+                                            <th class="text-end">Tồn</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:choose>
+                                            <c:when test="${not empty topStockRiskVariants}">
+                                                <c:forEach var="row" items="${topStockRiskVariants}">
+                                                    <tr>
+                                                        <td>${row.sku}</td>
+                                                        <td>${row.productName}</td>
+                                                        <td class="text-end"><fmt:formatNumber value="${row.stockQuantity}" type="number" /></td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted py-4">Không có dữ liệu.</td>
+                                                </tr>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -227,5 +411,47 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="${pageContext.request.contextPath}/js/loadComponents.js"></script>
 <script src="${pageContext.request.contextPath}/js/main.js"></script>
+<script>
+    function setTopVariantMode(mode) {
+        var importTable = document.getElementById('topModeTableImport');
+        var exportTable = document.getElementById('topModeTableExport');
+        var riskTable = document.getElementById('topModeTableRisk');
+
+        var btnImport = document.getElementById('topModeBtnImport');
+        var btnExport = document.getElementById('topModeBtnExport');
+        var btnRisk = document.getElementById('topModeBtnRisk');
+
+        if (!importTable || !exportTable || !riskTable || !btnImport || !btnExport || !btnRisk) {
+            return;
+        }
+
+        // Reset trạng thái
+        importTable.classList.add('d-none');
+        exportTable.classList.add('d-none');
+        riskTable.classList.add('d-none');
+
+        btnImport.classList.remove('btn-primary');
+        btnImport.classList.add('btn-outline-primary');
+        btnExport.classList.remove('btn-primary');
+        btnExport.classList.add('btn-outline-primary');
+        btnRisk.classList.remove('btn-primary');
+        btnRisk.classList.add('btn-outline-primary');
+
+        // Set mode
+        if (mode === 'import') {
+            importTable.classList.remove('d-none');
+            btnImport.classList.remove('btn-outline-primary');
+            btnImport.classList.add('btn-primary');
+        } else if (mode === 'export') {
+            exportTable.classList.remove('d-none');
+            btnExport.classList.remove('btn-outline-primary');
+            btnExport.classList.add('btn-primary');
+        } else {
+            riskTable.classList.remove('d-none');
+            btnRisk.classList.remove('btn-outline-primary');
+            btnRisk.classList.add('btn-primary');
+        }
+    }
+</script>
 </body>
 </html>

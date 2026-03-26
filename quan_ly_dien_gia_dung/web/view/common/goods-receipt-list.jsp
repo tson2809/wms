@@ -187,6 +187,20 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="row g-3 align-items-end mt-1">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Từ ngày</label>
+                                        <input type="date" name="fromDate" class="form-control" value="${fromDate}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Đến ngày</label>
+                                        <input type="date"
+                                               name="toDate"
+                                               class="form-control"
+                                               value="${toDate}"
+                                               id="grToDateInput">
+                                    </div>
+                                </div>
                             </form>
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle">
@@ -296,6 +310,8 @@
                                                     <input type="hidden" name="search" value="${search}">
                                                     <input type="hidden" name="status" value="${status}">
                                                     <input type="hidden" name="sort" value="${sort}">
+                                                    <input type="hidden" name="fromDate" value="${fromDate}">
+                                                    <input type="hidden" name="toDate" value="${toDate}">
                                                     <input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                                     <button type="submit" class="page-btn border-0 bg-transparent p-0">‹</button>
                                                 </form>
@@ -307,6 +323,8 @@
                                                 <input type="hidden" name="search" value="${search}">
                                                 <input type="hidden" name="status" value="${status}">
                                                 <input type="hidden" name="sort" value="${sort}">
+                                                <input type="hidden" name="fromDate" value="${fromDate}">
+                                                <input type="hidden" name="toDate" value="${toDate}">
                                                 <input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                                 <input type="number" name="page" min="1" max="${listOfPage}" value="${page}" onchange="this.form.submit()">
                                             </form>
@@ -322,6 +340,8 @@
                                                     <input type="hidden" name="search" value="${search}">
                                                     <input type="hidden" name="status" value="${status}">
                                                     <input type="hidden" name="sort" value="${sort}">
+                                                    <input type="hidden" name="fromDate" value="${fromDate}">
+                                                    <input type="hidden" name="toDate" value="${toDate}">
                                                     <input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                                     <button type="submit" class="page-btn border-0 bg-transparent p-0">›</button>
                                                 </form>
@@ -335,6 +355,8 @@
                                             <input type="hidden" name="search" value="${search}">
                                             <input type="hidden" name="status" value="${status}">
                                             <input type="hidden" name="sort" value="${sort}">
+                                            <input type="hidden" name="fromDate" value="${fromDate}">
+                                            <input type="hidden" name="toDate" value="${toDate}">
                                             <select name="numberPerPage" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
                                                 <option value="5" ${numberPerPage == 5 ? 'selected' : ''}>5</option>
                                                 <option value="10" ${numberPerPage == 10 ? 'selected' : ''}>10</option>
@@ -355,5 +377,19 @@
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/main.js"></script>
+        <script>
+            (function () {
+                var toDateInput = document.getElementById('grToDateInput');
+                if (!toDateInput) return;
+
+                var today = new Date();
+                var yyyy = today.getFullYear();
+                var mm = String(today.getMonth() + 1).padStart(2, '0');
+                var dd = String(today.getDate()).padStart(2, '0');
+                var todayStr = yyyy + '-' + mm + '-' + dd;
+
+                toDateInput.setAttribute('max', todayStr);
+            })();
+        </script>
     </body>
 </html>

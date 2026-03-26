@@ -325,11 +325,31 @@ public class GoodsReceiptAddController extends HttpServlet {
     private void handleProductSearch(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String search = request.getParameter("search");
+        String supplierIdStr = request.getParameter("supplierId");
+        Integer supplierId = null;
+        if (supplierIdStr == null || supplierIdStr.trim().isEmpty()) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("[]");
+            return;
+        }
+
+        String safeSupplier = supplierIdStr.trim();
+        if (!"SALE".equalsIgnoreCase(safeSupplier)) {
+            try {
+                supplierId = Integer.parseInt(safeSupplier);
+            } catch (NumberFormatException ex) {
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("[]");
+                return;
+            }
+        }
         
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         
-        String json = goodsReceiptDAO.searchProductsForReceiptJson(search);
+        String json = goodsReceiptDAO.searchProductsForReceiptJson(search, supplierId);
         response.getWriter().write(json);
     }
     

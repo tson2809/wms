@@ -148,6 +148,7 @@
                                         <c:choose>
                                             <c:when test="${empty receipt.supplier}">
                                                 <input type="text" class="form-control" value="Nhập từ sale" readonly>
+                                                <input type="hidden" name="supplierId" value="SALE">
                                             </c:when>
                                             <c:otherwise>
                                                 <select class="form-select" name="supplierId" <%= (!canEditGoodsReceipt || Boolean.TRUE.equals(request.getAttribute("readOnly"))) ? "disabled" : "" %>>
