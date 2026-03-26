@@ -336,11 +336,22 @@ public class GoodsReceiptAddController extends HttpServlet {
     private void handleCheckSerial(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String serial = request.getParameter("serial");
+        String supplierId = request.getParameter("supplierId");
+        String salesReturnId = request.getParameter("salesReturnId");
+        boolean hasSalesReturnId = salesReturnId != null && !salesReturnId.trim().isEmpty();
+        boolean hasSupplierParam = supplierId != null && !supplierId.trim().isEmpty();
+        boolean isFromSale = hasSalesReturnId
+                || "SALE".equalsIgnoreCase(supplierId != null ? supplierId.trim() : "");
+        // Fallback for stale cached JS that may only send "serial" without source params.
+        // In that case, allow SOLD serial to pass pre-check; createReceipt still enforces final rule.
+        if (!hasSalesReturnId && !hasSupplierParam) {
+            isFromSale = true;
+        }
         
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         
-        boolean exists = goodsReceiptDAO.serialNumberExists(serial);
+        boolean exists = goodsReceiptDAO.isSerialBlockedForReceipt(serial, isFromSale);
         
         response.getWriter().write("{\"exists\": " + exists + "}");
     }

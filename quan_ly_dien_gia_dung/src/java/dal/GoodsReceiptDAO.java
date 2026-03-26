@@ -9,7 +9,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.GoodsReceipt;
@@ -293,6 +295,33 @@ public class GoodsReceiptDAO extends DBContext {
         }
         return false;
     }
+
+    /**
+     * Check serial validity for receipt source.
+     * - Normal source: serial is blocked if it already exists.
+     * - Sale source: serial is blocked unless current status is 'sold'.
+     */
+    public boolean isSerialBlockedForReceipt(String serialNumber, boolean isFromSale) {
+        if (serialNumber == null || serialNumber.trim().isEmpty()) {
+            return true;
+        }
+        String sql = "SELECT status FROM product_serials WHERE serial_number = ? LIMIT 1";
+        try (PreparedStatement pre = this.getConnection().prepareStatement(sql)) {
+            pre.setString(1, serialNumber.trim());
+            ResultSet rs = pre.executeQuery();
+            if (!rs.next()) {
+                return false;
+            }
+            String status = rs.getString("status");
+            if (isFromSale) {
+                return !"sold".equalsIgnoreCase(status);
+            }
+            return true;
+        } catch (SQLException ex) {
+            Logger.getLogger(GoodsReceiptDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return true;
+    }
     
     public boolean createGoodsReceipt(String receiptCode, Integer supplierId, String receiptDate, double totalAmount, 
                                      String notes, int createdBy, java.util.List<model.GoodsReceiptDetail> details) {
@@ -312,17 +341,42 @@ public class GoodsReceiptDAO extends DBContext {
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
+            // "Đầu vào từ Sale" được map supplier_id = NULL ở controller.
+            // Vì vậy cần nhận diện nguồn Sale bằng cả salesReturnId và supplierId.
+            boolean isFromSale = salesReturnId != null || supplierId == null;
             
-            // Validate serial numbers first - check for duplicates
-            String sqlCheckSerial = "SELECT COUNT(*) FROM product_serials WHERE serial_number = ?";
+            // Validate serial numbers first.
+            String sqlCheckSerial = "SELECT status, variant_id FROM product_serials WHERE serial_number = ? LIMIT 1";
             try (PreparedStatement psCheck = conn.prepareStatement(sqlCheckSerial)) {
+                Set<String> payloadSerials = new HashSet<>();
                 for (model.GoodsReceiptDetail detail : details) {
                     if (detail.getSerials() != null && !detail.getSerials().isEmpty()) {
                         for (String serial : detail.getSerials()) {
-                            psCheck.setString(1, serial);
+                            String normalizedSerial = serial != null ? serial.trim() : "";
+                            if (normalizedSerial.isEmpty()) {
+                                throw new SQLException("Serial number không được để trống.");
+                            }
+                            if (!payloadSerials.add(normalizedSerial)) {
+                                throw new SQLException("Serial number '" + normalizedSerial + "' bị trùng trong phiếu nhập.");
+                            }
+
+                            psCheck.setString(1, normalizedSerial);
                             try (ResultSet rs = psCheck.executeQuery()) {
-                                if (rs.next() && rs.getInt(1) > 0) {
-                                    throw new SQLException("Serial number '" + serial + "' đã tồn tại trong hệ thống!");
+                                if (rs.next()) {
+                                    String currentStatus = rs.getString("status");
+                                    int currentVariantId = rs.getInt("variant_id");
+                                    if (isFromSale) {
+                                        if (!"sold".equalsIgnoreCase(currentStatus)) {
+                                            throw new SQLException("Serial number '" + normalizedSerial
+                                                    + "' không hợp lệ để nhập từ Sale (chỉ chấp nhận serial đang sold).");
+                                        }
+                                        if (currentVariantId != detail.getVariantId()) {
+                                            throw new SQLException("Serial number '" + normalizedSerial
+                                                    + "' không thuộc đúng sản phẩm.");
+                                        }
+                                    } else {
+                                        throw new SQLException("Serial number '" + normalizedSerial + "' đã tồn tại trong hệ thống!");
+                                    }
                                 }
                             }
                         }
@@ -375,10 +429,15 @@ public class GoodsReceiptDAO extends DBContext {
                               (receipt_id, variant_id, quantity, unit_price, total_amount)
                               VALUES (?, ?, ?, ?, ?)
                               """;
-            String sqlSerial = """
+            String sqlSerialInsert = """
                               INSERT INTO product_serials 
                               (variant_id, receipt_detail_id, serial_number, status)
                               VALUES (?, ?, ?, 'in_stock')
+                              """;
+            String sqlSerialRestock = """
+                              UPDATE product_serials
+                              SET variant_id = ?, receipt_detail_id = ?, status = 'in_stock'
+                              WHERE serial_number = ? AND status = 'sold'
                               """;
             // Số lượng chỉ tăng khi phiếu được duyệt (completed), không tăng lúc tạo draft
             
@@ -402,11 +461,30 @@ public class GoodsReceiptDAO extends DBContext {
                     // Insert serials if exists
                     if (detail.getSerials() != null && !detail.getSerials().isEmpty() && detailId > 0) {
                         for (String serial : detail.getSerials()) {
-                            try (PreparedStatement psSerialInsert = conn.prepareStatement(sqlSerial)) {
-                                psSerialInsert.setInt(1, detail.getVariantId());
-                                psSerialInsert.setInt(2, detailId);
-                                psSerialInsert.setString(3, serial);
-                                psSerialInsert.executeUpdate();
+                            String normalizedSerial = serial != null ? serial.trim() : "";
+                            if (isFromSale) {
+                                try (PreparedStatement psSerialUpdate = conn.prepareStatement(sqlSerialRestock)) {
+                                    psSerialUpdate.setInt(1, detail.getVariantId());
+                                    psSerialUpdate.setInt(2, detailId);
+                                    psSerialUpdate.setString(3, normalizedSerial);
+                                    int affected = psSerialUpdate.executeUpdate();
+                                    if (affected <= 0) {
+                                        // Serial chưa tồn tại: cho phép tạo mới ở nguồn nhập từ Sale.
+                                        try (PreparedStatement psSerialInsert = conn.prepareStatement(sqlSerialInsert)) {
+                                            psSerialInsert.setInt(1, detail.getVariantId());
+                                            psSerialInsert.setInt(2, detailId);
+                                            psSerialInsert.setString(3, normalizedSerial);
+                                            psSerialInsert.executeUpdate();
+                                        }
+                                    }
+                                }
+                            } else {
+                                try (PreparedStatement psSerialInsert = conn.prepareStatement(sqlSerialInsert)) {
+                                    psSerialInsert.setInt(1, detail.getVariantId());
+                                    psSerialInsert.setInt(2, detailId);
+                                    psSerialInsert.setString(3, normalizedSerial);
+                                    psSerialInsert.executeUpdate();
+                                }
                             }
                         }
                     }
