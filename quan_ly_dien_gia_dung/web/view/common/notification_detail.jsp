@@ -66,8 +66,7 @@
 
                                 <c:set var="canEdit" value="${mode == 'add'
                                     or sessionScope.user.role.roleName eq 'Admin'
-                                    or (sessionScope.user.role.roleName eq 'Manager'
-                                        and notification.notificationType ne 'System')}" />
+                                    or sessionScope.user.role.roleName eq 'Manager'}" />
 
                                 <c:set var="formAction" value="${mode == 'add' ? '/notification-add' : '/notification-edit'}" />
                                 <form action="${pageContext.request.contextPath}${formAction}" method="post">
@@ -75,27 +74,10 @@
                                         <input type="hidden" name="id" value="${notification.notificationId}">
                                     </c:if>
 
-                                    <c:set var="valType"    value="${notification != null ? notification.notificationType : notificationType}" />
                                     <c:set var="valTitle"   value="${notification != null ? notification.title   : title}" />
                                     <c:set var="valContent" value="${notification != null ? notification.content : content}" />
 
                                     <div class="row g-3">
-                                        <div class="col-md-12">
-                                            <label for="notificationType" class="form-label">Loại thông báo</label>
-                                            <select class="form-select" id="notificationType"
-                                                    name="notificationType"
-                                                    ${!canEdit ? 'disabled' : ''}>
-                                                <option value="">Chọn loại thông báo</option>
-                                                <c:forEach items="${allTypes}" var="type">
-                                                    <c:if test="${!(sessionScope.user.role.roleName == 'Manager' && type == 'System')}">
-                                                        <option value="${type}" ${valType == type ? 'selected' : ''}>${type}</option>
-                                                    </c:if>
-                                                </c:forEach>
-                                            </select>
-                                            <c:if test="${not empty errorNotificationType}">
-                                                <div class="text-danger small mt-1">${errorNotificationType}</div>
-                                            </c:if>
-                                        </div>
                                         <div class="col-md-12">
                                             <label for="title" class="form-label">Tiêu đề</label>
                                             <input type="text" class="form-control" id="title" name="title"

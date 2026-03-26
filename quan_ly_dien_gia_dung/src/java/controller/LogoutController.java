@@ -7,7 +7,6 @@ package controller;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,12 +26,7 @@ public class LogoutController extends HttpServlet {
         if (session != null) {
             session.invalidate();
         }
-        
-        Cookie usernameCookie = new Cookie("rememberedUser", "");
-        usernameCookie.setMaxAge(0);
-        usernameCookie.setPath("/");
-        response.addCookie(usernameCookie);
-        
+
         response.sendRedirect(request.getContextPath() + "/login");
     }
 

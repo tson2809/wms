@@ -24,9 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import model.GoodsReceipt;
 import model.GoodsReceiptDetail;
 import model.Supplier;
@@ -125,9 +123,9 @@ public class GoodsReceiptEditController extends HttpServlet {
             return;
         }
 
-        Set<String> userPermissions = getUserPermissions(request);
-        boolean canApproveGoodsReceipt = userPermissions != null && userPermissions.contains("approve goods receipt");
-        boolean canEditGoodsReceipt = userPermissions != null && userPermissions.contains("edit goods receipt");
+        int roleId = currentUser.getRoleId();
+        boolean canApproveGoodsReceipt = roleId == 2;
+        boolean canEditGoodsReceipt = roleId == 3;
 
         String status = request.getParameter("status");
         if (canApproveGoodsReceipt && status != null) {
@@ -192,8 +190,9 @@ public class GoodsReceiptEditController extends HttpServlet {
         
         String supplierId = request.getParameter("supplierId");
         String receiptDate = request.getParameter("receiptDate");
-        String receiptCode = request.getParameter("receiptCode");
         String productsJson = request.getParameter("products");
+        GoodsReceipt currentReceipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+        String receiptCode = currentReceipt != null ? currentReceipt.getReceiptCode() : null;
         
         boolean hasErrors = false;
         
@@ -208,16 +207,8 @@ public class GoodsReceiptEditController extends HttpServlet {
         }
         
         if (receiptCode == null || receiptCode.trim().isEmpty()) {
-            request.setAttribute("receiptCodeError", "Vui lòng nhập mã phiếu nhập");
+            request.setAttribute("generalError", "Không tìm thấy mã phiếu nhập hiện tại để cập nhật.");
             hasErrors = true;
-        } else {
-            GoodsReceipt currentReceipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
-            if (currentReceipt != null && !receiptCode.equals(currentReceipt.getReceiptCode())) {
-                if (goodsReceiptDAO.receiptCodeExists(receiptCode)) {
-                    request.setAttribute("receiptCodeError", "Mã phiếu nhập đã tồn tại");
-                    hasErrors = true;
-                }
-            }
         }
         
         if (productsJson == null || productsJson.trim().isEmpty() || "[]".equals(productsJson.trim())) {
@@ -318,7 +309,7 @@ public class GoodsReceiptEditController extends HttpServlet {
             String updateReceiptSql = """
                                       UPDATE goods_receipts 
                                       SET supplier_id = ?, receipt_code = ?, receipt_date = ?, 
-                                          total_amount = ?, updated_at = CURRENT_TIMESTAMP 
+                                          total_amount = ? 
                                       WHERE receipt_id = ?
                                       """;
             ps = conn.prepareStatement(updateReceiptSql);
@@ -479,7 +470,28 @@ public class GoodsReceiptEditController extends HttpServlet {
     private void handleProductSearch(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String search = request.getParameter("search");
-        String jsonResult = goodsReceiptDAO.searchProductsForReceiptJson(search);
+        String supplierIdStr = request.getParameter("supplierId");
+        Integer supplierId = null;
+        if (supplierIdStr == null || supplierIdStr.trim().isEmpty()) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("[]");
+            return;
+        }
+
+        String safeSupplier = supplierIdStr.trim();
+        if (!"SALE".equalsIgnoreCase(safeSupplier)) {
+            try {
+                supplierId = Integer.parseInt(safeSupplier);
+            } catch (NumberFormatException ex) {
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("[]");
+                return;
+            }
+        }
+
+        String jsonResult = goodsReceiptDAO.searchProductsForReceiptJson(search, supplierId);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(jsonResult);
@@ -502,20 +514,5 @@ public class GoodsReceiptEditController extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(jsonResult);
-    }
-
-    private Set<String> getUserPermissions(HttpServletRequest request) {
-        Object raw = request.getSession().getAttribute("userPermissions");
-        if (!(raw instanceof Set<?> rawSet)) {
-            return new HashSet<>();
-        }
-
-        Set<String> permissions = new HashSet<>();
-        for (Object item : rawSet) {
-            if (item instanceof String permission) {
-                permissions.add(permission.toLowerCase());
-            }
-        }
-        return permissions;
     }
 }

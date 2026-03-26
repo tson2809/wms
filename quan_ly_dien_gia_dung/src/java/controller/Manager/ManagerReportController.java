@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import model.User;
 
@@ -57,16 +58,50 @@ public class ManagerReportController extends HttpServlet {
         Date prevFromDate = Date.valueOf(prevFromLocalDate);
         Date prevToDate = Date.valueOf(prevToLocalDate);
 
+        String invValueGranularity = resolveInventoryValueGranularity(
+                request.getParameter("invValueGranularity"),
+                periodDays
+        );
+        String invValueGranularityLabel = toGranularityLabel(invValueGranularity);
+
         ManagerReportDAO.SummaryMetrics summary = reportDAO.getSummaryMetrics(fromDate, toDate);
         ManagerReportDAO.SummaryMetrics previousSummary = reportDAO.getSummaryMetrics(prevFromDate, prevToDate);
         ManagerReportDAO.InventoryInsight inventoryInsight = reportDAO.getInventoryInsight(fromDate, toDate, summary.getTotalExportValue());
-        List<ManagerReportDAO.TopVariantFlow> topVariantFlows = reportDAO.getTopVariantFlows(fromDate, toDate, 10);
+        List<ManagerReportDAO.TopVariantFlow> topImportVariants = reportDAO.getTopImportVariants(fromDate, toDate, 10);
+        List<ManagerReportDAO.TopVariantFlow> topExportVariants = reportDAO.getTopExportVariants(fromDate, toDate, 10);
+        List<ManagerReportDAO.TopVariantStockRiskFlow> topStockRiskVariants = reportDAO.getTopStockRiskVariants(toDate, 10);
+
+        List<ManagerReportDAO.InventoryValueCategoryRow> inventoryValueByCategory =
+                reportDAO.getInventoryValueByCategory(toDate);
+        List<ManagerReportDAO.InventoryValuePoint> inventoryValueTrend =
+                reportDAO.getInventoryValueTrend(fromDate, toDate, invValueGranularity);
+
+        if (inventoryValueByCategory == null) {
+            inventoryValueByCategory = Collections.emptyList();
+        }
+        if (inventoryValueTrend == null) {
+            inventoryValueTrend = Collections.emptyList();
+        }
+
+        BigDecimal inventoryValueTotal = BigDecimal.ZERO;
+        for (ManagerReportDAO.InventoryValueCategoryRow row : inventoryValueByCategory) {
+            if (row != null && row.getValue() != null) {
+                inventoryValueTotal = inventoryValueTotal.add(row.getValue());
+            }
+        }
 
         request.setAttribute("summary", summary);
         request.setAttribute("previousSummary", previousSummary);
         request.setAttribute("inventoryInsight", inventoryInsight);
         request.setAttribute("monthlyFlows", reportDAO.getMonthlyFlow(fromDate, toDate));
-        request.setAttribute("topVariantFlows", topVariantFlows);
+        request.setAttribute("topImportVariants", topImportVariants);
+        request.setAttribute("topExportVariants", topExportVariants);
+        request.setAttribute("topStockRiskVariants", topStockRiskVariants);
+        request.setAttribute("inventoryValueTotal", inventoryValueTotal);
+        request.setAttribute("inventoryValueByCategory", inventoryValueByCategory);
+        request.setAttribute("inventoryValueTrend", inventoryValueTrend);
+        request.setAttribute("inventoryValueGranularity", invValueGranularity);
+        request.setAttribute("inventoryValueGranularityLabel", invValueGranularityLabel);
 
         request.setAttribute("fromDate", fromLocalDate.toString());
         request.setAttribute("toDate", toLocalDate.toString());
@@ -144,6 +179,35 @@ public class ManagerReportController extends HttpServlet {
             default:
                 return "custom";
         }
+    }
+
+    private String resolveInventoryValueGranularity(String granularityParam, int periodDays) {
+        if (granularityParam == null || granularityParam.trim().isEmpty()) {
+            return "month";
+        }
+        String g = granularityParam.trim().toLowerCase();
+        switch (g) {
+            case "day":
+            case "week":
+            case "month":
+                // Guardrail: day granularity can become heavy on long ranges.
+                if ("day".equals(g) && periodDays > 90) {
+                    return "week";
+                }
+                return g;
+            default:
+                return "month";
+        }
+    }
+
+    private String toGranularityLabel(String granularity) {
+        if ("day".equals(granularity)) {
+            return "Ngày";
+        }
+        if ("week".equals(granularity)) {
+            return "Tuần";
+        }
+        return "Tháng";
     }
 
     private BigDecimal calculateDelta(BigDecimal current, BigDecimal previous) {

@@ -202,6 +202,21 @@ public class GoodsIssueDAO extends DBContext {
         return false;
     }
 
+    public String generateNextIssueCode() {
+        String sql = "SELECT COALESCE(MAX(CAST(SUBSTRING(issue_code, 4) AS UNSIGNED)), 0) AS max_code "
+                + "FROM goods_issues WHERE issue_code LIKE 'GI-%'";
+        try (PreparedStatement pre = this.getConnection().prepareStatement(sql);
+             ResultSet rs = pre.executeQuery()) {
+            if (rs.next()) {
+                int next = rs.getInt("max_code") + 1;
+                return String.format("GI-%03d", next);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "GI-001";
+    }
+
     /** Lấy issue_id theo mã phiếu (dùng sau khi tạo phiếu để hoàn tất xuất kho). */
     public Integer getIssueIdByIssueCode(String issueCode) {
         if (issueCode == null || issueCode.trim().isEmpty()) {

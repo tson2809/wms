@@ -11,13 +11,15 @@ package model;
 public class Unit {
      private int unitId;
     private String unitName;
+    private String status;
 
     public Unit() {
     }
 
-    public Unit(int unitId, String unitName) {
+    public Unit(int unitId, String unitName, String status) {
         this.unitId = unitId;
         this.unitName = unitName;
+        this.status = status;
     }
 
     public int getUnitId() {
@@ -36,9 +38,17 @@ public class Unit {
         this.unitName = unitName;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
-        return "Unit{" + "unitId=" + unitId + ", unitName=" + unitName + '}';
+        return "Unit{" + "unitId=" + unitId + ", unitName=" + unitName + ", status=" + status + '}';
     }
     
 }
