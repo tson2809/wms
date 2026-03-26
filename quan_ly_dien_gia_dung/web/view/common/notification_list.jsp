@@ -165,24 +165,11 @@
                                 <input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                 <input type="hidden" name="page" value="1">
                                 <div class="row g-3 align-items-end">
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <label class="form-label">Tìm kiếm</label>
                                         <input type="text" name="search" value="${search}"
                                                class="form-control" placeholder="Tiêu đề, nội dung...">
                                     </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Loại thông báo</label>
-                                        <select name="notificationType" class="form-select"
-                                                onchange="this.form.submit()">
-                                            <option value="">Tất cả</option>
-                                            <c:forEach items="${allTypes}" var="type">
-                                                <option value="${type}" ${notificationType==type
-                                                                 ? 'selected' : '' }>
-                                                            ${type}
-                                                        </option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
                                         <div class="col-md-3">
                                             <label class="form-label">Sắp xếp</label>
                                             <select name="sort" class="form-select"
@@ -209,7 +196,6 @@
                                         <tr>
                                             <th>ID</th>
                                             <th>Tiêu đề</th>
-                                            <th>Loại</th>
                                             <!--<th>Nội dung</th>-->
                                             <th>Ngày tạo</th>
                                             <th class="action-col">Thao tác</th>
@@ -220,27 +206,6 @@
                                             <tr>
                                                 <td>${n.notificationId}</td>
                                                 <td>${n.title}</td>
-                                                <td>
-                                                    <c:choose>
-                                                        <c:when test="${n.notificationType == 'info'}">
-                                                            <span class="badge bg-info">Info</span>
-                                                        </c:when>
-                                                        <c:when test="${n.notificationType == 'warning'}">
-                                                            <span
-                                                                class="badge bg-warning text-dark">Warning</span>
-                                                        </c:when>
-                                                        <c:when test="${n.notificationType == 'error'}">
-                                                            <span class="badge bg-danger">Error</span>
-                                                        </c:when>
-                                                        <c:when test="${n.notificationType == 'success'}">
-                                                            <span class="badge bg-success">Success</span>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <span
-                                                                class="badge bg-secondary">${n.notificationType}</span>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </td>
                                                 <!-- <td>
                                     <div class="content-preview" title="${n.content}">
                                                 ${fn:length(n.content) > 50 ?
@@ -276,8 +241,7 @@
                                                                             icon="lucide:trash-2"></iconify-icon>
                                                                     </button>
                                                                 </c:when>
-                                                                <c:when test="${sessionScope.user.role.roleName eq 'Manager'
-                                                                                and n.notificationType ne 'System'}">
+                                                                <c:when test="${sessionScope.user.role.roleName eq 'Manager'}">
                                                                         <button type="submit" class="action-btn"
                                                                                 title="Xóa">
                                                                             <iconify-icon
@@ -312,9 +276,7 @@
                                                         <input type="hidden" name="page"
                                                                value="${page - 1}"><input type="hidden"
                                                                name="search" value="${search}"><input
-                                                               type="hidden" name="notificationType"
-                                                               value="${notificationType}"><input type="hidden"
-                                                               name="sort" value="${sort}"><input type="hidden"
+                                                            type="hidden" name="sort" value="${sort}"><input type="hidden"
                                                                name="numberPerPage" value="${numberPerPage}">
                                                         <button type="submit"
                                                                 class="page-btn border-0 bg-transparent p-0">‹</button>
@@ -327,8 +289,6 @@
                                                     action="${pageContext.request.contextPath}/notification-list"
                                                     method="post" class="page-jump-form d-inline">
                                                     <input type="hidden" name="search" value="${search}">
-                                                    <input type="hidden" name="notificationType"
-                                                           value="${notificationType}">
                                                     <input type="hidden" name="sort" value="${sort}">
                                                     <input type="hidden" name="numberPerPage"
                                                            value="${numberPerPage}">
@@ -349,9 +309,7 @@
                                                         <input type="hidden" name="page"
                                                                value="${page + 1}"><input type="hidden"
                                                                name="search" value="${search}"><input
-                                                               type="hidden" name="notificationType"
-                                                               value="${notificationType}"><input type="hidden"
-                                                               name="sort" value="${sort}"><input type="hidden"
+                                                            type="hidden" name="sort" value="${sort}"><input type="hidden"
                                                                name="numberPerPage" value="${numberPerPage}">
                                                         <button type="submit"
                                                                 class="page-btn border-0 bg-transparent p-0">›</button>
@@ -365,9 +323,7 @@
                                                   action="${pageContext.request.contextPath}/notification-list"
                                                   class="d-inline" id="numberPerPageForm">
                                                 <input type="hidden" name="page" value="1"><input
-                                                    type="hidden" name="search" value="${search}"><input
-                                                    type="hidden" name="notificationType"
-                                                    value="${notificationType}"><input type="hidden"
+                                                                                                        type="hidden" name="search" value="${search}"><input type="hidden"
                                                     name="sort" value="${sort}">
                                                 <select name="numberPerPage"
                                                         class="form-select form-select-sm w-auto"

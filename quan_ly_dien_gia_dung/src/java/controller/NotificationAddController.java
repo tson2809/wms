@@ -27,8 +27,6 @@ public class NotificationAddController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<String> allTypes = notificationDAO.getNotificationTypes();
-        request.setAttribute("allTypes", allTypes);
         request.setAttribute("mode", "add");
         request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
     }
@@ -38,15 +36,9 @@ public class NotificationAddController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         User loggedUser = (User) session.getAttribute("user");      
-        String notificationType = request.getParameter("notificationType");
         String title = request.getParameter("title");
         String content = request.getParameter("content");
         boolean hasError = false;
-
-        if (notificationType == null || notificationType.isBlank()) {
-            request.setAttribute("errorNotificationType", "Loại thông báo không được để trống.");
-            hasError = true;
-        }
 
         if (title == null || title.isBlank()) {
             request.setAttribute("errorTitle", "Tiêu đề không được để trống.");
@@ -62,18 +54,14 @@ public class NotificationAddController extends HttpServlet {
         }
 
         if (hasError) {
-            request.setAttribute("notificationType", notificationType);
             request.setAttribute("title", title);
             request.setAttribute("content", content);
-            List<String> allTypes = notificationDAO.getNotificationTypes();
-            request.setAttribute("allTypes", allTypes);
             request.setAttribute("mode", "add");
             request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
             return;
         }
 
         Notification notification = new Notification();
-        notification.setNotificationType(notificationType.trim());
         notification.setTitle(title.trim());
         notification.setContent(content.trim());
 
@@ -85,17 +73,12 @@ public class NotificationAddController extends HttpServlet {
 
         if (id > 0) {
             request.setAttribute("successMessage", "Thêm thông báo thành công.");
-            List<String> allTypes = notificationDAO.getNotificationTypes();
-            request.setAttribute("allTypes", allTypes);
             request.setAttribute("mode", "add");
             request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
         } else {
             request.setAttribute("errorTitle", "Không thể thêm thông báo. Vui lòng thử lại.");
-            request.setAttribute("notificationType", notificationType);
             request.setAttribute("title", title);
             request.setAttribute("content", content);
-            List<String> allTypes = notificationDAO.getNotificationTypes();
-            request.setAttribute("allTypes", allTypes);
             request.setAttribute("mode", "add");
             request.getRequestDispatcher("/view/common/notification_detail.jsp").forward(request, response);
         }

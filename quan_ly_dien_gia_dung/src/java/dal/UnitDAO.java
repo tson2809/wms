@@ -14,6 +14,27 @@ public class UnitDAO extends DBContext {
 
     public List<Unit> getAllUnits() {
         List<Unit> list = new ArrayList<>();
+        String sql = "SELECT * FROM units WHERE status = 'active' ORDER BY unit_name";
+
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Unit u = new Unit();
+                u.setUnitId(rs.getInt("unit_id"));
+                u.setUnitName(rs.getString("unit_name"));
+                u.setStatus(rs.getString("status"));
+                list.add(u);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<Unit> getAllUnitsForManagement() {
+        List<Unit> list = new ArrayList<>();
         String sql = "SELECT * FROM units ORDER BY unit_name";
 
         try (PreparedStatement ps = this.getConnection().prepareStatement(sql);
@@ -23,6 +44,7 @@ public class UnitDAO extends DBContext {
                 Unit u = new Unit();
                 u.setUnitId(rs.getInt("unit_id"));
                 u.setUnitName(rs.getString("unit_name"));
+                u.setStatus(rs.getString("status"));
                 list.add(u);
             }
         } catch (SQLException e) {
@@ -42,6 +64,7 @@ public class UnitDAO extends DBContext {
                     Unit u = new Unit();
                     u.setUnitId(rs.getInt("unit_id"));
                     u.setUnitName(rs.getString("unit_name"));
+                    u.setStatus(rs.getString("status"));
                     return u;
                 }
             }
@@ -105,8 +128,12 @@ public class UnitDAO extends DBContext {
         return false;
     }
 
-    public boolean deleteUnit(int id) {
-        String sql = "DELETE FROM units WHERE unit_id = ?";
+    public boolean toggleUnitStatus(int id) {
+        String sql = """
+                UPDATE units
+                SET status = CASE WHEN status = 'active' THEN 'inactive' ELSE 'active' END
+                WHERE unit_id = ?
+                """;
         try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
