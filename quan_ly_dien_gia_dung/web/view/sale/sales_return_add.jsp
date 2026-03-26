@@ -91,6 +91,9 @@
                                         <label class="form-label">Mã phiếu trả <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" name="srCode"
                                                placeholder="VD: SR001" required value="${param.srCode}" />
+                                        <c:if test="${not empty srCodeError}">
+                                            <small class="text-danger">${srCodeError}</small>
+                                        </c:if>
                                     </div>
 
                                     <div class="mb-3">
@@ -149,6 +152,9 @@
 
                 if (returnDateInput) {
                     returnDateInput.min = today;
+                    if (!returnDateInput.value) {
+                        returnDateInput.value = today;
+                    }
                 }
 
                 function formatCurrency(n) {
