@@ -56,9 +56,15 @@ public class SalesReturnAddController extends HttpServlet {
         String productsJson = request.getParameter("products");
 
         request.setAttribute("generalError", null);
+        request.setAttribute("srCodeError", null);
 
         if (srCode == null || srCode.trim().isEmpty()) {
             request.setAttribute("generalError", "Vui lòng nhập mã phiếu trả hàng.");
+            request.getRequestDispatcher("/view/sale/sales_return_add.jsp").forward(request, response);
+            return;
+        }
+        if (dao.srCodeExists(srCode.trim())) {
+            request.setAttribute("srCodeError", "mã phiếu trả bị trùng");
             request.getRequestDispatcher("/view/sale/sales_return_add.jsp").forward(request, response);
             return;
         }
