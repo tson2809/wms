@@ -104,6 +104,7 @@ public class GoodsReceiptAddController extends HttpServlet {
 
         List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
         request.setAttribute("suppliers", suppliers);
+        request.setAttribute("generatedReceiptCode", goodsReceiptDAO.generateNextReceiptCode());
         
         request.getRequestDispatcher("/view/staff/goods-receipt-add.jsp").forward(request, response);
     }
@@ -129,6 +130,11 @@ public class GoodsReceiptAddController extends HttpServlet {
         String supplierId = request.getParameter("supplierId");
         String receiptDate = request.getParameter("receiptDate");
         String receiptCode = request.getParameter("receiptCode");
+        if (receiptCode == null || receiptCode.trim().isEmpty()) {
+            receiptCode = goodsReceiptDAO.generateNextReceiptCode();
+        } else {
+            receiptCode = receiptCode.trim();
+        }
         String productsJson = request.getParameter("products");
 
         String salesReturnIdRaw = request.getParameter("salesReturnId");
@@ -157,13 +163,11 @@ public class GoodsReceiptAddController extends HttpServlet {
             hasErrors = true;
         }
         
-        if (receiptCode == null || receiptCode.trim().isEmpty()) {
-            request.setAttribute("receiptCodeError", "Vui lòng nhập mã phiếu nhập");
-            hasErrors = true;
-        } else {
-            GoodsReceiptDAO checkDao = new GoodsReceiptDAO();
+        GoodsReceiptDAO checkDao = new GoodsReceiptDAO();
+        if (checkDao.receiptCodeExists(receiptCode)) {
+            receiptCode = goodsReceiptDAO.generateNextReceiptCode();
             if (checkDao.receiptCodeExists(receiptCode)) {
-                request.setAttribute("receiptCodeError", "Mã phiếu nhập đã tồn tại");
+                request.setAttribute("generalError", "Không thể tạo mã phiếu nhập tự động. Vui lòng thử lại.");
                 hasErrors = true;
             }
         }
@@ -175,6 +179,7 @@ public class GoodsReceiptAddController extends HttpServlet {
         
         if (hasErrors) {
             request.setAttribute("productsJson", productsJson);
+            request.setAttribute("generatedReceiptCode", receiptCode);
             String purchaseOrderCode = request.getParameter("purchaseOrderCode");
             if (purchaseOrderCode != null && !purchaseOrderCode.trim().isEmpty()) {
                 request.setAttribute("purchaseOrderCodeValue", purchaseOrderCode.trim());
@@ -226,13 +231,26 @@ public class GoodsReceiptAddController extends HttpServlet {
             User currentUser = (User) request.getSession().getAttribute("user");
             int createdBy = currentUser.getUserId();
             
-            boolean success = goodsReceiptDAO.createGoodsReceipt(
-                receiptCode, supplier_Id, receiptDate, totalAmount.doubleValue(),
-                notes, createdBy, details, salesReturnId, purchaseOrderId
-            );
+            boolean success = false;
+            String createdReceiptCode = receiptCode;
+            for (int attempt = 0; attempt < 3; attempt++) {
+                if (attempt > 0) {
+                    createdReceiptCode = goodsReceiptDAO.generateNextReceiptCode();
+                }
+                success = goodsReceiptDAO.createGoodsReceipt(
+                    createdReceiptCode, supplier_Id, receiptDate, totalAmount.doubleValue(),
+                    notes, createdBy, details, salesReturnId, purchaseOrderId
+                );
+                if (success) {
+                    break;
+                }
+                if (!goodsReceiptDAO.receiptCodeExists(createdReceiptCode)) {
+                    break;
+                }
+            }
 
             if (success) {
-                Integer receiptId = goodsReceiptDAO.getReceiptIdByReceiptCode(receiptCode.trim());
+                Integer receiptId = goodsReceiptDAO.getReceiptIdByReceiptCode(createdReceiptCode);
                 boolean completed = receiptId != null
                         && goodsReceiptDAO.updateGoodsReceiptStatus(receiptId, "completed", createdBy);
                 if (!completed) {
@@ -247,6 +265,7 @@ public class GoodsReceiptAddController extends HttpServlet {
                     }
                     List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
                     request.setAttribute("suppliers", suppliers);
+                    request.setAttribute("generatedReceiptCode", goodsReceiptDAO.generateNextReceiptCode());
                     request.getRequestDispatcher("/view/staff/goods-receipt-add.jsp").forward(request, response);
                     return;
                 }
@@ -268,6 +287,7 @@ public class GoodsReceiptAddController extends HttpServlet {
                 if (purchaseOrderId != null) request.setAttribute("purchaseOrderId", purchaseOrderId);
                 List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
                 request.setAttribute("suppliers", suppliers);
+                request.setAttribute("generatedReceiptCode", goodsReceiptDAO.generateNextReceiptCode());
                 request.getRequestDispatcher("/view/staff/goods-receipt-add.jsp").forward(request, response);
             }
         } catch (Exception ex) {
@@ -284,6 +304,7 @@ public class GoodsReceiptAddController extends HttpServlet {
             }
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             request.setAttribute("suppliers", suppliers);
+            request.setAttribute("generatedReceiptCode", goodsReceiptDAO.generateNextReceiptCode());
             request.getRequestDispatcher("/view/staff/goods-receipt-add.jsp").forward(request, response);
         }
     }

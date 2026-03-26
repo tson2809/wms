@@ -139,15 +139,6 @@
                                 <form id="issueForm" method="post" action="${pageContext.request.contextPath}/goods-issue-add">
 
                                     <div class="mb-3">
-                                        <label class="form-label">Mã phiếu xuất</label>
-                                        <input type="text" class="form-control" name="issueCode"
-                                               placeholder="VD: PX001" value="${param.issueCode}">
-                                        <c:if test="${not empty issueCodeError}">
-                                            <small class="text-danger">${issueCodeError}</small>
-                                        </c:if>
-                                    </div>
-
-                                    <div class="mb-3">
                                         <label class="form-label">Ngày xuất</label>
                                         <input type="date" class="form-control" name="issueDate" id="issueDate"
                                                value="${param.issueDate}" required>

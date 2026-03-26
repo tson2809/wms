@@ -28,10 +28,6 @@
         <%
             model.User currentUser = (model.User) session.getAttribute("user");
             String roleName = "";
-            java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-            boolean canCreateBrand = userPermissions != null && userPermissions.contains("create brand");
-            boolean canEditBrand = userPermissions != null && userPermissions.contains("edit brand");
-            boolean canDeactivateBrand = userPermissions != null && userPermissions.contains("deactivate brand");
             if (currentUser != null && currentUser.getRole() != null && currentUser.getRole().getRoleName() != null) {
                 roleName = currentUser.getRole().getRoleName().toLowerCase();
             }
@@ -51,9 +47,9 @@
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-3 user-list-header">
                                 <h5 class="mb-0">Danh sách thương hiệu</h5>
-                                <% if (canCreateBrand) { %>
+                                <c:if test="${sessionScope.user.role.roleId == 2}">
                                 <a href="${pageContext.request.contextPath}/brand-add" class="btn btn-primary">Thêm thương hiệu</a>
-                                <% } %>
+                                </c:if>
                             </div>
 
                             <form action="brand-list" method="get" class="user-filter-form mb-3">
@@ -123,13 +119,13 @@
                                             </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
-                                                    <% if (canEditBrand) { %>
+                                                    <c:if test="${sessionScope.user.role.roleId == 2}">
                                                     <a href="${pageContext.request.contextPath}/brand-edit?id=${b.brandId}" class="action-btn action-edit" title="Sửa thương hiệu">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
-                                                    <% } %>
+                                                    </c:if>
 
-                                                    <% if (canDeactivateBrand) { %>
+                                                    <c:if test="${sessionScope.user.role.roleId == 2}">
                                                     <c:choose>
                                                         <c:when test="${b.status == 'active'}">
                                                             <form method="post" action="${pageContext.request.contextPath}/brand-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn chuyển thương hiệu này sang trạng thái Ngừng hoạt động?')">
@@ -150,10 +146,10 @@
                                                             </form>
                                                         </c:otherwise>
                                                     </c:choose>
-                                                    <% } %>
-                                                    <% if (!canEditBrand && !canDeactivateBrand) { %>
+                                                    </c:if>
+                                                    <c:if test="${sessionScope.user.role.roleId != 2}">
                                                         <span class="text-muted small">-</span>
-                                                    <% } %>
+                                                    </c:if>
                                                 </div>
                                             </td>
                                         </tr>

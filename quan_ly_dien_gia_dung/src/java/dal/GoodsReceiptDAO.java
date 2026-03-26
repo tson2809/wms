@@ -155,7 +155,6 @@ public class GoodsReceiptDAO extends DBContext {
         
         gr.setNotes(rs.getString("notes"));
         gr.setCreatedAt(rs.getTimestamp("created_at"));
-        gr.setUpdatedAt(rs.getTimestamp("updated_at"));
         
         return gr;
     }
@@ -183,7 +182,7 @@ public class GoodsReceiptDAO extends DBContext {
                 applyReceiptToInventory(conn, receiptId, approvedBy != null ? approvedBy : 0);
             }
 
-            String sql = "UPDATE goods_receipts SET status = ?, approved_by = ?, updated_at = CURRENT_TIMESTAMP WHERE receipt_id = ?";
+            String sql = "UPDATE goods_receipts SET status = ?, approved_by = ? WHERE receipt_id = ?";
             try (PreparedStatement pre = conn.prepareStatement(sql)) {
                 pre.setString(1, status);
                 pre.setObject(2, "completed".equals(status) ? approvedBy : null);
@@ -262,6 +261,21 @@ public class GoodsReceiptDAO extends DBContext {
             Logger.getLogger(GoodsReceiptDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
+    }
+
+    public String generateNextReceiptCode() {
+        String sql = "SELECT COALESCE(MAX(CAST(SUBSTRING(receipt_code, 4) AS UNSIGNED)), 0) AS max_code "
+                + "FROM goods_receipts WHERE receipt_code LIKE 'GR-%'";
+        try (PreparedStatement pre = this.getConnection().prepareStatement(sql);
+             ResultSet rs = pre.executeQuery()) {
+            if (rs.next()) {
+                int next = rs.getInt("max_code") + 1;
+                return String.format("GR-%03d", next);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(GoodsReceiptDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "GR-001";
     }
 
     /** Lấy receipt_id theo mã phiếu (dùng sau khi tạo phiếu để hoàn tất nhập kho). */

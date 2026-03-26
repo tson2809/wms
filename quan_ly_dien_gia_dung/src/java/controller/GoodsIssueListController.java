@@ -85,7 +85,6 @@ public class GoodsIssueListController extends HttpServlet {
         String search = request.getParameter("search");
         String searchNormalized = (search != null && !search.trim().isEmpty())
                 ? search.trim().replaceAll("\\s+", " ") : null;
-        String status = request.getParameter("status");
         String sort = request.getParameter("sort");
         Date fromDate = parseSqlDate(request.getParameter("fromDate"));
         Date toDate = parseSqlDate(request.getParameter("toDate"));
@@ -112,10 +111,6 @@ public class GoodsIssueListController extends HttpServlet {
             list = new ArrayList<>(goodsIssueDAO.searchGoodsIssues(searchNormalized));
         } else {
             list = new ArrayList<>(goodsIssueDAO.getAllGoodsIssues());
-        }
-
-        if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status)) {
-            list.removeIf(gi -> !status.equalsIgnoreCase(gi.getStatus()));
         }
 
         if (fromDate != null && toDate != null && fromDate.after(toDate)) {
@@ -160,7 +155,6 @@ public class GoodsIssueListController extends HttpServlet {
 
         request.setAttribute("issues", paginatedList);
         request.setAttribute("search", search != null ? search : "");
-        request.setAttribute("status", status != null ? status : "");
         request.setAttribute("sort", sort != null ? sort : "");
         request.setAttribute("fromDate", fromDate != null ? fromDate.toString() : "");
         request.setAttribute("toDate", toDate != null ? toDate.toString() : "");

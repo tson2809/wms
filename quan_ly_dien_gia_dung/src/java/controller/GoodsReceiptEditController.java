@@ -192,8 +192,9 @@ public class GoodsReceiptEditController extends HttpServlet {
         
         String supplierId = request.getParameter("supplierId");
         String receiptDate = request.getParameter("receiptDate");
-        String receiptCode = request.getParameter("receiptCode");
         String productsJson = request.getParameter("products");
+        GoodsReceipt currentReceipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
+        String receiptCode = currentReceipt != null ? currentReceipt.getReceiptCode() : null;
         
         boolean hasErrors = false;
         
@@ -208,16 +209,8 @@ public class GoodsReceiptEditController extends HttpServlet {
         }
         
         if (receiptCode == null || receiptCode.trim().isEmpty()) {
-            request.setAttribute("receiptCodeError", "Vui lòng nhập mã phiếu nhập");
+            request.setAttribute("generalError", "Không tìm thấy mã phiếu nhập hiện tại để cập nhật.");
             hasErrors = true;
-        } else {
-            GoodsReceipt currentReceipt = goodsReceiptDAO.getGoodsReceiptById(receiptId);
-            if (currentReceipt != null && !receiptCode.equals(currentReceipt.getReceiptCode())) {
-                if (goodsReceiptDAO.receiptCodeExists(receiptCode)) {
-                    request.setAttribute("receiptCodeError", "Mã phiếu nhập đã tồn tại");
-                    hasErrors = true;
-                }
-            }
         }
         
         if (productsJson == null || productsJson.trim().isEmpty() || "[]".equals(productsJson.trim())) {
@@ -318,7 +311,7 @@ public class GoodsReceiptEditController extends HttpServlet {
             String updateReceiptSql = """
                                       UPDATE goods_receipts 
                                       SET supplier_id = ?, receipt_code = ?, receipt_date = ?, 
-                                          total_amount = ?, updated_at = CURRENT_TIMESTAMP 
+                                          total_amount = ? 
                                       WHERE receipt_id = ?
                                       """;
             ps = conn.prepareStatement(updateReceiptSql);

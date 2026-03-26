@@ -2,11 +2,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
-<%
-    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-    boolean canApproveGoodsIssue = userPermissions != null && userPermissions.contains("approve goods issue");
-    request.setAttribute("canApproveGoodsIssue", canApproveGoodsIssue);
-%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -87,11 +82,6 @@
                         <div class="col-lg-3">
                             <div class="bg-light rounded p-4">
                                 <div class="mb-3">
-                                    <label class="form-label">Mã phiếu xuất</label>
-                                    <input type="text" class="form-control" value="${issue.issueCode}" readonly>
-                                </div>
-
-                                <div class="mb-3">
                                     <label class="form-label">Ngày xuất</label>
                                     <fmt:formatDate value="${issue.issueDate}" pattern="yyyy-MM-dd" var="issueDateFormatted"/>
                                     <input type="date" class="form-control" value="${issueDateFormatted}" readonly>
@@ -99,13 +89,19 @@
 
                                 <div class="mb-3">
                                     <label class="form-label">Loại xuất</label>
-                                    <input type="text" class="form-control" readonly value="
-                                        <c:choose>
-                                            <c:when test='${issue.issueType eq "sale"}'>Bán hàng</c:when>
-                                            <c:when test='${issue.issueType eq "return_supplier"}'>Trả nhà cung cấp</c:when>
-                                            <c:when test='${issue.issueType eq "other"}'>Khác</c:when>
-                                            <c:otherwise>${issue.issueType}</c:otherwise>
-                                        </c:choose>">
+                                    <c:set var="issueTypeLabel" value="${issue.issueType}" />
+                                    <c:choose>
+                                        <c:when test="${issue.issueType eq 'sale'}">
+                                            <c:set var="issueTypeLabel" value="Bán hàng" />
+                                        </c:when>
+                                        <c:when test="${issue.issueType eq 'return_supplier'}">
+                                            <c:set var="issueTypeLabel" value="Trả nhà cung cấp" />
+                                        </c:when>
+                                        <c:when test="${issue.issueType eq 'other'}">
+                                            <c:set var="issueTypeLabel" value="Khác" />
+                                        </c:when>
+                                    </c:choose>
+                                    <input type="text" class="form-control" readonly value="${issueTypeLabel}">
                                 </div>
 
                                 <div class="mb-3">
@@ -119,7 +115,7 @@
                                 </div>
 
                                 <c:choose>
-                                    <c:when test="${canApproveGoodsIssue and !readOnly}">
+                                    <c:when test="${sessionScope.user.role.roleId == 2 and !readOnly}">
                                         <div class="mb-3">
                                             <label class="form-label">Trạng thái:</label>
                                             <select class="form-select" name="status" form="goodsIssueStatusForm">
@@ -145,7 +141,7 @@
 
                                 <div class="d-flex gap-2">
                                     <a href="${pageContext.request.contextPath}/goods-issue-list" class="btn btn-secondary flex-fill">Đóng</a>
-                                    <c:if test="${canApproveGoodsIssue and !readOnly}">
+                                    <c:if test="${sessionScope.user.role.roleId == 2 and !readOnly}">
                                         <form id="goodsIssueStatusForm" method="POST" action="${pageContext.request.contextPath}/goods-issue-detail"
                                               class="d-inline flex-fill">
                                             <input type="hidden" name="id" value="${issue.issueId}">
@@ -166,7 +162,7 @@
         <script>
             window.GOODS_ISSUE_EDIT = {
                 contextPath: '${pageContext.request.contextPath}',
-                isManager: <%= canApproveGoodsIssue %>,
+                isManager: ${sessionScope.user.role.roleId == 2},
                 readOnly: ${readOnly eq true}
             };
         </script>

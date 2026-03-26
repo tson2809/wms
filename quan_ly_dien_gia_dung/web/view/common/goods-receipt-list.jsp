@@ -7,12 +7,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<%
-    java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-    boolean canCreateGoodsReceipt = userPermissions != null && userPermissions.contains("create goods receipt");
-    boolean canEditGoodsReceipt = userPermissions != null && userPermissions.contains("edit goods receipt");
-    boolean canApproveGoodsReceipt = userPermissions != null && userPermissions.contains("approve goods receipt");
-%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -149,15 +143,15 @@
                         <div class="col-12 receipt-list-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0 fw-semibold">Danh sách phiếu nhập kho</h5>
-                                <% if (canCreateGoodsReceipt) { %>
+                                <c:if test="${sessionScope.user.role.roleId == 3}">
                                     <a href="${pageContext.request.contextPath}/goods-receipt-add" class="btn btn-primary">Tạo phiếu nhập kho</a>
-                                <% } %>
+                                </c:if>
                             </div>
                             <form action="${pageContext.request.contextPath}/goods-receipt-list" method="post" class="mb-3 receipt-filter-form">
                                 <input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                 <input type="hidden" name="page" value="1">
                                 <div class="row g-3 align-items-end">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">Tìm kiếm</label>
                                         <input type="text" name="search" value="${search}" class="form-control" placeholder="Mã phiếu, nhà cung cấp...">
                                     </div>
@@ -171,34 +165,20 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label">Trạng thái</label>
-                                        <select name="status" class="form-select" onchange="this.form.submit()">
-                                            <option value="">Tất cả</option>
-                                            <option value="draft" ${status == 'draft' ? 'selected' : ''}>Nháp</option>
-                                            <option value="completed" ${status == 'completed' ? 'selected' : ''}>Hoàn thành</option>
-                                            <option value="cancelled" ${status == 'cancelled' ? 'selected' : ''}>Đã hủy</option>
-                                        </select>
+                                        <label class="form-label">Từ ngày</label>
+                                        <input type="date" name="fromDate" class="form-control" value="${fromDate}">
                                     </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">&nbsp;</label>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Đến ngày</label>
+                                        <input type="date" name="toDate" class="form-control" value="${toDate}" id="grToDateInput">
+                                    </div>
+                                </div>
+                                <div class="row g-3 align-items-end mt-1">
+                                    <div class="col-md-12">
                                         <div class="d-flex flex-nowrap gap-2 align-items-center">
                                             <button type="submit" class="btn btn-primary">Tìm kiếm</button>
                                             <a href="${pageContext.request.contextPath}/goods-receipt-list" class="btn btn-secondary">Xóa bộ lọc</a>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="row g-3 align-items-end mt-1">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Từ ngày</label>
-                                        <input type="date" name="fromDate" class="form-control" value="${fromDate}">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Đến ngày</label>
-                                        <input type="date"
-                                               name="toDate"
-                                               class="form-control"
-                                               value="${toDate}"
-                                               id="grToDateInput">
                                     </div>
                                 </div>
                             </form>
@@ -253,32 +233,27 @@
                                                 <td>${gr.approvedByUser != null ? gr.approvedByUser.fullName : '-'}</td>
                                                 <td class="action-col">
                                                     <div class="action-btn-group">
-                                                        <c:choose>
-                                                            <c:when test="${gr.status == 'draft'}">
-                                                                <a href="${pageContext.request.contextPath}/goods-receipt-edit?id=${gr.receiptId}"
-                                                                   class="action-btn action-view" title="<%= canEditGoodsReceipt ? "Sửa phiếu nhập" : "Xem chi tiết" %>">
-                                                                    <iconify-icon icon="<%= canEditGoodsReceipt ? "lucide:edit-2" : "lucide:eye" %>"></iconify-icon>
-                                                                </a>
-                                                            </c:when>
-                                                            <c:when test="${gr.status == 'completed' || gr.status == 'cancelled'}">
-                                                                <a href="${pageContext.request.contextPath}/goods-receipt-edit?id=${gr.receiptId}"
-                                                                   class="action-btn action-view" title="Xem chi tiết">
+                                                        <a href="${pageContext.request.contextPath}/goods-receipt-edit?id=${gr.receiptId}"
+                                                           class="action-btn action-view"
+                                                           title="${gr.status == 'draft' ? 'Xem / Chỉnh sửa' : 'Xem chi tiết'}">
+                                                            <c:choose>
+                                                                <c:when test="${gr.status == 'draft' and sessionScope.user.role.roleId == 3}">
+                                                                    <iconify-icon icon="lucide:edit-2"></iconify-icon>
+                                                                </c:when>
+                                                                <c:otherwise>
                                                                     <iconify-icon icon="lucide:eye"></iconify-icon>
-                                                                </a>
-                                                            </c:when>
-                                                        </c:choose>
-                                                        <% if (canApproveGoodsReceipt) { %>
-                                                        <c:if test="${gr.status == 'draft'}">
-                                                            <form method="POST" action="${pageContext.request.contextPath}/goods-receipt-list"
-                                                                  style="display:inline">
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </a>
+                                                        <c:if test="${gr.status == 'draft' and sessionScope.user.role.roleId == 2}">
+                                                            <form method="POST" action="${pageContext.request.contextPath}/goods-receipt-list" style="display:inline">
                                                                 <input type="hidden" name="id" value="${gr.receiptId}">
                                                                 <input type="hidden" name="status" value="completed">
                                                                 <button type="submit" class="action-btn action-approve" title="Duyệt nhập kho">
                                                                     <iconify-icon icon="lucide:check"></iconify-icon>
                                                                 </button>
                                                             </form>
-                                                            <form method="POST" action="${pageContext.request.contextPath}/goods-receipt-list"
-                                                                  style="display:inline">
+                                                            <form method="POST" action="${pageContext.request.contextPath}/goods-receipt-list" style="display:inline">
                                                                 <input type="hidden" name="id" value="${gr.receiptId}">
                                                                 <input type="hidden" name="status" value="cancelled">
                                                                 <button type="submit" class="action-btn action-cancel" title="Hủy">
@@ -286,7 +261,6 @@
                                                                 </button>
                                                             </form>
                                                         </c:if>
-                                                        <% } %>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -308,7 +282,6 @@
                                                 <form method="post" action="${pageContext.request.contextPath}/goods-receipt-list" class="d-inline">
                                                     <input type="hidden" name="page" value="${page - 1}">
                                                     <input type="hidden" name="search" value="${search}">
-                                                    <input type="hidden" name="status" value="${status}">
                                                     <input type="hidden" name="sort" value="${sort}">
                                                     <input type="hidden" name="fromDate" value="${fromDate}">
                                                     <input type="hidden" name="toDate" value="${toDate}">
@@ -321,7 +294,6 @@
                                             Trang
                                             <form action="${pageContext.request.contextPath}/goods-receipt-list" method="post" class="page-jump-form d-inline">
                                                 <input type="hidden" name="search" value="${search}">
-                                                <input type="hidden" name="status" value="${status}">
                                                 <input type="hidden" name="sort" value="${sort}">
                                                 <input type="hidden" name="fromDate" value="${fromDate}">
                                                 <input type="hidden" name="toDate" value="${toDate}">
@@ -338,7 +310,6 @@
                                                 <form method="post" action="${pageContext.request.contextPath}/goods-receipt-list" class="d-inline">
                                                     <input type="hidden" name="page" value="${page + 1}">
                                                     <input type="hidden" name="search" value="${search}">
-                                                    <input type="hidden" name="status" value="${status}">
                                                     <input type="hidden" name="sort" value="${sort}">
                                                     <input type="hidden" name="fromDate" value="${fromDate}">
                                                     <input type="hidden" name="toDate" value="${toDate}">
@@ -353,7 +324,6 @@
                                         <form method="post" action="${pageContext.request.contextPath}/goods-receipt-list" class="d-inline">
                                             <input type="hidden" name="page" value="1">
                                             <input type="hidden" name="search" value="${search}">
-                                            <input type="hidden" name="status" value="${status}">
                                             <input type="hidden" name="sort" value="${sort}">
                                             <input type="hidden" name="fromDate" value="${fromDate}">
                                             <input type="hidden" name="toDate" value="${toDate}">
