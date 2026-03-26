@@ -67,14 +67,13 @@
                                             <th style="width:80px">Đơn vị</th>
                                             <th style="width:70px">Số lượng</th>
                                             <th style="width:110px">Giá nhập</th>
-                                            <th style="width:110px">Giá trả lại</th>
                                             <th style="width:120px">Thành tiền</th>
                                             <th style="width:50px"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="productTableBody">
                                         <tr>
-                                            <td colspan="8" class="text-center text-muted py-4">
+                                            <td colspan="7" class="text-center text-muted py-4">
                                                 Chưa có sản phẩm. 
                                             </td>
                                         </tr>
@@ -172,8 +171,8 @@
                     var total = 0;
                     products.forEach(function (p) {
                         var qty = Number(p.quantity || 0);
-                        var rp = Number(p.refundPrice || 0);
-                        total += rp * qty;
+                        var op = Number(p.originalPrice || 0);
+                        total += op * qty;
                     });
                     $('#totalDisplay').val(formatCurrency(total));
                     $('#totalRefundAmount').val(total);
@@ -182,7 +181,7 @@
 
                 function renderEmpty() {
                     $('#productTableBody').html(
-                        '<tr><td colspan="8" class="text-center text-muted py-4">Chưa có sản phẩm.</td></tr>'
+                        '<tr><td colspan="7" class="text-center text-muted py-4">Chưa có sản phẩm.</td></tr>'
                     );
                 }
 
@@ -203,8 +202,7 @@
                         var originalPrice = Number(p.originalPrice || 0);
                         var stock = Number(p.stock || 0);
                         var qty = Number(p.quantity || 0);
-                        var refundPrice = Number(p.refundPrice || originalPrice);
-                        var subtotal = refundPrice * qty;
+                        var subtotal = originalPrice * qty;
 
                         var row = '' +
                             '<tr data-variant-id="' + variantId + '" data-stock="' + stock + '">' +
@@ -215,9 +213,6 @@
                             '    <input type="number" class="form-control form-control-sm qtyInput" min="0" step="1" value="' + qty + '" max="' + stock + '" style="width:70px"/>' +
                             '  </td>' +
                             '  <td class="text-end">' + formatCurrency(originalPrice) + '</td>' +
-                            '  <td style="width:120px">' +
-                            '    <input type="number" class="form-control form-control-sm refundInput" min="0" step="1000" value="' + refundPrice + '" style="width:110px"/>' +
-                            '  </td>' +
                             '  <td class="text-end subtotalCell">' + formatCurrency(subtotal) + '</td>' +
                             '  <td class="text-center">' +
                             '    <button type="button" class="btn btn-sm btn-danger delRow">' +
@@ -245,11 +240,9 @@
                     var row = $('#productTableBody').find('tr[data-variant-id="' + variantId + '"]');
                     var originalPrice = Number(p.originalPrice || 0);
                     var qty = Number(p.quantity || 0);
-                    var refundPrice = Number(p.refundPrice || 0);
-                    var subtotal = refundPrice * qty;
+                    var subtotal = originalPrice * qty;
 
                     row.find('.qtyInput').val(qty);
-                    row.find('.refundInput').val(refundPrice);
                     row.find('.subtotalCell').text(formatCurrency(subtotal));
                 }
 
@@ -292,7 +285,6 @@
                                             name: name,
                                             unit: unit,
                                             originalPrice: costPrice,
-                                            refundPrice: costPrice,
                                             quantity: 1,
                                             stock: stock
                                         });
@@ -339,21 +331,6 @@
                     var idx = findProductIndex(variantId);
                     if (idx >= 0) {
                         products[idx].quantity = qty;
-                        updateRowFromProducts(variantId);
-                        updateTotals();
-                    }
-                });
-
-                $('#productTableBody').on('input', '.refundInput', function () {
-                    var row = $(this).closest('tr');
-                    var variantId = row.data('variant-id');
-                    var refundPrice = Number($(this).val() || 0);
-                    if (refundPrice < 0) refundPrice = 0;
-                    $(this).val(refundPrice);
-
-                    var idx = findProductIndex(variantId);
-                    if (idx >= 0) {
-                        products[idx].refundPrice = refundPrice;
                         updateRowFromProducts(variantId);
                         updateTotals();
                     }
