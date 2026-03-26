@@ -46,14 +46,13 @@ public class RoleDAO extends DBContext{
     public int updateRole(Role r) {
         int n = 0;
         String sql = """
-                     UPDATE roles SET role_name = ?, role_description = ?, is_active = ? WHERE role_id = ?
+                     UPDATE roles SET role_name = ?, role_description = ? WHERE role_id = ?
                      """;
         try (Connection conn = this.getConnection();
              PreparedStatement pre = conn.prepareStatement(sql)) {
             pre.setString(1, r.getRoleName());
             pre.setString(2, r.getRoleDescription());
-            pre.setBoolean(3, r.isIsActive());
-            pre.setInt(4, r.getRoleId());  
+            pre.setInt(3, r.getRoleId());  
             n = pre.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(RoleDAO.class.getName()).log(Level.SEVERE, null, ex);

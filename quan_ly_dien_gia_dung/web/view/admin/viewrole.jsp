@@ -101,8 +101,7 @@
                                                 <tr>
                                                     <th>Tên Cấp Bậc</th>
                                                     <th>Mô Tả</th>
-                                                    <th>Trạng Thái</th>
-                                                    <th>Thao Tác</th>
+                                                    <th>Thao Tác</th>                                                  
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -128,24 +127,7 @@
                                                                           rows="2">${role.roleDescription != null ? role.roleDescription : ''}</textarea>
                                                             </div>
                                                         </td>
-                                                        <td>
-                                                            <div class="view-mode-${role.roleId}">
-                                                                <c:choose>
-                                                                    <c:when test="${role.isActive}">
-                                                                        <span class="badge bg-success">Hoạt động</span>
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <span class="badge bg-secondary">Không hoạt động</span>
-                                                                    </c:otherwise>
-                                                                </c:choose>
-                                                            </div>
-                                                            <div class="edit-mode-${role.roleId}" style="display:none;">
-                                                                <select class="form-select form-select-sm" id="isActive_${role.roleId}">
-                                                                    <option value="true" <c:if test="${role.isActive}">selected</c:if>>Hoạt động</option>
-                                                                    <option value="false" <c:if test="${!role.isActive}">selected</c:if>>Không hoạt động</option>
-                                                                </select>
-                                                            </div>
-                                                        </td>
+                                                   
                                                         <td>
                                                             <div class="view-mode-${role.roleId}">
                                                                 <button type="button" class="btn btn-sm btn-warning edit-btn" 
@@ -159,7 +141,6 @@
                                                                     <input type="hidden" name="roleId" value="${role.roleId}">
                                                                     <input type="hidden" name="roleName" class="hidden-role-name">
                                                                     <input type="hidden" name="roleDescription" class="hidden-role-description">
-                                                                    <input type="hidden" name="isActive" class="hidden-is-active">
                                                                     <button type="submit" class="btn btn-sm btn-success save-btn" title="Lưu">
                                                                         <i class="fa fa-save"></i>
                                                                     </button>
@@ -213,11 +194,9 @@
                     // Lấy giá trị từ inputs và set vào hidden inputs
                     var roleName = $('#roleName_' + roleId).val();
                     var roleDescription = $('#roleDescription_' + roleId).val();
-                    var isActive = $('#isActive_' + roleId).val();
                     
                     form.find('.hidden-role-name').val(roleName);
                     form.find('.hidden-role-description').val(roleDescription);
-                    form.find('.hidden-is-active').val(isActive);
                 });
             });
         </script>
