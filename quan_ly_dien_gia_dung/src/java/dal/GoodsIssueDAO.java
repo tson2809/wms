@@ -202,6 +202,24 @@ public class GoodsIssueDAO extends DBContext {
         return false;
     }
 
+    /** Lấy issue_id theo mã phiếu (dùng sau khi tạo phiếu để hoàn tất xuất kho). */
+    public Integer getIssueIdByIssueCode(String issueCode) {
+        if (issueCode == null || issueCode.trim().isEmpty()) {
+            return null;
+        }
+        String sql = "SELECT issue_id FROM goods_issues WHERE issue_code = ? LIMIT 1";
+        try (PreparedStatement pre = getConnection().prepareStatement(sql)) {
+            pre.setString(1, issueCode.trim());
+            ResultSet rs = pre.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("issue_id");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(GoodsIssueDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
     /**
      * Lấy danh sách serial in_stock của một variant (cho dropdown chọn serial khi
      * xuất).

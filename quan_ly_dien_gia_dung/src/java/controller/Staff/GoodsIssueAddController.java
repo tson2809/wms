@@ -27,6 +27,7 @@ import model.PurchaseOrderDetail;
 import model.ReturnOrder;
 import model.ReturnOrderDetail;
 import model.ReturnOrderSerial;
+import model.GoodsIssue;
 import model.GoodsIssueDetail;
 import model.User;
 
@@ -454,7 +455,25 @@ public class GoodsIssueAddController extends HttpServlet {
                     user.getUserId(), details, returnOrderId);
 
             if (success) {
-                request.getSession().setAttribute("successMessage", "Tạo phiếu xuất kho thành công!");
+                Integer issueId = goodsIssueDAO.getIssueIdByIssueCode(issueCode.trim());
+                boolean completed = issueId != null
+                        && goodsIssueDAO.updateGoodsIssueStatus(issueId, "completed", user.getUserId());
+                if (!completed) {
+                    request.setAttribute("generalError",
+                            "Phiếu đã được tạo nhưng không hoàn tất xuất kho tự động. Vui lòng báo quản lý duyệt phiếu trong danh sách.");
+                    request.setAttribute("productsJson", productsJson);
+                    if (returnOrderId != null) {
+                        request.setAttribute("returnOrderId", returnOrderId);
+                    }
+                    if (purchaseOrderId != null) {
+                        request.setAttribute("purchaseOrderId", purchaseOrderId);
+                    }
+                    request.getRequestDispatcher("/view/staff/goods-issue-add.jsp").forward(request, response);
+                    return;
+                }
+                GoodsIssue createdIssue = goodsIssueDAO.getGoodsIssueById(issueId);
+                applyGoodsIssueCompletedSideEffects(createdIssue);
+                request.getSession().setAttribute("successMessage", "Tạo phiếu xuất kho và xuất kho thành công!");
                 response.sendRedirect(request.getContextPath() + "/goods-issue-list");
             } else {
                 request.setAttribute("generalError", "Có lỗi xảy ra khi tạo phiếu xuất. Vui lòng thử lại!");
@@ -508,6 +527,27 @@ public class GoodsIssueAddController extends HttpServlet {
             details.add(d);
         }
         return details;
+    }
+
+    /** Giống logic sau khi Manager duyệt completed ở GoodsIssueEditController. */
+    private void applyGoodsIssueCompletedSideEffects(GoodsIssue issue) {
+        if (issue == null) {
+            return;
+        }
+        if (issue.getReturnOrderId() != null) {
+            returnOrderDAO.completeReturnOrder(issue.getReturnOrderId());
+        }
+        if (issue.getNotes() != null && issue.getNotes().contains("[PO_ID:")) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[PO_ID:(\\d+)\\]")
+                    .matcher(issue.getNotes());
+            if (m.find()) {
+                try {
+                    int poId = Integer.parseInt(m.group(1));
+                    purchaseOrderDAO.completePurchaseOrder(poId);
+                } catch (Exception ignored) {
+                }
+            }
+        }
     }
 
     private String normalizeIssueType(String issueType) {
