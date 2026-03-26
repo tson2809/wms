@@ -6,8 +6,11 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,6 +37,8 @@ public class ManagerReportDAO extends DBContext {
         private long totalExportQuantity;
         private int completedReceiptCount;
         private int completedIssueCount;
+        private int completedPurchaseOrderCount;
+        private int completedSaleOrderCount;
         private int transactionCount;
         private BigDecimal estimatedReceivable = BigDecimal.ZERO;
         private BigDecimal estimatedPayable = BigDecimal.ZERO;
@@ -142,6 +147,22 @@ public class ManagerReportDAO extends DBContext {
             this.completedIssueCount = completedIssueCount;
         }
 
+        public int getCompletedPurchaseOrderCount() {
+            return completedPurchaseOrderCount;
+        }
+
+        public void setCompletedPurchaseOrderCount(int completedPurchaseOrderCount) {
+            this.completedPurchaseOrderCount = completedPurchaseOrderCount;
+        }
+
+        public int getCompletedSaleOrderCount() {
+            return completedSaleOrderCount;
+        }
+
+        public void setCompletedSaleOrderCount(int completedSaleOrderCount) {
+            this.completedSaleOrderCount = completedSaleOrderCount;
+        }
+
         public int getTransactionCount() {
             return transactionCount;
         }
@@ -239,6 +260,48 @@ public class ManagerReportDAO extends DBContext {
 
         public void setStockoutCount(int stockoutCount) {
             this.stockoutCount = stockoutCount;
+        }
+    }
+
+    public static class InventoryValueCategoryRow {
+        private String categoryName;
+        private BigDecimal value = BigDecimal.ZERO;
+
+        public String getCategoryName() {
+            return categoryName;
+        }
+
+        public void setCategoryName(String categoryName) {
+            this.categoryName = categoryName;
+        }
+
+        public BigDecimal getValue() {
+            return value;
+        }
+
+        public void setValue(BigDecimal value) {
+            this.value = value;
+        }
+    }
+
+    public static class InventoryValuePoint {
+        private String label;
+        private BigDecimal value = BigDecimal.ZERO;
+
+        public String getLabel() {
+            return label;
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
+        }
+
+        public BigDecimal getValue() {
+            return value;
+        }
+
+        public void setValue(BigDecimal value) {
+            this.value = value;
         }
     }
 
@@ -350,6 +413,36 @@ public class ManagerReportDAO extends DBContext {
         }
     }
 
+    public static class TopVariantStockRiskFlow {
+        private String sku;
+        private String productName;
+        private long stockQuantity;
+
+        public String getSku() {
+            return sku;
+        }
+
+        public void setSku(String sku) {
+            this.sku = sku;
+        }
+
+        public String getProductName() {
+            return productName;
+        }
+
+        public void setProductName(String productName) {
+            this.productName = productName;
+        }
+
+        public long getStockQuantity() {
+            return stockQuantity;
+        }
+
+        public void setStockQuantity(long stockQuantity) {
+            this.stockQuantity = stockQuantity;
+        }
+    }
+
     public SummaryMetrics getSummaryMetrics(Date fromDate, Date toDate) {
         SummaryMetrics summary = new SummaryMetrics();
 
@@ -420,6 +513,18 @@ public class ManagerReportDAO extends DBContext {
                 fromDate,
                 toDate));
 
+        summary.setCompletedPurchaseOrderCount(queryInt(
+                "SELECT COUNT(*) FROM purchase_orders "
+                + "WHERE supplier_id IS NOT NULL AND status IN ('approved','received') AND order_date BETWEEN ? AND ?",
+                fromDate,
+                toDate));
+
+        summary.setCompletedSaleOrderCount(queryInt(
+                "SELECT COUNT(*) FROM purchase_orders "
+                + "WHERE supplier_id IS NULL AND status IN ('approved','received') AND order_date BETWEEN ? AND ?",
+                fromDate,
+                toDate));
+
         summary.setTransactionCount(queryInt(
                 "SELECT COUNT(*) FROM inventory_transactions WHERE DATE(transaction_date) BETWEEN ? AND ?",
                 fromDate,
@@ -486,6 +591,202 @@ public class ManagerReportDAO extends DBContext {
 
         return insight;
         }
+
+    /**
+     * Inventory Value theo category (snapshot as-of @asOfDate).
+     * Định giá theo cost_price hiện tại (product_variants.cost_price).
+     */
+    public List<InventoryValueCategoryRow> getInventoryValueByCategory(Date asOfDate) {
+        Map<String, BigDecimal> baseByCategory = new LinkedHashMap<>();
+        Map<String, BigDecimal> movementAfterByCategory = new LinkedHashMap<>();
+
+        String baseSql = "SELECT c.category_name AS category_name, "
+                + "COALESCE(SUM(pv.quantity * pv.cost_price),0) AS base_value "
+                + "FROM categories c "
+                + "JOIN products p ON p.category_id = c.category_id "
+                + "JOIN product_variants pv ON pv.product_id = p.product_id "
+                + "WHERE pv.status = 'active' "
+                + "GROUP BY c.category_id, c.category_name";
+
+        String movementSql = "SELECT c.category_name AS category_name, "
+                + "COALESCE(SUM(it.quantity_change * pv.cost_price),0) AS movement_after_value "
+                + "FROM inventory_transactions it "
+                + "JOIN product_variants pv ON it.variant_id = pv.variant_id "
+                + "JOIN products p ON pv.product_id = p.product_id "
+                + "JOIN categories c ON p.category_id = c.category_id "
+                + "WHERE pv.status = 'active' AND DATE(it.transaction_date) > ? "
+                + "GROUP BY c.category_id, c.category_name";
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(baseSql)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String categoryName = rs.getString("category_name");
+                BigDecimal baseValue = rs.getBigDecimal("base_value");
+                baseByCategory.put(categoryName, baseValue == null ? BigDecimal.ZERO : baseValue);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(movementSql)) {
+            ps.setDate(1, asOfDate);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String categoryName = rs.getString("category_name");
+                BigDecimal movementAfterValue = rs.getBigDecimal("movement_after_value");
+                movementAfterByCategory.put(categoryName, movementAfterValue == null ? BigDecimal.ZERO : movementAfterValue);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        List<InventoryValueCategoryRow> rows = new ArrayList<>();
+        for (Map.Entry<String, BigDecimal> e : baseByCategory.entrySet()) {
+            String categoryName = e.getKey();
+            BigDecimal baseValue = e.getValue() == null ? BigDecimal.ZERO : e.getValue();
+            BigDecimal movementAfterValue = movementAfterByCategory.getOrDefault(categoryName, BigDecimal.ZERO);
+            BigDecimal valueAtAsOf = baseValue.subtract(movementAfterValue);
+
+            InventoryValueCategoryRow row = new InventoryValueCategoryRow();
+            row.setCategoryName(categoryName);
+            row.setValue(valueAtAsOf);
+            rows.add(row);
+        }
+
+        rows.sort((a, b) -> {
+            if (a == null || a.getValue() == null) {
+                return 1;
+            }
+            if (b == null || b.getValue() == null) {
+                return -1;
+            }
+            return b.getValue().compareTo(a.getValue());
+        });
+        return rows;
+    }
+
+    /**
+     * Chuỗi snapshot Inventory Value theo thời gian (end of day/week/month),
+     * định giá theo cost_price hiện tại.
+     */
+    public List<InventoryValuePoint> getInventoryValueTrend(Date fromDate, Date toDate, String granularity) {
+        BigDecimal baseTotalValue = queryDecimalNoRange(
+                "SELECT COALESCE(SUM(quantity * cost_price),0) FROM product_variants WHERE status = 'active'"
+        );
+
+        List<LocalDate> moveDates = new ArrayList<>();
+        List<BigDecimal> moveValues = new ArrayList<>();
+
+        String movementByDateSql = "SELECT DATE(it.transaction_date) AS trx_day, "
+                + "COALESCE(SUM(it.quantity_change * pv.cost_price),0) AS movement_value "
+                + "FROM inventory_transactions it "
+                + "JOIN product_variants pv ON it.variant_id = pv.variant_id "
+                + "WHERE pv.status = 'active' AND DATE(it.transaction_date) > ? "
+                + "GROUP BY DATE(it.transaction_date) "
+                + "ORDER BY trx_day ASC";
+
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(movementByDateSql)) {
+            ps.setDate(1, fromDate);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                LocalDate day = rs.getDate("trx_day").toLocalDate();
+                BigDecimal movementValue = rs.getBigDecimal("movement_value");
+                moveDates.add(day);
+                moveValues.add(movementValue == null ? BigDecimal.ZERO : movementValue);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        int n = moveDates.size();
+        BigDecimal[] suffix = new BigDecimal[n + 1];
+        suffix[n] = BigDecimal.ZERO;
+        for (int i = n - 1; i >= 0; i--) {
+            suffix[i] = suffix[i + 1].add(moveValues.get(i));
+        }
+
+        LocalDate fromLocalDate = fromDate.toLocalDate();
+        LocalDate toLocalDate = toDate.toLocalDate();
+
+        List<InventoryValuePoint> points = new ArrayList<>();
+
+        if ("day".equalsIgnoreCase(granularity)) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            for (LocalDate d = fromLocalDate; !d.isAfter(toLocalDate); d = d.plusDays(1)) {
+                BigDecimal valueAt = calculateValueAt(d, baseTotalValue, moveDates, suffix);
+                InventoryValuePoint p = new InventoryValuePoint();
+                p.setLabel(d.format(fmt));
+                p.setValue(valueAt);
+                points.add(p);
+            }
+            return points;
+        }
+
+        if ("week".equalsIgnoreCase(granularity)) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM");
+            LocalDate cursor = fromLocalDate;
+            while (!cursor.isAfter(toLocalDate)) {
+                LocalDate weekEnd = cursor.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+                if (weekEnd.isAfter(toLocalDate)) {
+                    weekEnd = toLocalDate;
+                }
+                LocalDate weekStart = weekEnd.minusDays(6);
+
+                BigDecimal valueAt = calculateValueAt(weekEnd, baseTotalValue, moveDates, suffix);
+                InventoryValuePoint p = new InventoryValuePoint();
+                p.setLabel(weekStart.format(fmt) + "-" + weekEnd.format(fmt));
+                p.setValue(valueAt);
+                points.add(p);
+
+                cursor = weekEnd.plusDays(1);
+            }
+            return points;
+        }
+
+        // Default: month
+        DateTimeFormatter monthFmt = DateTimeFormatter.ofPattern("MM/yyyy");
+        YearMonth ymFrom = YearMonth.from(fromLocalDate);
+        YearMonth ymTo = YearMonth.from(toLocalDate);
+        for (YearMonth ym = ymFrom; !ym.isAfter(ymTo); ym = ym.plusMonths(1)) {
+            LocalDate monthEnd = ym.atEndOfMonth();
+            if (monthEnd.isAfter(toLocalDate)) {
+                monthEnd = toLocalDate;
+            }
+
+            BigDecimal valueAt = calculateValueAt(monthEnd, baseTotalValue, moveDates, suffix);
+            InventoryValuePoint p = new InventoryValuePoint();
+            p.setLabel(monthEnd.format(monthFmt));
+            p.setValue(valueAt);
+            points.add(p);
+        }
+        return points;
+    }
+
+    private BigDecimal calculateValueAt(
+            LocalDate endDate,
+            BigDecimal baseTotalValue,
+            List<LocalDate> moveDates,
+            BigDecimal[] suffix
+    ) {
+        int idx = upperBound(moveDates, endDate);
+        BigDecimal sumAfter = suffix[idx];
+        return baseTotalValue.subtract(sumAfter);
+    }
+
+    // Return index of the first element > target
+    private int upperBound(List<LocalDate> sortedDates, LocalDate target) {
+        int low = 0;
+        int high = sortedDates.size();
+        while (low < high) {
+            int mid = (low + high) >>> 1;
+            if (sortedDates.get(mid).isAfter(target)) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+        return low;
+    }
 
     public List<MonthlyFlow> getMonthlyFlow(Date fromDate, Date toDate) {
         LocalDate start = fromDate.toLocalDate().withDayOfMonth(1);
@@ -597,6 +898,113 @@ public class ManagerReportDAO extends DBContext {
                 row.setImportQuantity(rs.getLong("import_qty"));
                 row.setExportQuantity(rs.getLong("export_qty"));
                 row.setNetQuantity(rs.getLong("net_qty"));
+                rows.add(row);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        return rows;
+    }
+
+    public List<TopVariantFlow> getTopImportVariants(Date fromDate, Date toDate, int limit) {
+        List<TopVariantFlow> rows = new ArrayList<>();
+        String sql = "SELECT pv.sku, p.product_name, "
+                + "COALESCE(SUM(grd.quantity),0) AS import_qty "
+                + "FROM product_variants pv "
+                + "JOIN products p ON pv.product_id = p.product_id "
+                + "JOIN goods_receipt_details grd ON grd.variant_id = pv.variant_id "
+                + "JOIN goods_receipts gr ON gr.receipt_id = grd.receipt_id "
+                + "WHERE gr.status = 'completed' AND gr.receipt_date BETWEEN ? AND ? "
+                + "GROUP BY pv.variant_id, pv.sku, p.product_name "
+                + "ORDER BY import_qty DESC "
+                + "LIMIT ?";
+
+        try (Connection con = getConnection(); PreparedStatement pre = con.prepareStatement(sql)) {
+            pre.setDate(1, fromDate);
+            pre.setDate(2, toDate);
+            pre.setInt(3, limit);
+
+            ResultSet rs = pre.executeQuery();
+            while (rs.next()) {
+                TopVariantFlow row = new TopVariantFlow();
+                row.setSku(rs.getString("sku"));
+                row.setProductName(rs.getString("product_name"));
+                long importQty = rs.getLong("import_qty");
+                row.setImportQuantity(importQty);
+                row.setExportQuantity(0L);
+                row.setNetQuantity(importQty);
+                rows.add(row);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        return rows;
+    }
+
+    public List<TopVariantFlow> getTopExportVariants(Date fromDate, Date toDate, int limit) {
+        List<TopVariantFlow> rows = new ArrayList<>();
+        String sql = "SELECT pv.sku, p.product_name, "
+                + "COALESCE(SUM(gid.quantity),0) AS export_qty "
+                + "FROM product_variants pv "
+                + "JOIN products p ON pv.product_id = p.product_id "
+                + "JOIN goods_issue_details gid ON gid.variant_id = pv.variant_id "
+                + "JOIN goods_issues gi ON gi.issue_id = gid.issue_id "
+                + "WHERE gi.status = 'completed' AND DATE(gi.issue_date) BETWEEN ? AND ? "
+                + "GROUP BY pv.variant_id, pv.sku, p.product_name "
+                + "ORDER BY export_qty DESC "
+                + "LIMIT ?";
+
+        try (Connection con = getConnection(); PreparedStatement pre = con.prepareStatement(sql)) {
+            pre.setDate(1, fromDate);
+            pre.setDate(2, toDate);
+            pre.setInt(3, limit);
+
+            ResultSet rs = pre.executeQuery();
+            while (rs.next()) {
+                TopVariantFlow row = new TopVariantFlow();
+                row.setSku(rs.getString("sku"));
+                row.setProductName(rs.getString("product_name"));
+                long exportQty = rs.getLong("export_qty");
+                row.setImportQuantity(0L);
+                row.setExportQuantity(exportQty);
+                row.setNetQuantity(-exportQty);
+                rows.add(row);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        return rows;
+    }
+
+    public List<TopVariantStockRiskFlow> getTopStockRiskVariants(Date toDate, int limit) {
+        List<TopVariantStockRiskFlow> rows = new ArrayList<>();
+        String sql = "SELECT pv.sku, p.product_name, "
+                + "(pv.quantity - COALESCE(after_qty.after_qty,0)) AS stock_qty "
+                + "FROM product_variants pv "
+                + "JOIN products p ON pv.product_id = p.product_id "
+                + "LEFT JOIN ( "
+                + "    SELECT variant_id, SUM(quantity_change) AS after_qty "
+                + "    FROM inventory_transactions "
+                + "    WHERE DATE(transaction_date) > ? "
+                + "    GROUP BY variant_id "
+                + ") after_qty ON after_qty.variant_id = pv.variant_id "
+                + "WHERE pv.status = 'active' "
+                + "ORDER BY stock_qty DESC "
+                + "LIMIT ?";
+
+        try (Connection con = getConnection(); PreparedStatement pre = con.prepareStatement(sql)) {
+            pre.setDate(1, toDate);
+            pre.setInt(2, limit);
+
+            ResultSet rs = pre.executeQuery();
+            while (rs.next()) {
+                TopVariantStockRiskFlow row = new TopVariantStockRiskFlow();
+                row.setSku(rs.getString("sku"));
+                row.setProductName(rs.getString("product_name"));
+                row.setStockQuantity(rs.getLong("stock_qty"));
                 rows.add(row);
             }
         } catch (SQLException ex) {

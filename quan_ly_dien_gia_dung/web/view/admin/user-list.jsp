@@ -72,11 +72,11 @@
                                     </div>
 
                                     <div class="col-md-3">
-                                        <label class="form-label">Status</label>
+                                        <label class="form-label">Trạng thái</label>
                                         <select name="active" class="form-select">
-                                            <option value="">All</option>
-                                            <option value="1" ${param.active == '1' ? 'selected' : ''}>Active</option>
-                                            <option value="0" ${param.active == '0' ? 'selected' : ''}>Inactive</option>
+                                            <option value="">Tất cả</option>
+                                            <option value="1" ${param.active == '1' ? 'selected' : ''}>Đang hoạt động</option>
+                                            <option value="0" ${param.active == '0' ? 'selected' : ''}>Ngưng hoạt động</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2 d-flex gap-2">
@@ -84,7 +84,7 @@
                                             Tìm 
                                         </button>
                                         <button type="reset" class="btn btn-secondary w-100" onclick="window.location.href = 'user-list'">
-                                            Clear
+                                            Đặt lại  
                                         </button>
                                     </div>
                                 </div>
@@ -130,7 +130,7 @@
                                             <td>${u.roleName}</td>
                                             <td>
                                                 <span class="status-dot ${u.active ? 'status-active' : 'status-inactive'}"></span>
-                                                ${u.active ? 'Active' : 'Inactive'}
+                                                ${u.active ? 'Đang hoạt động' : 'Ngưng hoạt động'}
                                             </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
@@ -148,15 +148,15 @@
                                                         <c:when test="${u.active}">
                                                             <c:choose>
                                                                 <c:when test="${sessionScope.user != null && sessionScope.user.userId == u.userId}">
-                                                                    <button type="button" class="btn btn-sm btn-secondary" title="Không thể tự deactive" disabled>
+                                                                    <button type="button" class="btn btn-sm btn-secondary" title="Không thể tự ngưng hoạt động" disabled>
                                                                         <i class="fa fa-user-slash"></i>
                                                                     </button>
                                                                 </c:when>
                                                                 <c:otherwise>
-                                                                    <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn deactive user này?')">
+                                                                    <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn ngưng hoạt động người dùng này?')">
                                                                         <input type="hidden" name="id" value="${u.userId}">
                                                                         <input type="hidden" name="active" value="false">
-                                                                        <button type="submit" class="btn btn-sm btn-secondary" title="Deactive">
+                                                                        <button type="submit" class="btn btn-sm btn-secondary" title="Ngưng hoạt động">
                                                                             <i class="fa fa-user-slash"></i>
                                                                         </button>
                                                                     </form>
@@ -164,10 +164,10 @@
                                                             </c:choose>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn active user này?')">
+                                                            <form method="post" action="${pageContext.request.contextPath}/user-toggle-status" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn bật hoạt động người dùng này?')">
                                                                 <input type="hidden" name="id" value="${u.userId}">
                                                                 <input type="hidden" name="active" value="true">
-                                                                <button type="submit" class="btn btn-sm btn-success" title="Active">
+                                                                <button type="submit" class="btn btn-sm btn-success" title="Bật hoạt động">
                                                                     <i class="fa fa-user-check"></i>
                                                                 </button>
                                                             </form>

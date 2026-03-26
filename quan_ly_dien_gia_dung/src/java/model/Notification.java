@@ -13,7 +13,6 @@ import java.sql.Timestamp;
 public class Notification {
     private int notificationId;
     private int creatorId;
-    private String notificationType;
     private String title;
     private String content;
     private Timestamp createdAt;
@@ -21,10 +20,9 @@ public class Notification {
     public Notification() {
     }
 
-    public Notification(int notificationId, int creatorId, String notificationType, String title, String content, Timestamp createdAt) {
+    public Notification(int notificationId, int creatorId, String title, String content, Timestamp createdAt) {
         this.notificationId = notificationId;
         this.creatorId = creatorId;
-        this.notificationType = notificationType;
         this.title = title;
         this.content = content;
         this.createdAt = createdAt;
@@ -44,14 +42,6 @@ public class Notification {
 
     public void setCreatorId(int creatorId) {
         this.creatorId = creatorId;
-    }
-
-    public String getNotificationType() {
-        return notificationType;
-    }
-
-    public void setNotificationType(String notificationType) {
-        this.notificationType = notificationType;
     }
 
     public String getTitle() {
@@ -80,7 +70,7 @@ public class Notification {
 
     @Override
     public String toString() {
-        return "Notification{" + "notificationId=" + notificationId + ", creatorId=" + creatorId + ", notificationType=" + notificationType + ", title=" + title + ", content=" + content + ", createdAt=" + createdAt + '}';
+        return "Notification{" + "notificationId=" + notificationId + ", creatorId=" + creatorId + ", title=" + title + ", content=" + content + ", createdAt=" + createdAt + '}';
     }
     
     

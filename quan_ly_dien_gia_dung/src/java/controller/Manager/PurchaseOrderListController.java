@@ -15,9 +15,7 @@ import service.PurchaseOrderService;
 
 import java.io.IOException;
 import java.sql.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @WebServlet(name = "PurchaseOrderListController", urlPatterns = { "/purchase-order/list" })
 public class PurchaseOrderListController extends HttpServlet {
@@ -150,7 +148,6 @@ public class PurchaseOrderListController extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        Set<String> permissions = getSessionPermissions(session);
 
         String action = request.getParameter("action");
 
@@ -160,14 +157,16 @@ public class PurchaseOrderListController extends HttpServlet {
                 try {
                     int poId = Integer.parseInt(idParam);
                     int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
-                    
-                    boolean canCancel = permissions.contains("cancel purchase order");
-                    
-                    // Staff (roleId=3) can cancel if it's a Sale order (supplier_id IS NULL)
-                    if (!canCancel && roleId == 3) {
-                        PurchaseOrder po = purchaseOrderDAO.getPurchaseOrderById(poId);
-                        if (po != null && po.getSupplierId() == 0) {
+
+                    PurchaseOrder po = purchaseOrderDAO.getPurchaseOrderById(poId);
+                    boolean canCancel = false;
+                    if (po != null) {
+                        if (roleId == 2 || roleId == 3) {
                             canCancel = true;
+                        } else if (roleId == 4) {
+                            canCancel = po.getSupplierId() == 0
+                                    && po.getCreatedBy() == user.getUserId()
+                                    && "draft".equalsIgnoreCase(po.getStatus());
                         }
                     }
                     
@@ -191,15 +190,6 @@ public class PurchaseOrderListController extends HttpServlet {
         // Redirect về list, giữ lại các filter params
         String redirectUrl = buildRedirectUrl(request);
         response.sendRedirect(redirectUrl);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Set<String> getSessionPermissions(HttpSession session) {
-        Object raw = session.getAttribute("userPermissions");
-        if (raw instanceof Set) {
-            return (Set<String>) raw;
-        }
-        return new HashSet<>();
     }
 
     private String buildRedirectUrl(HttpServletRequest request) {

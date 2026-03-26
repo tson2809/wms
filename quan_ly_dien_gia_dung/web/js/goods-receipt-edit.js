@@ -18,13 +18,36 @@
         }).format(amount);
     }
 
+    function getSupplierIdFromPage() {
+        // Supplier is either from select or hidden input (SALE case).
+        var $sel = $('select[name="supplierId"]').first();
+        var sid = null;
+        if ($sel.length) {
+            // Use selected option to be safe with disabled selects.
+            sid = $sel.find('option:selected').val();
+        }
+        if (!sid) {
+            var $hidden = $('input[name="supplierId"]').first();
+            sid = $hidden.length ? $hidden.val() : null;
+        }
+        if (!sid) return '';
+        return String(sid).trim();
+    }
+
     function loadProducts(searchValue) {
+        var supplierId = getSupplierIdFromPage();
+        if (!supplierId) {
+            $('#searchDropdown').hide();
+            return;
+        }
+
         $.ajax({
             url: editUrl,
             type: 'POST',
             data: {
                 action: 'searchProduct',
-                search: searchValue
+                search: searchValue,
+                supplierId: supplierId
             },
             dataType: 'json',
             success: function(data) {
@@ -77,7 +100,8 @@
     }
 
     function searchProduct() {
-        loadProducts('');
+        var searchValue = ($('#searchProduct').val() || '').toString().trim();
+        loadProducts(searchValue);
     }
 
     window.searchProduct = searchProduct;

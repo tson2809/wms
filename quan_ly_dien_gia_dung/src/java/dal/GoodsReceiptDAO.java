@@ -155,7 +155,6 @@ public class GoodsReceiptDAO extends DBContext {
         
         gr.setNotes(rs.getString("notes"));
         gr.setCreatedAt(rs.getTimestamp("created_at"));
-        gr.setUpdatedAt(rs.getTimestamp("updated_at"));
         
         return gr;
     }
@@ -183,7 +182,7 @@ public class GoodsReceiptDAO extends DBContext {
                 applyReceiptToInventory(conn, receiptId, approvedBy != null ? approvedBy : 0);
             }
 
-            String sql = "UPDATE goods_receipts SET status = ?, approved_by = ?, updated_at = CURRENT_TIMESTAMP WHERE receipt_id = ?";
+            String sql = "UPDATE goods_receipts SET status = ?, approved_by = ? WHERE receipt_id = ?";
             try (PreparedStatement pre = conn.prepareStatement(sql)) {
                 pre.setString(1, status);
                 pre.setObject(2, "completed".equals(status) ? approvedBy : null);
@@ -262,6 +261,21 @@ public class GoodsReceiptDAO extends DBContext {
             Logger.getLogger(GoodsReceiptDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
+    }
+
+    public String generateNextReceiptCode() {
+        String sql = "SELECT COALESCE(MAX(CAST(SUBSTRING(receipt_code, 4) AS UNSIGNED)), 0) AS max_code "
+                + "FROM goods_receipts WHERE receipt_code LIKE 'GR-%'";
+        try (PreparedStatement pre = this.getConnection().prepareStatement(sql);
+             ResultSet rs = pre.executeQuery()) {
+            if (rs.next()) {
+                int next = rs.getInt("max_code") + 1;
+                return String.format("GR-%03d", next);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(GoodsReceiptDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "GR-001";
     }
 
     /** Lấy receipt_id theo mã phiếu (dùng sau khi tạo phiếu để hoàn tất nhập kho). */
@@ -517,15 +531,28 @@ public class GoodsReceiptDAO extends DBContext {
     
     // Search products and return JSON for goods receipt (for AJAX)
     public String searchProductsForReceiptJson(String keyword) {
+        return searchProductsForReceiptJson(keyword, null);
+    }
+
+    // If supplierId is provided (not SALE), limit products to those of that supplier.
+    // If supplierId is null, returns products regardless of supplier.
+    public String searchProductsForReceiptJson(String keyword, Integer supplierId) {
         String sql = """
-                     SELECT pv.variant_id, pv.sku, pv.cost_price, 
-                            p.product_name, u.unit_name 
-                     FROM product_variants pv 
-                     INNER JOIN products p ON pv.product_id = p.product_id 
-                     LEFT JOIN units u ON p.unit_id = u.unit_id 
-                     WHERE pv.status = 'active' AND p.status = 'active' 
-                     AND (pv.sku LIKE ? OR p.product_name LIKE ?) 
+                     SELECT pv.variant_id, pv.sku, pv.cost_price,
+                            p.product_name, u.unit_name
+                     FROM product_variants pv
+                     INNER JOIN products p ON pv.product_id = p.product_id
+                     LEFT JOIN units u ON p.unit_id = u.unit_id
+                     WHERE pv.status = 'active' AND p.status = 'active'
+                     AND (pv.sku LIKE ? OR p.product_name LIKE ?)
                      """;
+
+        boolean hasSupplierFilter = supplierId != null && supplierId > 0;
+        if (hasSupplierFilter) {
+            sql += " AND p.supplier_id = ? ";
+        }
+
+        sql += " ORDER BY p.product_name ";
         
         StringBuilder json = new StringBuilder("[");
         String pattern = (keyword != null && !keyword.trim().isEmpty()) 
@@ -535,6 +562,9 @@ public class GoodsReceiptDAO extends DBContext {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, pattern);
             ps.setString(2, pattern);
+            if (hasSupplierFilter) {
+                ps.setInt(3, supplierId);
+            }
             ResultSet rs = ps.executeQuery();
             boolean first = true;
             while (rs.next()) {

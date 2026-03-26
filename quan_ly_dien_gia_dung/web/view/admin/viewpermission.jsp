@@ -61,96 +61,53 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <h1 class="display-5 mb-4">Danh Sách Quyền Hệ Thống</h1>
-
-                            <!-- Success/Error Messages -->
-                            <c:if test="${param.success == 'true'}">
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    <i class="fa fa-check-circle me-2"></i>
-                                    <strong>Thành công!</strong> Đã cập nhật permissions.
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            </c:if>
-
-                            <c:if test="${param.error == 'true'}">
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <i class="fa fa-exclamation-circle me-2"></i>
-                                    <strong>Lỗi!</strong> Không thể cập nhật permissions. Vui lòng thử lại.
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            </c:if>
                         </div>
 
                         <div class="col-12">
                             <div class="bg-light rounded h-100 p-4">
-                                <form id="permissionForm" method="POST" action="viewpermission">
+                                <c:if test="${empty allPermissions}">
+                                    <div class="alert alert-warning">
+                                        Không có permission nào trong hệ thống!
+                                    </div>
+                                </c:if>
 
-                                    <c:if test="${empty allPermissions}">
-                                        <div class="alert alert-warning">
-                                            Không có permission nào trong hệ thống!
-                                        </div>
-                                    </c:if>
-
-                                    <c:if test="${not empty allPermissions}">
-                                        <div class="mb-3">
-                                            <div class="btn-group" role="group">
-                                                <c:forEach var="role" items="${allRoles}">
-                                                    <button type="button" 
-                                                            class="btn btn-sm btn-outline-primary select-all-role-btn" 
-                                                            data-role="${role.roleId}"
-                                                            data-role-id="${role.roleId}">
-                                                        Select All ${role.roleName}
-                                                    </button>
-                                                </c:forEach>
-                                            </div>
-                                        </div>
-
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered table-hover">
-                                                <thead class="table-primary">
+                                <c:if test="${not empty allPermissions}">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="table-primary">
+                                                <tr>
+                                                    <th style="width: 25%">Danh sách</th>
+                                                    <th style="width: 35%">Mô tả</th>
+                                                    <c:forEach var="role" items="${allRoles}">
+                                                        <th class="text-center role-column" data-role-id="${role.roleId}" style="width: 11%">${role.roleName}</th>
+                                                    </c:forEach>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <c:forEach var="permission" items="${allPermissions}">
                                                     <tr>
-                                                        <th style="width: 25%">Permission</th>
-                                                        <th style="width: 35%">Description</th>
+                                                        <td class="align-middle">
+                                                            <strong>${permission.permissionName}</strong>
+                                                        </td>
+
+                                                        <td class="align-middle">
+                                                            <small class="text-muted">${permission.permissionDescription}</small>
+                                                        </td>
+
                                                         <c:forEach var="role" items="${allRoles}">
-                                                            <th class="text-center role-column" data-role-id="${role.roleId}" style="width: 11%">${role.roleName}</th>
+                                                            <td class="text-center align-middle role-column" data-role-id="${role.roleId}">
+                                                                <input class="form-check-input"
+                                                                       type="checkbox"
+                                                                       disabled
+                                                                       ${allRolePermissions[role.roleId].contains(permission.permissionId) ? 'checked' : ''}>
+                                                            </td>
                                                         </c:forEach>
                                                     </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <c:forEach var="permission" items="${allPermissions}">
-                                                        <tr>
-                                                            <td class="align-middle">
-                                                                <strong>${permission.permissionName}</strong>
-                                                            </td>
-
-                                                            <td class="align-middle">
-                                                                <small class="text-muted">${permission.permissionDescription}</small>
-                                                            </td>
-
-                                                            <c:forEach var="role" items="${allRoles}">
-                                                                <td class="text-center align-middle role-column" data-role-id="${role.roleId}">
-                                                                    <input class="form-check-input role-checkbox" 
-                                                                           type="checkbox" 
-                                                                           name="permissions_${role.roleId}"
-                                                                           value="${permission.permissionId}" 
-                                                                           data-role="${role.roleId}"
-                                                                           ${allRolePermissions[role.roleId].contains(permission.permissionId) ? 'checked' : ''}>
-                                                                </td>
-                                                            </c:forEach>
-                                                        </tr>
-                                                    </c:forEach>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </c:if>
-                                    <div class="mt-4 text-center">
-                                        <button type="submit" class="btn btn-success">
-                                            Save Changes
-                                        </button>
-                                        <button type="button" class="btn btn-secondary" onclick="location.reload()">
-                                            Reset
-                                        </button>
+                                                </c:forEach>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                </form>
+                                </c:if>
                             </div>
                         </div>
 
@@ -178,65 +135,5 @@
         <!-- Template Javascript -->
         <script src="${pageContext.request.contextPath}/js/main.js"></script>
 
-        <script>
-                                            $(document).ready(function () {
-                                                // Confirm
-                                                $('#permissionForm').submit(function (e) {
-                                                    if (!confirm('Bạn có chắc muốn lưu thay đổi cho TẤT CẢ các roles?')) {
-                                                        e.preventDefault();
-                                                        return false;
-                                                    }
-                                                });
-
-                                                // Xử lý khi click nút "Select All <RoleName>"
-                                                $('.select-all-role-btn').click(function () {
-                                                    var roleId = $(this).data('role');
-                                                    var btn = $(this);
-
-                                                    // Tìm tất cả checkboxes của role này
-                                                    var checkboxes = $('.role-checkbox[data-role="' + roleId + '"]');
-
-                                                    // Kiểm tra xem tất cả đã được check chưa
-                                                    var allChecked = checkboxes.filter(':checked').length === checkboxes.length;
-
-                                                    if (allChecked) {
-                                                        // Nếu đã check hết → Uncheck all
-                                                        checkboxes.prop('checked', false);
-                                                        btn.removeClass('btn-primary').addClass('btn-outline-primary');
-                                                    } else {
-                                                        // Nếu chưa check hết → Check all
-                                                        checkboxes.prop('checked', true);
-                                                        btn.removeClass('btn-outline-primary').addClass('btn-primary');
-                                                    }
-                                                });
-
-                                                // Cập nhật style của button khi user manually check/uncheck
-                                                $('.role-checkbox').change(function () {
-                                                    var roleId = $(this).data('role');
-
-                                                    var checkboxes = $('.role-checkbox[data-role="' + roleId + '"]');
-                                                    var btn = $('.select-all-role-btn[data-role="' + roleId + '"]');
-
-                                                    var allChecked = checkboxes.filter(':checked').length === checkboxes.length;
-
-                                                    if (allChecked && checkboxes.length > 0) {
-                                                        btn.removeClass('btn-outline-primary').addClass('btn-primary');
-                                                    } else {
-                                                        btn.removeClass('btn-primary').addClass('btn-outline-primary');
-                                                    }
-                                                });
-
-                                                // Khởi tạo style của buttons lúc load trang
-                                                $('.select-all-role-btn').each(function () {
-                                                    var roleId = $(this).data('role');
-                                                    var checkboxes = $('.role-checkbox[data-role="' + roleId + '"]');
-                                                    var allChecked = checkboxes.filter(':checked').length === checkboxes.length;
-
-                                                    if (allChecked && checkboxes.length > 0) {
-                                                        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
-                                                    }
-                                                });
-                                            });
-        </script>
     </body>
 </html>

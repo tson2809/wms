@@ -42,13 +42,12 @@ public class AuditLogFilter implements Filter {
         Integer userId = getCurrentUserId(httpRequest.getSession(false));
         String actionType = resolveActionType(path, method, httpRequest);
         String tableName = resolveTableName(path);
-        Integer recordId = resolveRecordId(httpRequest);
 
         if (actionType == null || tableName == null) {
             return;
         }
 
-        auditLogDAO.insertAuditLog(userId, actionType, tableName, recordId);
+        auditLogDAO.insertAuditLog(userId, actionType, tableName);
     }
 
     private boolean isSuccessfulMutation(HttpServletRequest request, HttpServletResponse response, int status) {
@@ -218,24 +217,4 @@ public class AuditLogFilter implements Filter {
         return null;
     }
 
-    private Integer resolveRecordId(HttpServletRequest request) {
-        String[] keys = {
-            "id", "userId", "supplierId", "categoryId", "brandId", "unitId", "productId",
-            "purchaseOrderId", "receiptId", "issueId", "sheetId", "returnOrderId", "salesReturnId",
-            "notificationId"
-        };
-
-        for (String key : keys) {
-            String value = request.getParameter(key);
-            if (value == null || value.isBlank()) {
-                continue;
-            }
-            try {
-                return Integer.parseInt(value);
-            } catch (NumberFormatException ignored) {
-            }
-        }
-
-        return null;
-    }
 }

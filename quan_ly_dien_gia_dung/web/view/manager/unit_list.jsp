@@ -21,6 +21,27 @@
         <link href="${pageContext.request.contextPath}/css/bootstrap.min.css" rel="stylesheet">
         <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
         <style>
+            .supplier-filter-form .d-flex.gap-2 .btn,
+            .supplier-filter-form .d-flex.gap-2 a.btn {
+                height: calc(1.5em + 0.75rem + 2px);
+                line-height: 1;
+                display: inline-flex;
+                align-items: center;
+                padding: 0 0.75rem;
+            }
+            .unit-list-section .status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 6px;
+            }
+            .unit-list-section .status-active {
+                background-color: #22c55e;
+            }
+            .unit-list-section .status-inactive {
+                background-color: #ef4444;
+            }
             .unit-list-section .page-btn {
                 width: 32px;
                 height: 32px;
@@ -82,23 +103,15 @@
                 background-color: #eef2ff;
                 color: #4338ca;
             }
-            .unit-list-section .action-btn.action-delete:hover {
-                background-color: #fef2f2;
-                color: #dc2626;
-            }
             .unit-list-section .action-col {
-                width: 120px;
+                width: 160px;
                 text-align: center;
+                padding-left: 8px;
+                padding-right: 8px;
             }
         </style>
     </head>
     <body>
-        <%
-            java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-            boolean canCreateUnit = userPermissions != null && userPermissions.contains("create unit");
-            boolean canEditUnit = userPermissions != null && userPermissions.contains("edit unit");
-            boolean canDeleteUnit = userPermissions != null && userPermissions.contains("delete unit");
-        %>
         <div class="container-fluid position-relative bg-white d-flex p-0">
             <jsp:include page="/view/common/components/sidebar.jsp" />
 
@@ -110,9 +123,9 @@
                         <div class="col-12 unit-list-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="mb-0 fw-semibold">Danh sách đơn vị tính</h5>
-                                <% if (canCreateUnit) { %>
+                                <c:if test="${sessionScope.user.role.roleId == 2}">
                                 <a href="${pageContext.request.contextPath}/unit-add" class="btn btn-primary">Thêm đơn vị</a>
-                                <% } %>
+                                </c:if>
                             </div>
 
                             <c:if test="${not empty message}">
@@ -122,7 +135,7 @@
                                 </div>
                             </c:if>
 
-                            <form action="${pageContext.request.contextPath}/unit-list" method="post" class="mb-3">
+                            <form action="${pageContext.request.contextPath}/unit-list" method="post" class="mb-3 supplier-filter-form">
                                 <input type="hidden" name="numberPerPage" value="${numberPerPage}">
                                 <input type="hidden" name="page" value="1">
                                 <div class="row g-3 align-items-end">
@@ -145,6 +158,7 @@
                                     <tr>
                                         <th style="width: 80px;">STT</th>
                                         <th>Tên đơn vị</th>
+                                        <th style="width: 200px;">Trạng thái</th>
                                         <th class="action-col">Thao tác</th>
                                     </tr>
                                 </thead>
@@ -153,26 +167,41 @@
                                         <tr>
                                             <td>${(page - 1) * numberPerPage + st.index + 1}</td>
                                             <td>${u.unitName}</td>
+                                            <td>
+                                                <span class="status-dot ${u.status == 'active' ? 'status-active' : 'status-inactive'}"></span>
+                                                ${u.status == 'active' ? 'Đang hoạt động' : 'Ngưng hoạt động'}
+                                            </td>
                                             <td class="action-col">
                                                 <div class="action-btn-group">
-                                                    <% if (canEditUnit) { %>
+                                                    <c:if test="${sessionScope.user.role.roleId == 2}">
                                                     <a href="${pageContext.request.contextPath}/unit-edit?id=${u.unitId}"
                                                        class="action-btn action-edit" title="Chỉnh sửa">
                                                         <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                     </a>
-                                                    <% } %>
-                                                    <% if (canDeleteUnit) { %>
-                                                    <button type="button"
-                                                            class="action-btn action-delete btn-delete"
-                                                            data-id="${u.unitId}"
-                                                            data-name="${u.unitName}"
-                                                            title="Xóa">
-                                                        <iconify-icon icon="lucide:trash-2"></iconify-icon>
-                                                    </button>
-                                                    <% } %>
-                                                    <% if (!canEditUnit && !canDeleteUnit) { %>
+                                                    </c:if>
+                                                    <c:if test="${sessionScope.user.role.roleId == 2}">
+                                                        <c:choose>
+                                                            <c:when test="${u.status == 'active'}">
+                                                                <form method="post" action="${pageContext.request.contextPath}/unit-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn ngưng hoạt động đơn vị này?')">
+                                                                    <input type="hidden" name="toggleId" value="${u.unitId}">
+                                                                    <button type="submit" class="btn btn-sm btn-secondary" title="Ngưng hoạt động">
+                                                                        <i class="fa fa-user-slash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <form method="post" action="${pageContext.request.contextPath}/unit-list" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn bật hoạt động đơn vị này?')">
+                                                                    <input type="hidden" name="toggleId" value="${u.unitId}">
+                                                                    <button type="submit" class="btn btn-sm btn-success" title="Bật hoạt động">
+                                                                        <i class="fa fa-user-check"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </c:if>
+                                                    <c:if test="${sessionScope.user.role.roleId != 2}">
                                                         <span class="text-muted small">-</span>
-                                                    <% } %>
+                                                    </c:if>
                                                 </div>
                                             </td>
                                         </tr>
@@ -245,40 +274,9 @@
             </div>
         </div>
 
-        <!-- Modal xác nhận xóa -->
-        <div class="modal fade" id="deleteModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Xác nhận xóa</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        Bạn có chắc muốn xóa đơn vị <strong id="deleteUnitName"></strong>?
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                        <form id="deleteForm" method="post" action="${pageContext.request.contextPath}/unit-list">
-                            <input type="hidden" name="deleteId" id="deleteId">
-                            <button type="submit" class="btn btn-danger">Xóa</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/js/main.js"></script>
-        <script>
-            document.querySelectorAll('.btn-delete').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    document.getElementById('deleteId').value = this.dataset.id;
-                    document.getElementById('deleteUnitName').textContent = this.dataset.name;
-                    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-                });
-            });
-        </script>
     </body>
 </html>

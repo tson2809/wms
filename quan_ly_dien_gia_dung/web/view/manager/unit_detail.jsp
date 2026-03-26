@@ -6,6 +6,8 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<c:set var="readOnlyEdit" value="${mode == 'edit' and sessionScope.user.role.roleId != 2}" />
+<c:set var="readOnlyAdd" value="${mode == 'add' and sessionScope.user.role.roleId != 2}" />
 <!DOCTYPE html>
 <html>
     <head>
@@ -22,13 +24,6 @@
         <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
     </head>
     <body>
-        <%
-            java.util.Set<String> userPermissions = (java.util.Set<String>) session.getAttribute("userPermissions");
-            boolean canCreateUnit = userPermissions != null && userPermissions.contains("create unit");
-            boolean canEditUnit = userPermissions != null && userPermissions.contains("edit unit");
-            boolean readOnlyEdit = "edit".equals(request.getAttribute("mode")) && !canEditUnit;
-            boolean readOnlyAdd = "add".equals(request.getAttribute("mode")) && !canCreateUnit;
-        %>
         <div class="container-fluid position-relative bg-white d-flex p-0">
             <jsp:include page="/view/common/components/sidebar.jsp" />
 
@@ -59,13 +54,13 @@
                                             <div class="mb-3">
                                                 <label for="unitName" class="form-label fw-semibold">Tên đơn vị</label>
                                                 <input type="text" class="form-control" id="unitName" name="unitName"
-                                                       value="${unit.unitName}" placeholder="VD: Chiếc, Bộ, Cái..." maxlength="50" autofocus <%= readOnlyEdit ? "readonly" : "" %>>
+                                                       value="${unit.unitName}" placeholder="VD: Chiếc, Bộ, Cái..." maxlength="50" autofocus ${readOnlyEdit ? 'readonly' : ''}>
                                             </div>
                                             <div class="d-flex gap-2">
                                                 <a href="${pageContext.request.contextPath}/unit-list" class="btn btn-secondary flex-fill">Hủy</a>
-                                                <% if (!readOnlyEdit) { %>
+                                                <c:if test="${not readOnlyEdit}">
                                                 <button type="submit" class="btn btn-primary flex-fill">Cập nhật</button>
-                                                <% } %>
+                                                </c:if>
                                             </div>
                                         </form>
                                     </c:when>
@@ -74,13 +69,13 @@
                                             <div class="mb-3">
                                                 <label for="unitName" class="form-label fw-semibold">Tên đơn vị</label>
                                                 <input type="text" class="form-control" id="unitName" name="unitName"
-                                                       value="${unitName}" placeholder="VD: Chiếc, Bộ, Cái..." maxlength="50" autofocus <%= readOnlyAdd ? "readonly" : "" %>>
+                                                       value="${unitName}" placeholder="VD: Chiếc, Bộ, Cái..." maxlength="50" autofocus ${readOnlyAdd ? 'readonly' : ''}>
                                             </div>
                                             <div class="d-flex gap-2">
                                                 <a href="${pageContext.request.contextPath}/unit-list" class="btn btn-secondary flex-fill">Hủy</a>
-                                                <% if (!readOnlyAdd) { %>
+                                                <c:if test="${not readOnlyAdd}">
                                                 <button type="submit" class="btn btn-primary flex-fill">Thêm mới</button>
-                                                <% } %>
+                                                </c:if>
                                             </div>
                                         </form>
                                     </c:otherwise>

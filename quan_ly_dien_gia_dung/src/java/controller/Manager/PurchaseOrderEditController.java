@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @WebServlet(name = "PurchaseOrderEditController", urlPatterns = {"/purchase-order/edit"})
 public class PurchaseOrderEditController extends HttpServlet {
@@ -73,9 +72,7 @@ public class PurchaseOrderEditController extends HttpServlet {
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             List<ProductVariant> variants = productDAO.getAllActiveProductVariants();
 
-            @SuppressWarnings("unchecked")
-            Set<String> permissions = (Set<String>) session.getAttribute("userPermissions");
-            boolean canEditPurchaseOrder = permissions != null && permissions.contains("edit purchase order");
+            boolean canEditPurchaseOrder = roleId == 2 || roleId == 3;
 
             boolean viewOnly;
             String targetJsp;
