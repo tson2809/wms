@@ -17,8 +17,21 @@
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
     <style>
         .product-row { margin-bottom: 10px; padding: 15px; background: #f8f9fa; border-radius: 8px; }
-        .btn-remove { color: #dc3545; cursor: pointer; }
+        #pf-search-wrap { position: relative; }
+        #pf-dropdown {
+            position: absolute; z-index: 1000; width: 100%;
+            background: #fff; border: 1px solid #dee2e6; border-radius: 6px;
+            max-height: 280px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,.08);
+            display: none;
+        }
+        .pf-dd-item { padding: 8px 14px; cursor: pointer; font-size: .9rem; }
+        .pf-dd-item:hover { background: #e8f4ff; }
         input:disabled, select:disabled, textarea:disabled { background-color: #e9ecef !important; opacity: 1 !important; }
+        <c:if test="${viewOnly}">
+            #pf-search-wrap, .filter-section { display: none !important; }
+            .quantity-input, .price-input { pointer-events: none; border: none; background: transparent !important; padding: 0; outline: none; }
+            .btn-remove, .btn-danger { display: none !important; }
+        </c:if>
     </style>
 </head>
 <body>
@@ -105,62 +118,38 @@
 
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <h5>Chi tiết sản phẩm</h5>
-                            <c:if test="${not viewOnly}">
-                                <button type="button" class="btn btn-success btn-sm" onclick="addProductRow()">
-                                    <i class="fa fa-plus me-2"></i>Thêm sản phẩm
-                                </button>
-                            </c:if>
                         </div>
 
-                        <div id="productContainer">
-                            <c:forEach items="${details}" var="detail" varStatus="status">
-                                <div class="product-row" data-index="${status.index}">
-                                    <div class="row align-items-end">
-                                        <div class="col-md-3">
-                                            <label class="form-label">Sản phẩm <span class="text-danger">*</span></label>
-                                            <select class="form-select variant-select" name="variantIds[]" required onchange="updateProductInfo(this)" ${viewOnly ? 'disabled' : ''}>
-                                                <option value="">-- Chọn sản phẩm --</option>
-                                                <c:forEach items="${variants}" var="variant">
-                                                    <option value="${variant.variantId}" 
-                                                            data-sku="${variant.sku}"
-                                                            data-cost="${variant.costPrice}"
-                                                            data-unit="${variant.unitName}"
-                                                            ${variant.variantId == detail.variantId ? 'selected' : ''}>
-                                                        ${variant.sku}
-                                                    </option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-1">
-                                            <label class="form-label">ĐVT</label>
-                                            <input type="text" class="form-control unit-input" value="${detail.unitName}" readonly>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Số lượng <span class="text-danger">*</span></label>
-                                            <input type="number" class="form-control quantity-input" name="quantities[]" 
-                                                   min="1" value="${detail.quantity}" required onchange="calculateTotal(this)" ${viewOnly ? 'disabled' : ''}>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">Đơn giá <span class="text-danger">*</span></label>
-                                            <input type="number" class="form-control price-input" name="unitPrices[]" 
-                                                   min="0" step="0.01" value="${detail.unitPrice}" required onchange="calculateTotal(this)" ${viewOnly ? 'disabled' : ''}>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">Thành tiền</label>
-                                            <input type="text" class="form-control total-input" 
-                                                   value="<fmt:formatNumber value='${detail.totalAmount}' pattern='#,##0'/> VNĐ" readonly>
-                                        </div>
-                                        <div class="col-md-1 d-flex align-items-end">
-                                            <c:if test="${not viewOnly}">
-                                                <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeProductRow(this)">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </c:if>
-                                        </div>
-                                    </div>
+                        <c:if test="${not viewOnly}">
+                            <%-- Filter bar --%>
+                            <div class="row g-2 mb-3 filter-section">
+                                <div class="col-md-3">
+                                    <label class="form-label mb-1">Danh mục</label>
+                                    <select id="pf-category" class="form-select">
+                                        <option value="">-- Tất cả danh mục --</option>
+                                        <c:forEach items="${categories}" var="cat">
+                                            <option value="${cat.categoryId}">${cat.categoryName}</option>
+                                        </c:forEach>
+                                    </select>
                                 </div>
-                            </c:forEach>
-                        </div>
+                                <div class="col-md-3">
+                                    <label class="form-label mb-1">Thương hiệu</label>
+                                    <select id="pf-brand" class="form-select">
+                                        <option value="">-- Tất cả thương hiệu --</option>
+                                        <c:forEach items="${brands}" var="br">
+                                            <option value="${br.brandId}">${br.brandName}</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                <div class="col-md-6" id="pf-search-wrap">
+                                    <label class="form-label mb-1">Tìm sản phẩm (SKU / tên)</label>
+                                    <input type="text" id="pf-keyword" class="form-control" placeholder="Gõ để tìm kiếm...">
+                                    <div id="pf-dropdown"></div>
+                                </div>
+                            </div>
+                        </c:if>
+
+                        <div id="productContainer"></div>
 
                         <div class="row mt-4">
                             <div class="col-md-8"></div>
@@ -199,94 +188,41 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     <script>
-        let productIndex = <c:out value="${details.size()}" default="1"/>;
+        window.PO_FILTER = {
+            contextPath: '${pageContext.request.contextPath}',
+            showDetailNote: false
+        };
+    </script>
+    <script src="${pageContext.request.contextPath}/js/purchase-order-product-filter.js?v=2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load existing details
+            <c:forEach items="${details}" var="d">
+                addProductRow("${d.variantId}", "${d.sku}", "${d.productName}", "${d.unitName}", "${d.unitPrice}", ${d.quantity});
+            </c:forEach>
 
-        function addProductRow() {
-            const container = document.getElementById('productContainer');
-            const firstRow = document.querySelector('.product-row');
-            const newRow = firstRow.cloneNode(true);
-            newRow.setAttribute('data-index', productIndex);
-            
-            newRow.querySelectorAll('input, select').forEach(input => {
-                if (input.type === 'number') {
-                    input.value = input.name.includes('quantities') ? '1' : '';
-                } else if (input.classList.contains('unit-input')) {
-                    input.value = '';
-                } else if (input.type !== 'text' || !input.readOnly) {
-                    input.value = '';
-                }
-                if (input.tagName === 'SELECT') {
-                    input.selectedIndex = 0;
-                }
-            });
-
-            const existingRemoveBtn = newRow.querySelector('.col-md-1');
-            if (existingRemoveBtn && !existingRemoveBtn.querySelector('button')) {
-                existingRemoveBtn.innerHTML = '<button type="button" class="btn btn-danger btn-sm w-100" onclick="removeProductRow(this)"><i class="fa fa-trash"></i></button>';
+            // Re-apply read-only logic for prices if needed
+            function lockUnitPriceInputs() {
+                document.querySelectorAll('#productContainer .price-input').forEach(function(input) {
+                    input.readOnly = true;
+                    input.style.pointerEvents = 'none';
+                    input.style.backgroundColor = '#e9ecef';
+                });
             }
 
-            container.appendChild(newRow);
-            productIndex++;
-        }
-
-        function removeProductRow(btn) {
-            btn.closest('.product-row').remove();
-            updateGrandTotal();
-        }
-
-        function updateProductInfo(select) {
-            const option = select.options[select.selectedIndex];
-            const row = select.closest('.product-row');
-            const priceInput = row.querySelector('.price-input');
-            const unitInput = row.querySelector('.unit-input');
-            
-            if (option.value) {
-                const costPrice = option.getAttribute('data-cost');
-                const unitName = option.getAttribute('data-unit');
-                priceInput.value = costPrice || '';
-                unitInput.value = unitName || '';
-            } else {
-                priceInput.value = '';
-                unitInput.value = '';
+            // In Manager PO, unit prices are usually read-only (cost prices)
+            lockUnitPriceInputs();
+            var productContainer = document.getElementById('productContainer');
+            if (productContainer) {
+                var observer = new MutationObserver(function() { lockUnitPriceInputs(); });
+                observer.observe(productContainer, { childList: true, subtree: true });
             }
-            calculateTotal(select);
-        }
-
-        function calculateTotal(input) {
-            const row = input.closest('.product-row');
-            const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-            const price = parseFloat(row.querySelector('.price-input').value) || 0;
-            const total = quantity * price;
-            
-            row.querySelector('.total-input').value = total.toLocaleString('vi-VN') + ' VNĐ';
-            updateGrandTotal();
-        }
-
-        function updateGrandTotal() {
-            let grandTotal = 0;
-            document.querySelectorAll('.product-row').forEach(row => {
-                const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-                const price = parseFloat(row.querySelector('.price-input').value) || 0;
-                grandTotal += quantity * price;
-            });
-            document.getElementById('grandTotal').textContent = grandTotal.toLocaleString('vi-VN') + ' VNĐ';
-        }
+        });
 
         document.getElementById('poForm').addEventListener('submit', function(e) {
-            const variants = document.querySelectorAll('.variant-select');
-            const selectedValues = new Set();
-            let hasDuplicate = false;
-
-            variants.forEach(select => {
-                if (select.value && selectedValues.has(select.value)) {
-                    hasDuplicate = true;
-                }
-                selectedValues.add(select.value);
-            });
-
-            if (hasDuplicate) {
+            if (!document.querySelector('#productContainer .product-row')) {
                 e.preventDefault();
-                alert('Không được chọn trùng sản phẩm!');
+                alert('Vui lòng thêm ít nhất một sản phẩm!');
                 return false;
             }
         });

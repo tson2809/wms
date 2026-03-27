@@ -131,7 +131,7 @@
                 <div class="bg-white rounded p-4 mb-4 shadow-sm">
                     <form method="GET" action="${pageContext.request.contextPath}/purchase-order/list" class="product-filter-form">
                         <div class="row g-3">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label fw-semibold">Trạng thái</label>
                                 <select name="status" class="form-select">
                                     <option value="">-- Tất cả --</option>
@@ -142,8 +142,18 @@
                                     <option value="cancelled" ${status == 'cancelled' ? 'selected' : ''}>Đã hủy</option>
                                 </select>
                             </div>
-                            <c:if test="${roleId == 2 and not isSaleOrderView}">
-                            <div class="col-md-3">
+                            <c:if test="${roleId == 3}">
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold">Loại đơn</label>
+                                <select name="type" class="form-select">
+                                    <option value="">-- Tất cả --</option>
+                                    <option value="inbound"  ${type == 'inbound'  ? 'selected' : ''}>Nhập kho</option>
+                                    <option value="outbound" ${type == 'outbound' ? 'selected' : ''}>Xuất hàng</option>
+                                </select>
+                            </div>
+                            </c:if>
+                            <c:if test="${(roleId == 2 or roleId == 3) and not isSaleOrderView}">
+                            <div class="col-md-2">
                                 <label class="form-label fw-semibold">Nhà cung cấp</label>
                                 <select name="supplierId" class="form-select">
                                     <option value="">-- Tất cả --</option>
@@ -152,6 +162,7 @@
                                     </c:forEach>
                                 </select>
                             </div>
+                            </c:if>
                             <div class="col-md-2">
                                 <label class="form-label fw-semibold">Từ ngày</label>
                                 <input type="date" name="fromDate" class="form-control" value="${fromDate}">
@@ -160,7 +171,6 @@
                                 <label class="form-label fw-semibold">Đến ngày</label>
                                 <input type="date" name="toDate" class="form-control" value="${toDate}">
                             </div>
-                            </c:if>
                             <div class="col-md-2">
                                 <label class="form-label fw-semibold">Từ khóa</label>
                                 <input type="text" name="keyword" class="form-control" placeholder="Mã PO..." value="${keyword}">
@@ -168,7 +178,7 @@
                         </div>
                         <div class="d-flex gap-2 mt-3">
                             <button type="submit" class="btn btn-primary"><i class="fas fa-search me-1"></i>Tìm kiếm</button>
-                            <a href="${pageContext.request.contextPath}/purchase-order/list${roleId == 3 and orderType == 'sale' ? '?orderType=sale' : ''}" class="btn btn-outline-secondary"><i class="fas fa-redo me-1"></i>Đặt lại</a>
+                            <a href="${pageContext.request.contextPath}/purchase-order/list${roleId == 3 and type == 'sale' ? '?type=outbound' : ''}" class="btn btn-outline-secondary"><i class="fas fa-redo me-1"></i>Đặt lại</a>
                         </div>
                     </form>
 
@@ -266,22 +276,22 @@
 
                                                 <!-- Hiển thị icon tương ứng dựa trên trạng thái (nhưng cùng một link) -->
                                                 <c:choose>
-                                                    <c:when test="${po.status == 'draft'}">
+                                                    <c:when test="${(roleId == 2 or roleId == 4) and po.status == 'draft'}">
                                                         <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
                                                            class="action-btn action-edit" title="Chỉnh sửa">
                                                             <iconify-icon icon="lucide:edit-2"></iconify-icon>
                                                         </a>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
+                                                        <a href="${pageContext.request.contextPath}/purchase-order/view?id=${po.purchaseOrderId}"
                                                            class="action-btn action-view" title="Xem chi tiết">
                                                             <iconify-icon icon="lucide:eye"></iconify-icon>
                                                         </a>
                                                     </c:otherwise>
                                                 </c:choose>
 
-                                                                                                <%-- Manager/Staff: hủy đơn khi đang draft hoặc submitted --%>
-                                                                                                <c:if test="${(sessionScope.user.role.roleId == 2 or sessionScope.user.role.roleId == 3) and (po.status == 'draft' or po.status == 'submitted')}">
+                                                <%-- Manager: hủy đơn khi đang draft hoặc submitted --%>
+                                                <c:if test="${sessionScope.user.role.roleId == 2 and (po.status == 'draft' or po.status == 'submitted')}">
                                                     <form method="POST" action="${pageContext.request.contextPath}/purchase-order/list"
                                                           onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');" style="display:inline">
                                                         <input type="hidden" name="action" value="cancel">
