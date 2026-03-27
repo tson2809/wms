@@ -93,7 +93,7 @@ public class ForgotPasswordController extends HttpServlet {
         User user = userDAO.findByEmail(email);
         if (user == null) {
             request.setAttribute("error", "Email does not exist in the system");
-            request.getRequestDispatcher("forgot-password.jsp").forward(request, response);
+            request.getRequestDispatcher("view/common/forgot-password.jsp").forward(request, response);
             return;
         }
         String newPassword = generateRandomPassword();
