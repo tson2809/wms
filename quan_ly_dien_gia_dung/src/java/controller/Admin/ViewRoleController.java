@@ -70,13 +70,9 @@ public class ViewRoleController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         try {
-            // Lấy danh sách tất cả roles
-            List<Role> roles = roleDAO.getAllRole();
             
-            // Set attribute để hiển thị trong JSP
-            request.setAttribute("roles", roles);
-            
-            // Forward đến viewrole.jsp
+            List<Role> roles = roleDAO.getAllRole();                      
+            request.setAttribute("roles", roles);                      
             request.getRequestDispatcher("view/admin/viewrole.jsp").forward(request, response);
             
         } catch (Exception e) {
@@ -96,12 +92,12 @@ public class ViewRoleController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         try {
-            // Lấy các tham số từ form
+           
             String roleIdStr = request.getParameter("roleId");
             String roleName = request.getParameter("roleName");
             String roleDescription = request.getParameter("roleDescription");
             
-            // Validation
+            
             if (roleIdStr == null || roleName == null || roleName.trim().isEmpty()) {
                 response.sendRedirect("ViewRole?error=true");
                 return;
@@ -115,13 +111,13 @@ public class ViewRoleController extends HttpServlet {
                 return;
             }
 
-            // Tạo Role object
+            
             Role role = new Role();
             role.setRoleId(roleId);
             role.setRoleName(roleName.trim());
             role.setRoleDescription(roleDescription != null ? roleDescription.trim() : "");
             
-            // Update vào database
+            
             int rowsAffected = roleDAO.updateRole(role);
             
             if (rowsAffected > 0) {

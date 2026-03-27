@@ -138,7 +138,7 @@
             </div>
         </div>
 
-        <%-- Modal chọn serial --%>
+        
         <div class="modal fade" id="serialModal" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -544,7 +544,7 @@
                             updateTotal();
                         }
                     } catch (e) {
-                        // ignore malformed persisted payload
+                        
                     }
                 }
             });

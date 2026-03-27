@@ -123,7 +123,7 @@ public class SalesReturnEditController extends HttpServlet {
             return;
         }
 
-        // pending: sửa full đơn
+        
         String srCode = request.getParameter("srCode");
         String returnDateStr = request.getParameter("returnDate");
         String description = request.getParameter("description");
