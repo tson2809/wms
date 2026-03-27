@@ -61,7 +61,7 @@ public class ProductListController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Get filter parameters
+        
         String search = request.getParameter("search");
         String searchNormalized = (search != null && !search.trim().isEmpty())
                 ? search.trim().replaceAll("\\s+", " ")
@@ -71,7 +71,7 @@ public class ProductListController extends HttpServlet {
         String brandIdStr = request.getParameter("brandId");
         String status = request.getParameter("status");
 
-        // Parse filter IDs
+        
         Integer categoryId = null;
         Integer brandId = null;
 
@@ -80,7 +80,7 @@ public class ProductListController extends HttpServlet {
                 categoryId = Integer.parseInt(categoryIdStr.trim());
             }
         } catch (NumberFormatException e) {
-            // Invalid categoryId, ignore
+            
         }
 
         try {
@@ -88,10 +88,10 @@ public class ProductListController extends HttpServlet {
                 brandId = Integer.parseInt(brandIdStr.trim());
             }
         } catch (NumberFormatException e) {
-            // Invalid brandId, ignore
+            
         }
 
-        // Pagination parameters
+        
         String pageStr = request.getParameter("page");
         String sizeStr = request.getParameter("numberPerPage");
 
@@ -114,7 +114,7 @@ public class ProductListController extends HttpServlet {
             size = 10;
         }
 
-        // Validate size
+        
         if (size != 5 && size != 10 && size != 20) {
             size = 10;
         }
@@ -122,14 +122,14 @@ public class ProductListController extends HttpServlet {
         int offset = (page - 1) * size;
         ProductViewDAO dao = new ProductViewDAO();
 
-        // Get filtered products
+        
         List<ProductView> productList = dao.getProductWithSearchAndFilter(
                 searchNormalized, categoryId, brandId, status, offset, size);
         int totalProducts = dao.countProductWithSearchAndFilter(
                 searchNormalized, categoryId, brandId, status);
         int totalPages = (int) Math.ceil(totalProducts * 1.0 / size);
 
-        // Ensure page doesn't exceed totalPages
+        
         if (page > totalPages && totalPages > 0) {
             page = totalPages;
             offset = (page - 1) * size;
@@ -137,21 +137,21 @@ public class ProductListController extends HttpServlet {
                     searchNormalized, categoryId, brandId, status, offset, size);
         }
 
-        // Get categories and brands for dropdowns
+       
         dal.CategoryDAO categoryDAO = new dal.CategoryDAO();
         dal.BrandDAO brandDAO = new dal.BrandDAO();
 
         request.setAttribute("categories", categoryDAO.getAllCategories());
         request.setAttribute("brands", brandDAO.getAllBrands());
 
-        // Set product data
+        
         request.setAttribute("productList", productList);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("numberPerPage", size);
         request.setAttribute("totalProducts", totalProducts);
 
-        // Set filter values for maintaining state
+        
         request.setAttribute("search", search);
         request.setAttribute("categoryId", categoryIdStr);
         request.setAttribute("brandId", brandIdStr);
@@ -171,7 +171,7 @@ public class ProductListController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Handle status update
+        
         String productIdStr = request.getParameter("id");
         String newStatus = request.getParameter("status");
 
@@ -180,11 +180,11 @@ public class ProductListController extends HttpServlet {
                 int productId = Integer.parseInt(productIdStr);
                 ProductViewDAO dao = new ProductViewDAO();
 
-                // Update status
+                
                 boolean success = dao.updateProductStatus(productId, newStatus);
 
                 if (success) {
-                    // Preserve filter parameters when redirecting
+                    
                     String search = request.getParameter("search");
                     String categoryId = request.getParameter("categoryId");
                     String brandId = request.getParameter("brandId");
@@ -192,7 +192,7 @@ public class ProductListController extends HttpServlet {
                     String page = request.getParameter("page");
                     String numberPerPage = request.getParameter("numberPerPage");
 
-                    // Build redirect URL with filters
+                    
                     StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/product-list?");
 
                     if (search != null && !search.isEmpty()) {
@@ -222,7 +222,7 @@ public class ProductListController extends HttpServlet {
             }
         }
 
-        // If update failed or invalid params, redirect to list
+        
         response.sendRedirect(request.getContextPath() + "/product-list");
     }
 

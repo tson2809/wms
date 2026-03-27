@@ -209,7 +209,7 @@
                         $('#searchProduct').prop('disabled', true);
                         $('#productSection input, #productSection button').prop('disabled', true);
                         $('#refundStatus').prop('disabled', false);
-                        $('#btnSubmit').text('Cập nhật trạng thái hoàn tiền');
+                        $('#btnSubmit').text('Cập nhật');
                     }
                 }
 

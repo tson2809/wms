@@ -150,7 +150,7 @@ public class ProductAddController extends HttpServlet {
                 }
             }
         } else {
-            // Không có SKU nào từ variant → không cho phép thêm sản phẩm
+            
             request.setAttribute("errorVariant", "Phải có ít nhất 1 phiên bản (SKU).");
             hasError = true;
         }
@@ -163,14 +163,14 @@ public class ProductAddController extends HttpServlet {
             request.setAttribute("unitId", unitId);
             request.setAttribute("description", description);
 
-            // Preserve entered attributes/variants so user doesn't need to re-type after validation error.
+            
             if (attributeNamesStr != null && variantAttrValuesArr != null && variantSkus != null && variantSkus.length > 0) {
                 Map<String, Object> preserve = new HashMap<>();
                 preserve.put("attributeNamesStr", attributeNamesStr);
                 preserve.put("variantAttrValues", variantAttrValuesArr != null ? Arrays.asList(variantAttrValuesArr) : new ArrayList<String>());
                 preserve.put("variantSkus", variantSkus != null ? Arrays.asList(variantSkus) : new ArrayList<String>());
                 preserve.put("variantBarcodes", variantBarcodes != null ? Arrays.asList(variantBarcodes) : new ArrayList<String>());
-                // Preserve image previews (data URL) for each variant index.
+                
                 List<String> variantImagesBase64 = new ArrayList<>();
                 for (int i = 0; i < (variantSkus != null ? variantSkus.length : 0); i++) {
                     String base64Param = request.getParameter("variantImageBase64_" + i);
@@ -190,7 +190,7 @@ public class ProductAddController extends HttpServlet {
                 String fileName = filePart.getSubmittedFileName();
                 String saveName = System.currentTimeMillis() + "_" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
 
-                // 1. Lưu vào web/ (source) - ảnh có trong project
+                
                 String rootPath = getServletContext().getRealPath("/");
                 if (rootPath != null && rootPath.contains("build")) {
                     rootPath = rootPath.substring(0, rootPath.indexOf("build"));
@@ -205,7 +205,7 @@ public class ProductAddController extends HttpServlet {
                     filePart.write(webPath + File.separator + saveName);
                     picturePath = "img/products/" + saveName;
 
-                    // 2. Copy sang build/ - ảnh hiển thị ngay khi chạy
+                    
                     String buildPath = getServletContext().getRealPath("/img/products");
                     File buildDir = new File(buildPath);
                     if (buildDir.exists() || buildDir.mkdirs()) {
