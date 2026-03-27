@@ -229,10 +229,7 @@
                                     <table class="table table-hover align-middle">
                                         <thead>
                                             <tr>
-                                                <%-- Checkbox column - for future use <th style="width: 50px;">
-                                                    <input type="checkbox" class="form-check-input" id="selectAll">
-                                                    </th>
-                                                    --%>
+                                               
                                                     <th style="width: 80px;">Hình ảnh</th>
                                                     <th>
                                                         <form method="post"
@@ -246,8 +243,7 @@
                                                             <input type="hidden" name="numberPerPage" value="10">
                                                             <input type="hidden" name="sort" value="name_desc">
                                                             <button type="submit"
-                                                                class="btn btn-link link-secondary text-decoration-none p-0 border-0">Tên
-                                                                sản phẩm</button>
+                                                                class="btn btn-link link-secondary text-decoration-none p-0 border-0">Tên sản phẩm</button>
                                                         </form>
                                                     </th>
                                                     <th>Danh mục</th>
@@ -269,12 +265,7 @@
                                                 <c:otherwise>
                                                     <c:forEach var="product" items="${productList}">
                                                         <tr>
-                                                            <%-- Checkbox column - for future use <td>
-                                                                <input type="checkbox"
-                                                                    class="form-check-input product-checkbox"
-                                                                    value="${product.productId}">
-                                                                </td>
-                                                                --%>
+
                                                                 <td>
                                                                     <c:if test="${product.picture != null && !empty product.picture}">
                                                                         <img src="${pageContext.request.contextPath}/${product.picture}"
@@ -284,7 +275,7 @@
                                                                 <td>
                                                                     <div class="product-name">${product.productName}
                                                                     </div>
-                                                                    <div class="variant-count">ID: ${product.productId}
+                                                                    <div class="variant-count">
                                                                     </div>
                                                                 </td>
                                                                 <td>${product.categoryName != null ?

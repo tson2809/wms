@@ -198,10 +198,7 @@ public class ReturnOrderAddController extends HttpServlet {
         }
     }
 
-    /**
-     * Forward về form kèm giá trị đã nhập và thông báo lỗi.
-     * Dùng request attribute (không dùng param vì param là từ request parameter).
-     */
+    
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response,
             String supplierIdValue, String returnDateValue, String returnCodeValue, String descriptionValue, String productsJsonValue)
             throws ServletException, IOException {
@@ -224,10 +221,7 @@ public class ReturnOrderAddController extends HttpServlet {
         }
     }
 
-    /**
-     * Parse JSON mảng sản phẩm từ frontend.
-     * Mỗi object cần: variantId, quantity, originalPrice, serialIds[], serialNumbers[]
-     */
+    
     private List<ReturnOrderDetail> parseProductsJson(String json) {
         List<ReturnOrderDetail> details = new ArrayList<>();
         if (json == null || json.trim().isEmpty()) return details;

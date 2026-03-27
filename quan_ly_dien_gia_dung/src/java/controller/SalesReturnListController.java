@@ -63,7 +63,7 @@ public class SalesReturnListController extends HttpServlet {
         User user = (User) request.getSession().getAttribute("user");
         Integer createdBy = null;
         if (user != null && user.getRole() != null && user.getRole().getRoleId() == 4) {
-            // Sale chỉ thấy đơn do chính mình tạo
+            
             createdBy = user.getUserId();
         }
 
@@ -106,7 +106,7 @@ public class SalesReturnListController extends HttpServlet {
 
         String action = request.getParameter("action");
         if ("cancel".equalsIgnoreCase(action)) {
-            // Sale được hủy đơn khi đơn đang ở trạng thái pending (chờ xử lý)
+            
             if (user.getRole().getRoleId() == 4) {
                 Integer salesReturnId = parsePositiveInt(request.getParameter("id"));
                 if (salesReturnId != null) {
@@ -143,7 +143,7 @@ public class SalesReturnListController extends HttpServlet {
                 }
             }
         } catch (UnsupportedEncodingException e) {
-            // UTF-8 luôn được hỗ trợ
+           
         }
         return q.toString();
     }

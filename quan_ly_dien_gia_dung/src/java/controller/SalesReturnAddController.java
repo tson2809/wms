@@ -161,7 +161,7 @@ public class SalesReturnAddController extends HttpServlet {
             d.setOriginalPrice(originalPrice);
             d.setTotalRefund(originalPrice.multiply(java.math.BigDecimal.valueOf(quantity)));
 
-            // Loại các dòng không hợp lệ (số lượng <= 0) để tránh tạo lỗi ở DAO.
+            
             if (d.getVariantId() > 0 && d.getQuantity() > 0) {
                 out.add(d);
             }

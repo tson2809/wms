@@ -26,7 +26,7 @@ public class ReturnOrderListController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Get filter parameters
+        
         String search = request.getParameter("search");
         String searchNormalized = (search != null && !search.trim().isEmpty())
                 ? search.trim().replaceAll("\\s+", " ")
@@ -36,17 +36,16 @@ public class ReturnOrderListController extends HttpServlet {
         String orderStatus = request.getParameter("orderStatus");
         String refundStatus = request.getParameter("refundStatus");
 
-        // Parse supplier ID
         Integer supplierId = null;
         try {
             if (supplierIdStr != null && !supplierIdStr.trim().isEmpty()) {
                 supplierId = Integer.parseInt(supplierIdStr.trim());
             }
         } catch (NumberFormatException e) {
-            // Invalid supplierId, ignore
+            
         }
 
-        // Pagination parameters
+        
         String pageStr = request.getParameter("page");
         String sizeStr = request.getParameter("numberPerPage");
 
@@ -69,7 +68,7 @@ public class ReturnOrderListController extends HttpServlet {
             size = 10;
         }
 
-        // Validate size
+       
         if (size != 5 && size != 10 && size != 20) {
             size = 10;
         }
@@ -77,41 +76,34 @@ public class ReturnOrderListController extends HttpServlet {
         int offset = (page - 1) * size;
         ReturnOrderDAO dao = new ReturnOrderDAO();
 
-        // Get filtered return orders
+        
         List<ReturnOrder> returnOrders = dao.getReturnOrderWithSearchAndFilter(
                 searchNormalized, supplierId, orderStatus, refundStatus, offset, size);
         int totalOrders = dao.countReturnOrderWithSearchAndFilter(
                 searchNormalized, supplierId, orderStatus, refundStatus);
         int totalPages = (int) Math.ceil(totalOrders * 1.0 / size);
 
-        // Ensure page doesn't exceed totalPages
+        
         if (page > totalPages && totalPages > 0) {
             page = totalPages;
             offset = (page - 1) * size;
             returnOrders = dao.getReturnOrderWithSearchAndFilter(
                     searchNormalized, supplierId, orderStatus, refundStatus, offset, size);
         }
-
-        // Get suppliers for dropdown
+       
         SupplierDAO supplierDAO = new SupplierDAO();
         List<Supplier> suppliers = supplierDAO.getAllSuppliers();
-
-        // Set return order data
+      
         request.setAttribute("returnOrders", returnOrders);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("numberPerPage", size);
-        request.setAttribute("totalOrders", totalOrders);
-
-        // Set filter values for maintaining state
+        request.setAttribute("totalOrders", totalOrders);      
         request.setAttribute("search", search);
         request.setAttribute("supplierId", supplierIdStr);
         request.setAttribute("orderStatus", orderStatus);
-        request.setAttribute("refundStatus", refundStatus);
-
-        // Set suppliers for dropdown
+        request.setAttribute("refundStatus", refundStatus);        
         request.setAttribute("suppliers", suppliers);
-
         request.getRequestDispatcher("/view/common/return_list.jsp").forward(request, response);
     }
 
@@ -148,7 +140,7 @@ public class ReturnOrderListController extends HttpServlet {
                 }
             }
         } catch (UnsupportedEncodingException e) {
-            // UTF-8 is always supported
+            
         }
         return q.toString();
     }

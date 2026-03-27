@@ -186,7 +186,7 @@ public class UpdateUserController extends HttpServlet {
         role.setRoleId(roleId);
         old.setRole(role);
 
-        // ===== UPLOAD AVATAR =====
+        
         Part avatarPart = request.getPart("avatar");
         if (avatarPart != null && avatarPart.getSize() > 0) {
 

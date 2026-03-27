@@ -28,11 +28,18 @@
                             <div class="mb-4">
                                 <h4 class="mb-0">Chỉnh sửa sản phẩm</h4>
                             </div>
-                            <c:if test="${not empty successMessage}">
+                            <c:if test="${not empty requestScope.successMessage}">
                                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    ${successMessage}
+                                    ${requestScope.successMessage}
                                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                                 </div>
+                            </c:if>
+                            <c:if test="${not empty sessionScope.successMessage}">
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    ${sessionScope.successMessage}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                                <c:remove var="successMessage" scope="session"/>
                             </c:if>
                             <c:if test="${productHasTransactions}">
                                 <div class="alert alert-warning" role="alert">
@@ -637,7 +644,7 @@
                                                     };
                                                     reader.readAsDataURL(file);
                                                 }
-                                            });
+                                            });                                    
         </script>
     </body>
 </html>

@@ -202,7 +202,7 @@ public class ProductEditController extends HttpServlet {
                 }
             }
         } else {
-            // Không có SKU nào từ variant → không cho phép cập nhật
+            
             request.setAttribute("errorVariant", "Phải có ít nhất 1 phiên bản (SKU).");
             hasError = true;
         }
@@ -217,7 +217,7 @@ public class ProductEditController extends HttpServlet {
             request.setAttribute("unitId", unitId);
             request.setAttribute("description", description);
 
-            // Preserve existing variant pictures (paths) so they don't disappear on validation errors.
+            
             Map<Integer, String> existingPictureByVariantId = new HashMap<>();
             if (existingDto.getVariants() != null) {
                 for (ProductVariantSimpleDTO ev : existingDto.getVariants()) {
@@ -236,7 +236,7 @@ public class ProductEditController extends HttpServlet {
                     existingPictureByVariantId
             ));
 
-            // Preserve variant images (base64) so user doesn't lose previews after validation error.
+            
             if (variantSkus != null && variantSkus.length > 0) {
                 List<String> variantImagesBase64 = new ArrayList<>();
                 for (int i = 0; i < variantSkus.length; i++) {
@@ -258,7 +258,7 @@ public class ProductEditController extends HttpServlet {
                 String fileName = filePart.getSubmittedFileName();
                 String saveName = System.currentTimeMillis() + "_" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
 
-                // 1. Lưu vào web/ (source) - ảnh có trong project
+               
                 String rootPath = getServletContext().getRealPath("/");
                 if (rootPath != null && rootPath.contains("build")) {
                     rootPath = rootPath.substring(0, rootPath.indexOf("build"));
@@ -273,7 +273,7 @@ public class ProductEditController extends HttpServlet {
                     filePart.write(webPath + File.separator + saveName);
                     picturePath = "img/products/" + saveName;
 
-                    // 2. Copy sang build/ - ảnh hiển thị ngay khi chạy
+                    
                     String buildPath = getServletContext().getRealPath("/img/products");
                     File buildDir = new File(buildPath);
                     if (buildDir.exists() || buildDir.mkdirs()) {
@@ -350,7 +350,7 @@ public class ProductEditController extends HttpServlet {
                     }
                 }
 
-                // Nếu không có file upload, thử lấy ảnh variant dạng base64 (preserveState sau validation lỗi).
+                
                 if (variantPicture == null) {
                     String base64Param = request.getParameter("variantImageBase64_" + i);
                     if (base64Param != null && base64Param.startsWith("data:")) {
