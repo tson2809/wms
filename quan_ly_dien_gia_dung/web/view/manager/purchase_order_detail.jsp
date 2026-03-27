@@ -31,7 +31,7 @@
     </style>
 </head>
 <body>
-    <div class="container-xxl position-relative bg-white d-flex p-0">
+    <div class="container-fluid position-relative d-flex p-0">
         <jsp:include page="/view/common/components/sidebar.jsp" />
         
         <div class="content">
