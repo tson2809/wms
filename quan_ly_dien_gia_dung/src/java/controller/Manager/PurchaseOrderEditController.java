@@ -51,6 +51,12 @@ public class PurchaseOrderEditController extends HttpServlet {
 
         User user = (User) session.getAttribute("user");
         int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
+            
+        // Redirect Staff to view page
+        if (roleId == 3) {
+            response.sendRedirect(request.getContextPath() + "/purchase-order/view?id=" + request.getParameter("id"));
+            return;
+        }
 
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.trim().isEmpty()) {
@@ -72,7 +78,7 @@ public class PurchaseOrderEditController extends HttpServlet {
             List<Supplier> suppliers = supplierDAO.getActiveSuppliers();
             List<ProductVariant> variants = productDAO.getAllActiveProductVariants();
 
-            boolean canEditPurchaseOrder = roleId == 2 || roleId == 3;
+            boolean canEditPurchaseOrder = roleId == 2;
 
             boolean viewOnly;
             String targetJsp;
@@ -99,7 +105,8 @@ public class PurchaseOrderEditController extends HttpServlet {
             request.setAttribute("details", details);
             request.setAttribute("suppliers", suppliers);
             request.setAttribute("variants", variants);
-            request.setAttribute("viewOnly", viewOnly);
+            request.setAttribute("categories", categoryDAO.getActiveCategories());
+            request.setAttribute("brands", brandDAO.getActiveBrands());
 
             request.getRequestDispatcher(targetJsp).forward(request, response);
 
@@ -166,8 +173,13 @@ public class PurchaseOrderEditController extends HttpServlet {
             po.setExpectedDeliveryDate(expectedDeliveryDate);
             po.setNotes(notes);
 
-            // Security check for Sale
+            // Security checks
             int roleId = (user.getRole() != null) ? user.getRole().getRoleId() : 0;
+            if (roleId == 3) {
+                request.setAttribute("error", "Bạn không có quyền chỉnh sửa đơn hàng này");
+                doGet(request, response);
+                return;
+            }
             if (roleId == 4) {
                 PurchaseOrder existingPo = purchaseOrderService.getPurchaseOrderById(purchaseOrderId);
                 if (existingPo == null || existingPo.getCreatedBy() != user.getUserId()) {
