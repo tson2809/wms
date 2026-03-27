@@ -49,6 +49,7 @@ public class PurchaseOrderListController extends HttpServlet {
         String keyword = request.getParameter("keyword");
         String pageParam = request.getParameter("page");
         String pageSizeParam = request.getParameter("pageSize");
+        String type = request.getParameter("type");
 
         Integer supplierId = null;
         if (supplierIdParam != null && !supplierIdParam.trim().isEmpty()) {
@@ -102,13 +103,13 @@ public class PurchaseOrderListController extends HttpServlet {
             // Sale: chỉ thấy đơn do mình tạo (supplier_id IS NULL)
             isSaleOrderView = true;
             purchaseOrders = purchaseOrderDAO.getSaleOrdersByCreator(
-                    user.getUserId(), status,
+                    user.getUserId(), status, fromDate, toDate,
                     (page - 1) * pageSize, pageSize);
-            totalRecords = purchaseOrderDAO.countSaleOrdersByCreator(user.getUserId(), status);
+            totalRecords = purchaseOrderDAO.countSaleOrdersByCreator(user.getUserId(), status, fromDate, toDate);
         } else if (roleId == 3) {
             // Staff: xem tất cả đơn (cả PO có NCC lẫn Sale orders) trong một bảng
-            purchaseOrders = purchaseOrderDAO.getAllOrdersForStaff(status, keyword, (page - 1) * pageSize, pageSize);
-            totalRecords = purchaseOrderDAO.countAllOrdersForStaff(status, keyword);
+            purchaseOrders = purchaseOrderDAO.getAllOrdersForStaff(status, supplierId, keyword, fromDate, toDate, type, (page - 1) * pageSize, pageSize);
+            totalRecords = purchaseOrderDAO.countAllOrdersForStaff(status, supplierId, keyword, fromDate, toDate, type);
         } else {
             // Manager: chỉ xem PO có NCC
             purchaseOrders = purchaseOrderService.getPurchaseOrdersWithPagination(
@@ -127,6 +128,7 @@ public class PurchaseOrderListController extends HttpServlet {
         request.setAttribute("fromDate", fromDateParam != null ? fromDateParam : "");
         request.setAttribute("toDate", toDateParam != null ? toDateParam : "");
         request.setAttribute("keyword", keyword != null ? keyword : "");
+        request.setAttribute("type", type != null ? type : "");
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
         request.setAttribute("totalPages", totalPages);
@@ -161,8 +163,10 @@ public class PurchaseOrderListController extends HttpServlet {
                     PurchaseOrder po = purchaseOrderDAO.getPurchaseOrderById(poId);
                     boolean canCancel = false;
                     if (po != null) {
-                        if (roleId == 2 || roleId == 3) {
+                        if (roleId == 2) {
                             canCancel = true;
+                        } else if (roleId == 3) {
+                            canCancel = false; // Staff cannot cancel
                         } else if (roleId == 4) {
                             canCancel = po.getSupplierId() == 0
                                     && po.getCreatedBy() == user.getUserId()
