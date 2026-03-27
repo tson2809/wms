@@ -118,7 +118,7 @@
                                     <c:if test="${not empty generalError}"><div class="alert alert-danger py-2 small">${generalError}</div></c:if>
                                     <div class="d-flex gap-2">
                                         <a href="${pageContext.request.contextPath}/return-order-list" class="btn btn-secondary flex-fill">Quay lại</a>
-                                        <button type="submit" class="btn btn-primary flex-fill" id="btnSubmit">Cập nhật đơn trả</button>
+                                        <button type="submit" class="btn btn-primary flex-fill" id="btnSubmit">Cập nhật</button>
                                     </div>
                                     <input type="hidden" name="products" id="productsData">
                                 </form>
@@ -129,7 +129,7 @@
             </div>
         </div>
 
-        <!-- Modal Xem Serial Number (chỉ xem, giống phiếu nhập kho) -->
+        
         <div class="modal fade" id="viewSerialModal" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
@@ -211,10 +211,10 @@
                     $('#searchProduct, #btnSearchProduct').prop('disabled', true);
                     $('#productTableBody .serial-btn, #productTableBody .del-btn').prop('disabled', true);
                     $('#refundStatus').prop('disabled', false);
-                    $('#btnSubmit').text('Cập nhật trạng thái hoàn tiền').show();
+                    $('#btnSubmit').text('Cập nhật').show();
                     return;
                 }
-                $('#btnSubmit').text('Cập nhật đơn trả').show();
+                $('#btnSubmit').text('Cập nhật').show();
             }
 
             function loadEditData() {

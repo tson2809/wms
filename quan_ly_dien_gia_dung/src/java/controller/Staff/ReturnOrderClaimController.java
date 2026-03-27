@@ -38,7 +38,7 @@ public class ReturnOrderClaimController extends HttpServlet {
         if ("cancel".equalsIgnoreCase(action)) {
             returnOrderDAO.cancelClaimReturnOrder(returnOrderId, user.getUserId());
         } else {
-            // mặc định: claim
+           
             returnOrderDAO.claimReturnOrder(returnOrderId, user.getUserId());
         }
         response.sendRedirect(request.getContextPath() + "/return-order-list");
