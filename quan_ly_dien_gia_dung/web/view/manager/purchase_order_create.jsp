@@ -153,6 +153,23 @@
     <script src="${pageContext.request.contextPath}/js/purchase-order-product-filter.js?v=2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            function lockUnitPriceInputs() {
+                document.querySelectorAll('#productContainer .price-input').forEach(function(input) {
+                    input.readOnly = true;
+                    input.style.pointerEvents = 'none';
+                    input.style.backgroundColor = '#e9ecef';
+                });
+            }
+
+            lockUnitPriceInputs();
+            var productContainer = document.getElementById('productContainer');
+            if (productContainer) {
+                var observer = new MutationObserver(function() {
+                    lockUnitPriceInputs();
+                });
+                observer.observe(productContainer, { childList: true, subtree: true });
+            }
+
             var today = new Date().toISOString().split('T')[0];
             var orderDateEl = document.getElementById('orderDate');
             var expectedDateEl = document.getElementById('expectedDeliveryDate');
@@ -187,6 +204,10 @@
 
         // Prevent submit if no products
         document.getElementById('poForm').addEventListener('submit', function(e) {
+            document.querySelectorAll('#productContainer .price-input').forEach(function(input) {
+                input.readOnly = true;
+            });
+
             var today = new Date().toISOString().split('T')[0];
             var orderDateEl = document.getElementById('orderDate');
             var expectedDateEl = document.getElementById('expectedDeliveryDate');
