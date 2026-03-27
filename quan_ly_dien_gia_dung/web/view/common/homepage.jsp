@@ -11,7 +11,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WMS_HA - Hệ Thống Quản Lý Kho</title>
+        <title>HA_WMS - Hệ Thống Quản Lý Kho</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/homepage.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </head>
@@ -23,7 +23,7 @@
                 <nav>
                     <a href="#" class="logo">
                         <i class="fa-solid fa-cube text-gradient"></i>
-                        <span>WMS_HA</span>
+                        <span>HA_WMS</span>
                     </a>
                     <ul class="nav-links">
                         <li><a href="#features">Tính Năng</a></li>
@@ -136,7 +136,7 @@
     <footer
         style="padding: 4rem 0; border-top: 1px solid var(--glass-border); text-align: center; color: var(--text-muted);">
         <div class="container">
-            <p>&copy; 2026 WMS_HA. All rights reserved.</p>
+            <p>&copy; 2026 HA_WMS. All rights reserved.</p>
         </div>
     </footer>
 

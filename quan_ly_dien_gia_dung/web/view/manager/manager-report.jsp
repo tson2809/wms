@@ -187,124 +187,177 @@
                     <div class="bg-light rounded p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3 gap-3 flex-column flex-md-row">
                             <div>
-                                <h6 class="mb-0">Top biến thể</h6>
-                                <small class="text-muted">Chọn chế độ hiển thị</small>
+                                <h6 class="mb-0">Danh sách biến thể</h6>
+                                <small class="text-muted">Chọn chế độ hiển thị và phân trang</small>
                             </div>
 
                             <div class="btn-group" role="group" aria-label="top-variant-mode">
-                                <button type="button" class="btn btn-sm btn-primary" id="topModeBtnImport" onclick="setTopVariantMode('import')">Top nhập</button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" id="topModeBtnExport" onclick="setTopVariantMode('export')">Top xuất</button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" id="topModeBtnRisk" onclick="setTopVariantMode('risk')">Top tồn cao (risk)</button>
+                                <form method="get" action="${pageContext.request.contextPath}/manager-report" class="d-inline">
+                                    <input type="hidden" name="range" value="custom">
+                                    <input type="hidden" name="fromDate" value="${fromDate}">
+                                    <input type="hidden" name="toDate" value="${toDate}">
+                                    <input type="hidden" name="topMode" value="import">
+                                    <input type="hidden" name="topPage" value="1">
+                                    <input type="hidden" name="topNumberPerPage" value="${topNumberPerPage}">
+                                    <button type="submit" class="btn btn-sm ${topMode == 'import' ? 'btn-primary' : 'btn-outline-primary'}">Danh sách nhập</button>
+                                </form>
+                                <form method="get" action="${pageContext.request.contextPath}/manager-report" class="d-inline">
+                                    <input type="hidden" name="range" value="custom">
+                                    <input type="hidden" name="fromDate" value="${fromDate}">
+                                    <input type="hidden" name="toDate" value="${toDate}">
+                                    <input type="hidden" name="topMode" value="export">
+                                    <input type="hidden" name="topPage" value="1">
+                                    <input type="hidden" name="topNumberPerPage" value="${topNumberPerPage}">
+                                    <button type="submit" class="btn btn-sm ${topMode == 'export' ? 'btn-primary' : 'btn-outline-primary'}">Danh sách xuất</button>
+                                </form>
+                                <form method="get" action="${pageContext.request.contextPath}/manager-report" class="d-inline">
+                                    <input type="hidden" name="range" value="custom">
+                                    <input type="hidden" name="fromDate" value="${fromDate}">
+                                    <input type="hidden" name="toDate" value="${toDate}">
+                                    <input type="hidden" name="topMode" value="risk">
+                                    <input type="hidden" name="topPage" value="1">
+                                    <input type="hidden" name="topNumberPerPage" value="${topNumberPerPage}">
+                                    <button type="submit" class="btn btn-sm ${topMode == 'risk' ? 'btn-primary' : 'btn-outline-primary'}">Danh sách tồn cao</button>
+                                </form>
                             </div>
                         </div>
 
-                        <div id="topModeTableImport">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Top nhập nhiều</h6>
-                                <small class="text-muted">Theo SL nhập (từ ${fromDate} đến ${toDate})</small>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-striped align-middle mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>SKU</th>
-                                            <th>Sản phẩm</th>
-                                            <th class="text-end">SL nhập</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:choose>
-                                            <c:when test="${not empty topImportVariants}">
-                                                <c:forEach var="row" items="${topImportVariants}">
-                                                    <tr>
-                                                        <td>${row.sku}</td>
-                                                        <td>${row.productName}</td>
-                                                        <td class="text-end"><fmt:formatNumber value="${row.importQuantity}" type="number" /></td>
-                                                    </tr>
-                                                </c:forEach>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <tr>
-                                                    <td colspan="3" class="text-center text-muted py-4">Không có dữ liệu.</td>
-                                                </tr>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">
+                                <c:choose>
+                                    <c:when test="${topMode == 'export'}">Danh sách xuất nhiều</c:when>
+                                    <c:when test="${topMode == 'risk'}">Danh sách tồn cao</c:when>
+                                    <c:otherwise>Danh sách nhập nhiều</c:otherwise>
+                                </c:choose>
+                            </h6>
+                            <small class="text-muted">
+                                <c:choose>
+                                    <c:when test="${topMode == 'risk'}">Snapshot tồn tại ${toDate}</c:when>
+                                    <c:when test="${topMode == 'export'}">Theo SL xuất (từ ${fromDate} đến ${toDate})</c:when>
+                                    <c:otherwise>Theo SL nhập (từ ${fromDate} đến ${toDate})</c:otherwise>
+                                </c:choose>
+                            </small>
                         </div>
 
-                        <div id="topModeTableExport" class="d-none">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Top xuất nhiều</h6>
-                                <small class="text-muted">Theo SL xuất (từ ${fromDate} đến ${toDate})</small>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-striped align-middle mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>SKU</th>
-                                            <th>Sản phẩm</th>
-                                            <th class="text-end">SL xuất</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:choose>
-                                            <c:when test="${not empty topExportVariants}">
-                                                <c:forEach var="row" items="${topExportVariants}">
-                                                    <tr>
-                                                        <td>${row.sku}</td>
-                                                        <td>${row.productName}</td>
-                                                        <td class="text-end"><fmt:formatNumber value="${row.exportQuantity}" type="number" /></td>
-                                                    </tr>
-                                                </c:forEach>
-                                            </c:when>
-                                            <c:otherwise>
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-end">
+                                            <c:choose>
+                                                <c:when test="${topMode == 'export'}">SL xuất</c:when>
+                                                <c:when test="${topMode == 'risk'}">Tồn</c:when>
+                                                <c:otherwise>SL nhập</c:otherwise>
+                                            </c:choose>
+                                        </th>
+                                        <th class="text-center" style="width: 120px;">Chi tiết</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <c:choose>
+                                        <c:when test="${not empty topVariantRows}">
+                                            <c:forEach var="row" items="${topVariantRows}">
                                                 <tr>
-                                                    <td colspan="3" class="text-center text-muted py-4">Không có dữ liệu.</td>
+                                                    <td>${row.sku}</td>
+                                                    <td>${row.productName}</td>
+                                                    <td class="text-end">
+                                                        <c:choose>
+                                                            <c:when test="${topMode == 'export'}"><fmt:formatNumber value="${row.exportQuantity}" type="number" /></c:when>
+                                                            <c:when test="${topMode == 'risk'}"><fmt:formatNumber value="${row.stockQuantity}" type="number" /></c:when>
+                                                            <c:otherwise><fmt:formatNumber value="${row.importQuantity}" type="number" /></c:otherwise>
+                                                        </c:choose>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <form method="post" action="${pageContext.request.contextPath}/manager-report-variant-detail" class="d-inline">
+                                                            <input type="hidden" name="sku" value="${row.sku}">
+                                                            <input type="hidden" name="fromDate" value="${fromDate}">
+                                                            <input type="hidden" name="toDate" value="${toDate}">
+                                                            <input type="hidden" name="mode" value="${topMode == 'import' ? 'port' : topMode}">
+                                                            <button type="submit" class="btn btn-sm btn-outline-primary">Chi tiết</button>
+                                                        </form>
+                                                    </td>
                                                 </tr>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </tbody>
-                                </table>
-                            </div>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-4">Không có dữ liệu.</td>
+                                            </tr>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </tbody>
+                            </table>
                         </div>
 
-                        <div id="topModeTableRisk" class="d-none">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Top tồn cao (risk)</h6>
-                                <small class="text-muted">Snapshot tồn tại ${toDate}</small>
+                        <c:if test="${topTotalRows > 0}">
+                            <div class="d-flex flex-wrap align-items-center gap-3 pt-3 mb-1 border-top-0">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                                    <c:choose>
+                                        <c:when test="${topPage == 1}">
+                                            <span class="page-btn disabled">‹</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <form method="get" action="${pageContext.request.contextPath}/manager-report" class="d-inline">
+                                                <input type="hidden" name="range" value="custom">
+                                                <input type="hidden" name="fromDate" value="${fromDate}">
+                                                <input type="hidden" name="toDate" value="${toDate}">
+                                                <input type="hidden" name="topMode" value="${topMode}">
+                                                <input type="hidden" name="topNumberPerPage" value="${topNumberPerPage}">
+                                                <input type="hidden" name="topPage" value="${topPage - 1}">
+                                                <button type="submit" class="page-btn border-0 bg-transparent p-0">‹</button>
+                                            </form>
+                                        </c:otherwise>
+                                    </c:choose>
+
+                                    <span class="page-number">
+                                        Trang
+                                        <form action="${pageContext.request.contextPath}/manager-report" method="get" class="page-jump-form d-inline">
+                                            <input type="hidden" name="range" value="custom">
+                                            <input type="hidden" name="fromDate" value="${fromDate}">
+                                            <input type="hidden" name="toDate" value="${toDate}">
+                                            <input type="hidden" name="topMode" value="${topMode}">
+                                            <input type="hidden" name="topNumberPerPage" value="${topNumberPerPage}">
+                                            <input type="number" name="topPage" min="1" max="${topListOfPage}" value="${topPage}" onchange="this.form.submit()">
+                                        </form>
+                                        / ${topListOfPage}
+                                    </span>
+
+                                    <c:choose>
+                                        <c:when test="${topPage == topListOfPage}">
+                                            <span class="page-btn disabled">›</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <form method="get" action="${pageContext.request.contextPath}/manager-report" class="d-inline">
+                                                <input type="hidden" name="range" value="custom">
+                                                <input type="hidden" name="fromDate" value="${fromDate}">
+                                                <input type="hidden" name="toDate" value="${toDate}">
+                                                <input type="hidden" name="topMode" value="${topMode}">
+                                                <input type="hidden" name="topNumberPerPage" value="${topNumberPerPage}">
+                                                <input type="hidden" name="topPage" value="${topPage + 1}">
+                                                <button type="submit" class="page-btn border-0 bg-transparent p-0">›</button>
+                                            </form>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+
+                                <form method="get" action="${pageContext.request.contextPath}/manager-report" class="d-flex align-items-center gap-2 ms-auto">
+                                    <input type="hidden" name="range" value="custom">
+                                    <input type="hidden" name="fromDate" value="${fromDate}">
+                                    <input type="hidden" name="toDate" value="${toDate}">
+                                    <input type="hidden" name="topMode" value="${topMode}">
+                                    <input type="hidden" name="topPage" value="1">
+                                    <span class="text-muted small">Hiển thị</span>
+                                    <select name="topNumberPerPage" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        <option value="5" ${topNumberPerPage == 5 ? 'selected' : ''}>5</option>
+                                        <option value="10" ${topNumberPerPage == 10 ? 'selected' : ''}>10</option>
+                                        <option value="20" ${topNumberPerPage == 20 ? 'selected' : ''}>20</option>
+                                    </select>
+                                    <span class="text-muted small">dòng/trang</span>
+                                </form>
                             </div>
-                            <div class="table-responsive">
-                                <table class="table table-striped align-middle mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>SKU</th>
-                                            <th>Sản phẩm</th>
-                                            <th class="text-end">Tồn</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:choose>
-                                            <c:when test="${not empty topStockRiskVariants}">
-                                                <c:forEach var="row" items="${topStockRiskVariants}">
-                                                    <tr>
-                                                        <td>${row.sku}</td>
-                                                        <td>${row.productName}</td>
-                                                        <td class="text-end"><fmt:formatNumber value="${row.stockQuantity}" type="number" /></td>
-                                                    </tr>
-                                                </c:forEach>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <tr>
-                                                    <td colspan="3" class="text-center text-muted py-4">Không có dữ liệu.</td>
-                                                </tr>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        </c:if>
                     </div>
                 </div>
             </div>
@@ -316,47 +369,5 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="${pageContext.request.contextPath}/js/loadComponents.js"></script>
 <script src="${pageContext.request.contextPath}/js/main.js"></script>
-<script>
-    function setTopVariantMode(mode) {
-        var importTable = document.getElementById('topModeTableImport');
-        var exportTable = document.getElementById('topModeTableExport');
-        var riskTable = document.getElementById('topModeTableRisk');
-
-        var btnImport = document.getElementById('topModeBtnImport');
-        var btnExport = document.getElementById('topModeBtnExport');
-        var btnRisk = document.getElementById('topModeBtnRisk');
-
-        if (!importTable || !exportTable || !riskTable || !btnImport || !btnExport || !btnRisk) {
-            return;
-        }
-
-        // Reset trạng thái
-        importTable.classList.add('d-none');
-        exportTable.classList.add('d-none');
-        riskTable.classList.add('d-none');
-
-        btnImport.classList.remove('btn-primary');
-        btnImport.classList.add('btn-outline-primary');
-        btnExport.classList.remove('btn-primary');
-        btnExport.classList.add('btn-outline-primary');
-        btnRisk.classList.remove('btn-primary');
-        btnRisk.classList.add('btn-outline-primary');
-
-        // Set mode
-        if (mode === 'import') {
-            importTable.classList.remove('d-none');
-            btnImport.classList.remove('btn-outline-primary');
-            btnImport.classList.add('btn-primary');
-        } else if (mode === 'export') {
-            exportTable.classList.remove('d-none');
-            btnExport.classList.remove('btn-outline-primary');
-            btnExport.classList.add('btn-primary');
-        } else {
-            riskTable.classList.remove('d-none');
-            btnRisk.classList.remove('btn-outline-primary');
-            btnRisk.classList.add('btn-primary');
-        }
-    }
-</script>
 </body>
 </html>

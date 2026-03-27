@@ -187,20 +187,7 @@
                                         <input type="hidden" name="totalAmount" id="totalAmountValue" value="0">
                                     </div>
 
-                                    <c:if test="${!readOnly}">
-                                    <c:if test="${sessionScope.user.role.roleId == 2}">
-                                        <div class="mb-3">
-                                            <label class="form-label">Trạng thái:</label>
-                                            <select class="form-select" name="status">
-                                                <option value="draft" ${receipt.status == 'draft' ? 'selected' : ''}>Nháp</option>
-                                                <option value="completed" ${receipt.status == 'completed' ? 'selected' : ''}>Hoàn thành</option>
-                                                <option value="cancelled" ${receipt.status == 'cancelled' ? 'selected' : ''}>Đã hủy</option>
-                                            </select>
-                                        </div>
-                                    </c:if>
-                                    </c:if>
-
-                                    <c:if test="${readOnly}">
+                                    <c:if test="${readOnly or sessionScope.user.role.roleId == 2}">
                                         <div class="mb-3">
                                             <label class="form-label">Trạng thái:</label>
                                             <input type="text" class="form-control" readonly value="${receipt.status == 'draft' ? 'Nháp' : (receipt.status == 'completed' ? 'Hoàn thành' : 'Đã hủy')}">
@@ -226,9 +213,6 @@
                                     <div class="d-flex gap-2">
                                         <a href="${pageContext.request.contextPath}/goods-receipt-list" class="btn btn-secondary flex-fill">Đóng</a>
                                         <c:if test="${!readOnly}">
-                                            <c:if test="${sessionScope.user.role.roleId == 2}">
-                                                <button type="submit" class="btn btn-success flex-fill">Cập nhật trạng thái</button>
-                                            </c:if>
                                             <c:if test="${sessionScope.user.role.roleId != 2 and sessionScope.user.role.roleId == 3}">
                                                 <button type="submit" class="btn btn-primary flex-fill">Cập nhật</button>
                                             </c:if>
