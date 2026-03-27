@@ -128,7 +128,7 @@ public class PurchaseOrderDAO extends DBContext {
     }
 
     /** Sale xem đơn do mình tạo (supplier_id IS NULL, created_by = userId). */
-    public List<PurchaseOrder> getSaleOrdersByCreator(int userId, String status, int offset, int limit) {
+    public List<PurchaseOrder> getSaleOrdersByCreator(int userId, String status, Date fromDate, Date toDate, int offset, int limit) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT po.*, NULL as supplier_name, ")
                 .append("u1.full_name as created_by_name, u2.full_name as approved_by_name, ")
@@ -139,6 +139,10 @@ public class PurchaseOrderDAO extends DBContext {
                 .append("WHERE po.supplier_id IS NULL AND po.created_by = ? ");
         if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status))
             sql.append("AND po.status = ? ");
+        if (fromDate != null)
+            sql.append("AND po.order_date >= ? ");
+        if (toDate != null)
+            sql.append("AND po.order_date <= ? ");
         sql.append("ORDER BY po.created_at DESC LIMIT ? OFFSET ?");
         List<PurchaseOrder> list = new ArrayList<>();
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql.toString())) {
@@ -146,6 +150,10 @@ public class PurchaseOrderDAO extends DBContext {
             pre.setInt(idx++, userId);
             if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status))
                 pre.setString(idx++, status);
+            if (fromDate != null)
+                pre.setDate(idx++, fromDate);
+            if (toDate != null)
+                pre.setDate(idx++, toDate);
             pre.setInt(idx++, limit);
             pre.setInt(idx, offset);
             ResultSet rs = pre.executeQuery();
@@ -157,16 +165,24 @@ public class PurchaseOrderDAO extends DBContext {
         return list;
     }
 
-    public int countSaleOrdersByCreator(int userId, String status) {
+    public int countSaleOrdersByCreator(int userId, String status, Date fromDate, Date toDate) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM purchase_orders po WHERE po.supplier_id IS NULL AND po.created_by = ? ");
         if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status))
             sql.append("AND po.status = ? ");
+        if (fromDate != null)
+            sql.append("AND po.order_date >= ? ");
+        if (toDate != null)
+            sql.append("AND po.order_date <= ? ");
         try (PreparedStatement pre = this.getConnection().prepareStatement(sql.toString())) {
             int idx = 1;
             pre.setInt(idx++, userId);
             if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status))
-                pre.setString(idx, status);
+                pre.setString(idx++, status);
+            if (fromDate != null)
+                pre.setDate(idx++, fromDate);
+            if (toDate != null)
+                pre.setDate(idx++, toDate);
             ResultSet rs = pre.executeQuery();
             if (rs.next())
                 return rs.getInt(1);
@@ -344,8 +360,8 @@ public class PurchaseOrderDAO extends DBContext {
         return false;
     }
 
-    /** Staff: lấy tất cả đơn (có NCC + không có NCC), hỗ trợ filter status/keyword. */
-    public List<PurchaseOrder> getAllOrdersForStaff(String status, String keyword, int offset, int limit) {
+    /** Staff: lấy tất cả đơn (có NCC + không có NCC), hỗ trợ filter status/supplier/keyword/date/type. */
+    public List<PurchaseOrder> getAllOrdersForStaff(String status, Integer supplierId, String keyword, Date fromDate, Date toDate, String type, int offset, int limit) {
         List<PurchaseOrder> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
             "SELECT po.*, s.supplier_name, " +
@@ -360,13 +376,30 @@ public class PurchaseOrderDAO extends DBContext {
         if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status)) {
             sql.append("AND po.status = ? ");
         }
+        if (supplierId != null && supplierId > 0) {
+            sql.append("AND po.supplier_id = ? ");
+        }
+        if (fromDate != null) {
+            sql.append("AND po.order_date >= ? ");
+        }
+        if (toDate != null) {
+            sql.append("AND po.order_date <= ? ");
+        }
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append("AND po.po_code LIKE ? ");
+        }
+        if ("inbound".equalsIgnoreCase(type)) {
+            sql.append("AND po.supplier_id IS NOT NULL ");
+        } else if ("outbound".equalsIgnoreCase(type)) {
+            sql.append("AND po.supplier_id IS NULL ");
         }
         sql.append("ORDER BY po.created_at DESC LIMIT ? OFFSET ?");
         try (PreparedStatement ps = this.getConnection().prepareStatement(sql.toString())) {
             int idx = 1;
             if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status)) ps.setString(idx++, status);
+            if (supplierId != null && supplierId > 0) ps.setInt(idx++, supplierId);
+            if (fromDate != null) ps.setDate(idx++, fromDate);
+            if (toDate != null) ps.setDate(idx++, toDate);
             if (keyword != null && !keyword.trim().isEmpty()) ps.setString(idx++, "%" + keyword.trim() + "%");
             ps.setInt(idx++, limit);
             ps.setInt(idx, offset);
@@ -378,14 +411,25 @@ public class PurchaseOrderDAO extends DBContext {
         return list;
     }
 
-    /** Đếm tổng tất cả đơn cho Staff. */
-    public int countAllOrdersForStaff(String status, String keyword) {
+    /** Đếm tổng tất cả đơn cho Staff với bộ lọc. */
+    public int countAllOrdersForStaff(String status, Integer supplierId, String keyword, Date fromDate, Date toDate, String type) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM purchase_orders po WHERE 1=1 ");
         if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status)) sql.append("AND po.status = ? ");
+        if (supplierId != null && supplierId > 0) sql.append("AND po.supplier_id = ? ");
+        if (fromDate != null) sql.append("AND po.order_date >= ? ");
+        if (toDate != null) sql.append("AND po.order_date <= ? ");
         if (keyword != null && !keyword.trim().isEmpty()) sql.append("AND po.po_code LIKE ? ");
+        if ("inbound".equalsIgnoreCase(type)) {
+            sql.append("AND po.supplier_id IS NOT NULL ");
+        } else if ("outbound".equalsIgnoreCase(type)) {
+            sql.append("AND po.supplier_id IS NULL ");
+        }
         try (PreparedStatement ps = this.getConnection().prepareStatement(sql.toString())) {
             int idx = 1;
             if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status)) ps.setString(idx++, status);
+            if (supplierId != null && supplierId > 0) ps.setInt(idx++, supplierId);
+            if (fromDate != null) ps.setDate(idx++, fromDate);
+            if (toDate != null) ps.setDate(idx++, toDate);
             if (keyword != null && !keyword.trim().isEmpty()) ps.setString(idx, "%" + keyword.trim() + "%");
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return rs.getInt(1);
