@@ -282,7 +282,7 @@
 
                                                 <!-- Hiển thị icon tương ứng dựa trên trạng thái (nhưng cùng một link) -->
                                                 <c:choose>
-                                                    <c:when test="${po.status == 'draft' and (canEditPurchaseOrder or (roleId == 4 and po.createdBy == currentUserId))}">
+                                                    <c:when test="${po.status == 'draft'}">
                                                         <a href="${pageContext.request.contextPath}/purchase-order/edit?id=${po.purchaseOrderId}"
                                                            class="action-btn action-edit" title="Chỉnh sửa">
                                                             <iconify-icon icon="lucide:edit-2"></iconify-icon>
