@@ -135,7 +135,7 @@
         var qty   = parseFloat(row.querySelector('.quantity-input').value)  || 0;
         var price = parseFloat(row.querySelector('.price-input').value)      || 0;
         var total = qty * price;
-        row.querySelector('.total-input').value = total.toLocaleString('vi-VN') + ' ₫';
+        row.querySelector('.total-input').value = total.toLocaleString('vi-VN') + ' VNĐ';
         poUpdateGrandTotal();
     };
 
@@ -147,7 +147,7 @@
             if (qi && pi) total += (parseFloat(qi.value)||0) * (parseFloat(pi.value)||0);
         });
         var el = document.getElementById('grandTotal');
-        if (el) el.textContent = total.toLocaleString('vi-VN') + ' ₫';
+        if (el) el.textContent = total.toLocaleString('vi-VN') + ' VNĐ';
     }
     window.poUpdateGrandTotal = poUpdateGrandTotal;
 

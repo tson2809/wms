@@ -77,6 +77,9 @@ public class PurchaseOrderEditController extends HttpServlet {
             Set<String> permissions = (Set<String>) session.getAttribute("userPermissions");
             boolean canEditPurchaseOrder = permissions != null && permissions.contains("edit purchase order");
 
+            request.setAttribute("categories", categoryDAO.getActiveCategories());
+            request.setAttribute("brands", brandDAO.getActiveBrands());
+
             boolean viewOnly;
             String targetJsp;
 
@@ -88,10 +91,6 @@ public class PurchaseOrderEditController extends HttpServlet {
                 }
                 viewOnly = !"draft".equalsIgnoreCase(po.getStatus());
                 targetJsp = "/view/sale/sale_order_edit.jsp";
-                
-                // For Sale search filter
-                request.setAttribute("categories", categoryDAO.getActiveCategories());
-                request.setAttribute("brands", brandDAO.getActiveBrands());
             } else {
                 // Manager/Staff: Cho phép sửa khi có quyền edit và đơn đang draft; còn lại chỉ xem.
                 viewOnly = !(canEditPurchaseOrder && "draft".equalsIgnoreCase(po.getStatus()));
