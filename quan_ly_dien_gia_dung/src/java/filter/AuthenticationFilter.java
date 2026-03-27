@@ -25,6 +25,7 @@ import model.Role;
     "/view/admin/*", "/view/manager/*", "/view/sale/*", "/view/staff/*",
     "/user-list", "/user-add", "/user-edit", "/user-detail", "/user-toggle-status", "/UpdateUser",
     "/view-permission", "/ViewRole", "/audit-log-list", "/manager-report",
+    "/manager-report-variant-detail",
     "/supplier-*", "/category-*", "/brand-*", "/unit-*", "/product-*",
     "/goods-receipt-*", "/goods-issue-*", "/inventory-*", "/transaction-detail", "/search-user", "/export-inventory",
     "/purchase-order/*", "/sale-order/*", "/return-order-*", "/sales-return-*"
@@ -112,6 +113,7 @@ public class AuthenticationFilter implements Filter {
     private boolean isManagerPath(String path) {
         return path.startsWith("/view/manager/")
                 || "/manager-report".equals(path)
+                || "/manager-report-variant-detail".equals(path)
                 || path.startsWith("/supplier-")
                 || path.startsWith("/category-")
                 || path.startsWith("/brand-")

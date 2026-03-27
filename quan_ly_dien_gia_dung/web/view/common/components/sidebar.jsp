@@ -40,6 +40,8 @@
             || currentURI.contains("/return-view")
             || currentURI.contains("/return-edit")
             || currentURI.contains("/return-claim")
+            || currentURI.contains("/return_list.jsp")
+            || currentURI.contains("/view/common/return_list.jsp")
             || currentURI.contains("/return_order_list.jsp")
             || currentURI.contains("/return_order_add.jsp")
             || currentURI.contains("/return_order_edit.jsp")
@@ -95,7 +97,7 @@
         <c:choose>
         <c:when test="${roleId == 1}">
             <a href="${pageContext.request.contextPath}/user-list" class="navbar-brand mx-4 mb-3">
-                <h3 class="text-primary">WMS_HA</h3>
+                <h3 class="text-primary">HA_WMS</h3>
             </a>
             <div class="navbar-nav w-100">
                 <a href="${pageContext.request.contextPath}/user-list" class="nav-item nav-link <%= userListActive %>"><i class="fa fa-solid fa-user me-2"></i>Quản lý người dùng</a>
@@ -106,7 +108,7 @@
         </c:when>
         <c:when test="${roleId == 2}">
             <a href="${pageContext.request.contextPath}/manager-report" class="navbar-brand mx-4 mb-3">
-                <h3 class="text-primary">WMS_HA</h3>
+                <h3 class="text-primary">HA_WMS</h3>
             </a>
             <div class="navbar-nav w-100">
                 <a href="${pageContext.request.contextPath}/manager-report" class="nav-item nav-link <%= managerReportActive %>"><i class="fa fa-chart-pie me-2"></i>Báo cáo thống kê</a>
@@ -133,7 +135,7 @@
         </c:when>
         <c:when test="${roleId == 3}">
             <a href="${pageContext.request.contextPath}/inventory-list" class="navbar-brand mx-4 mb-3">
-                <h3 class="text-primary">WMS_HA</h3>
+                <h3 class="text-primary">HA_WMS</h3>
             </a>
             <div class="navbar-nav w-100">
                 <a href="${pageContext.request.contextPath}/inventory-list" class="nav-item nav-link <%= inventoryListActive %>"><i class="fa fa-boxes me-2"></i>Tồn kho</a>
@@ -147,7 +149,7 @@
         </c:when>
         <c:otherwise>
             <a href="${pageContext.request.contextPath}/purchase-order/list" class="navbar-brand mx-4 mb-3">
-                <h3 class="text-primary">WMS_HA</h3>
+                <h3 class="text-primary">HA_WMS</h3>
             </a>
             <div class="navbar-nav w-100">
                 <a href="${pageContext.request.contextPath}/purchase-order/list" class="nav-item nav-link <%= saleOrderActive %>"><i class="fa fa-shopping-cart me-2"></i>Đơn đặt hàng</a>
