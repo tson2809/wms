@@ -6,6 +6,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -440,6 +441,72 @@ public class ManagerReportDAO extends DBContext {
 
         public void setStockQuantity(long stockQuantity) {
             this.stockQuantity = stockQuantity;
+        }
+    }
+
+    public static class VariantOrderFlow {
+        private String flowType;
+        private Integer documentId;
+        private String documentCode;
+        private String orderCode;
+        private Timestamp flowDate;
+        private long quantity;
+        private String status;
+
+        public String getFlowType() {
+            return flowType;
+        }
+
+        public void setFlowType(String flowType) {
+            this.flowType = flowType;
+        }
+
+        public Integer getDocumentId() {
+            return documentId;
+        }
+
+        public void setDocumentId(Integer documentId) {
+            this.documentId = documentId;
+        }
+
+        public String getDocumentCode() {
+            return documentCode;
+        }
+
+        public void setDocumentCode(String documentCode) {
+            this.documentCode = documentCode;
+        }
+
+        public String getOrderCode() {
+            return orderCode;
+        }
+
+        public void setOrderCode(String orderCode) {
+            this.orderCode = orderCode;
+        }
+
+        public Timestamp getFlowDate() {
+            return flowDate;
+        }
+
+        public void setFlowDate(Timestamp flowDate) {
+            this.flowDate = flowDate;
+        }
+
+        public long getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(long quantity) {
+            this.quantity = quantity;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
         }
     }
 
@@ -1011,6 +1078,127 @@ public class ManagerReportDAO extends DBContext {
             LOGGER.log(Level.SEVERE, null, ex);
         }
 
+        return rows;
+    }
+
+    public String getProductNameBySku(String sku) {
+        String sql = "SELECT p.product_name "
+                + "FROM product_variants pv "
+                + "JOIN products p ON p.product_id = pv.product_id "
+                + "WHERE pv.sku = ? LIMIT 1";
+        try (Connection con = getConnection(); PreparedStatement pre = con.prepareStatement(sql)) {
+            pre.setString(1, sku);
+            ResultSet rs = pre.executeQuery();
+            if (rs.next()) {
+                return rs.getString("product_name");
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public int countVariantOrderFlows(String sku, Date fromDate, Date toDate, String mode) {
+        String sql = "SELECT COUNT(*) FROM ("
+                + " SELECT gr.receipt_id AS flow_id "
+                + " FROM goods_receipt_details grd "
+                + " JOIN goods_receipts gr ON gr.receipt_id = grd.receipt_id "
+                + " JOIN product_variants pv ON pv.variant_id = grd.variant_id "
+                + " WHERE pv.sku = ? AND gr.status = 'completed' AND gr.receipt_date BETWEEN ? AND ? "
+                + "   AND (? <> 'export') "
+                + " UNION ALL "
+                + " SELECT gi.issue_id AS flow_id "
+                + " FROM goods_issue_details gid "
+                + " JOIN goods_issues gi ON gi.issue_id = gid.issue_id "
+                + " JOIN product_variants pv ON pv.variant_id = gid.variant_id "
+                + " WHERE pv.sku = ? AND gi.status = 'completed' AND DATE(gi.issue_date) BETWEEN ? AND ? "
+                + "   AND (? <> 'import') "
+                + ") t";
+
+        try (Connection con = getConnection(); PreparedStatement pre = con.prepareStatement(sql)) {
+            pre.setString(1, sku);
+            pre.setDate(2, fromDate);
+            pre.setDate(3, toDate);
+            pre.setString(4, mode);
+            pre.setString(5, sku);
+            pre.setDate(6, fromDate);
+            pre.setDate(7, toDate);
+            pre.setString(8, mode);
+            ResultSet rs = pre.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+
+    public List<VariantOrderFlow> getVariantOrderFlows(String sku, Date fromDate, Date toDate, String mode, int offset, int limit) {
+        List<VariantOrderFlow> rows = new ArrayList<>();
+        String sql = "SELECT x.flow_type, x.document_id, x.document_code, x.order_code, x.flow_date, x.quantity, x.status "
+                + "FROM ( "
+                + "  SELECT 'Nhập' AS flow_type, gr.receipt_id AS document_id, gr.receipt_code AS document_code, "
+                + "         COALESCE(po.po_code, sr.sr_code, '-') AS order_code, "
+                + "         CAST(gr.receipt_date AS DATETIME) AS flow_date, "
+                + "         grd.quantity AS quantity, gr.status AS status "
+                + "  FROM goods_receipt_details grd "
+                + "  JOIN goods_receipts gr ON gr.receipt_id = grd.receipt_id "
+                + "  JOIN product_variants pv ON pv.variant_id = grd.variant_id "
+                + "  LEFT JOIN purchase_orders po ON po.purchase_order_id = gr.purchase_order_id "
+                + "  LEFT JOIN sales_returns sr ON sr.sales_return_id = gr.sales_return_id "
+                + "  WHERE pv.sku = ? AND gr.status = 'completed' AND gr.receipt_date BETWEEN ? AND ? "
+                + "    AND (? <> 'export') "
+                + "  UNION ALL "
+                + "  SELECT 'Xuất' AS flow_type, gi.issue_id AS document_id, gi.issue_code AS document_code, "
+                + "         COALESCE(po_note.po_code, ro.return_code, '-') AS order_code, "
+                + "         gi.issue_date AS flow_date, "
+                + "         gid.quantity AS quantity, gi.status AS status "
+                + "  FROM goods_issue_details gid "
+                + "  JOIN goods_issues gi ON gi.issue_id = gid.issue_id "
+                + "  JOIN product_variants pv ON pv.variant_id = gid.variant_id "
+                + "  LEFT JOIN return_orders ro ON ro.return_order_id = gi.return_order_id "
+                + "  LEFT JOIN purchase_orders po_note "
+                + "    ON po_note.purchase_order_id = CASE "
+                + "         WHEN gi.notes LIKE '%[PO_ID:%]%' "
+                + "         THEN CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(gi.notes, '[PO_ID:', -1), ']', 1) AS UNSIGNED) "
+                + "         ELSE NULL END "
+                + "  WHERE pv.sku = ? AND gi.status = 'completed' AND DATE(gi.issue_date) BETWEEN ? AND ? "
+                + "    AND (? <> 'import') "
+                + ") x "
+                + "ORDER BY x.flow_date DESC "
+                + "LIMIT ? OFFSET ?";
+
+        try (Connection con = getConnection(); PreparedStatement pre = con.prepareStatement(sql)) {
+            pre.setString(1, sku);
+            pre.setDate(2, fromDate);
+            pre.setDate(3, toDate);
+            pre.setString(4, mode);
+            pre.setString(5, sku);
+            pre.setDate(6, fromDate);
+            pre.setDate(7, toDate);
+            pre.setString(8, mode);
+            pre.setInt(9, limit);
+            pre.setInt(10, offset);
+
+            ResultSet rs = pre.executeQuery();
+            while (rs.next()) {
+                VariantOrderFlow row = new VariantOrderFlow();
+                row.setFlowType(rs.getString("flow_type"));
+                Object documentIdObj = rs.getObject("document_id");
+                if (documentIdObj instanceof Number) {
+                    row.setDocumentId(((Number) documentIdObj).intValue());
+                }
+                row.setDocumentCode(rs.getString("document_code"));
+                row.setOrderCode(rs.getString("order_code"));
+                row.setFlowDate(rs.getTimestamp("flow_date"));
+                row.setQuantity(rs.getLong("quantity"));
+                row.setStatus(rs.getString("status"));
+                rows.add(row);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
         return rows;
     }
 

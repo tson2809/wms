@@ -141,13 +141,6 @@
 
                                 <div class="d-flex gap-2">
                                     <a href="${pageContext.request.contextPath}/goods-issue-list" class="btn btn-secondary flex-fill">Đóng</a>
-                                    <c:if test="${sessionScope.user.role.roleId == 2 and !readOnly}">
-                                        <form id="goodsIssueStatusForm" method="POST" action="${pageContext.request.contextPath}/goods-issue-detail"
-                                              class="d-inline flex-fill">
-                                            <input type="hidden" name="id" value="${issue.issueId}">
-                                            <button type="submit" class="btn btn-success w-100">Cập nhật trạng thái</button>
-                                        </form>
-                                    </c:if>
                                 </div>
                             </div>
                         </div>

@@ -192,7 +192,6 @@
                                             <th style="width: 140px;" class="text-end">Tổng tiền</th>
                                             <th style="width: 120px;">Trạng thái</th>
                                             <th style="width: 150px;">Người tạo</th>
-                                            <th style="width: 150px;">Người Duyệt</th>
                                             <th class="action-col">Thao tác</th>
                                         </tr>
                                     </thead>
@@ -230,7 +229,6 @@
                                                     </c:choose>
                                                 </td>
                                                 <td>${gr.createdByUser != null ? gr.createdByUser.fullName : '-'}</td>
-                                                <td>${gr.approvedByUser != null ? gr.approvedByUser.fullName : '-'}</td>
                                                 <td class="action-col">
                                                     <div class="action-btn-group">
                                                         <a href="${pageContext.request.contextPath}/goods-receipt-edit?id=${gr.receiptId}"
@@ -245,22 +243,6 @@
                                                                 </c:otherwise>
                                                             </c:choose>
                                                         </a>
-                                                        <c:if test="${gr.status == 'draft' and sessionScope.user.role.roleId == 2}">
-                                                            <form method="POST" action="${pageContext.request.contextPath}/goods-receipt-list" style="display:inline">
-                                                                <input type="hidden" name="id" value="${gr.receiptId}">
-                                                                <input type="hidden" name="status" value="completed">
-                                                                <button type="submit" class="action-btn action-approve" title="Duyệt nhập kho">
-                                                                    <iconify-icon icon="lucide:check"></iconify-icon>
-                                                                </button>
-                                                            </form>
-                                                            <form method="POST" action="${pageContext.request.contextPath}/goods-receipt-list" style="display:inline">
-                                                                <input type="hidden" name="id" value="${gr.receiptId}">
-                                                                <input type="hidden" name="status" value="cancelled">
-                                                                <button type="submit" class="action-btn action-cancel" title="Hủy">
-                                                                    <iconify-icon icon="lucide:x"></iconify-icon>
-                                                                </button>
-                                                            </form>
-                                                        </c:if>
                                                     </div>
                                                 </td>
                                             </tr>

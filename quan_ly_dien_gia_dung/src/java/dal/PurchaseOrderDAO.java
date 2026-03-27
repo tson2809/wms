@@ -396,7 +396,17 @@ public class PurchaseOrderDAO extends DBContext {
     }
 
     public String generatePoCode() {
-        return "PO" + System.currentTimeMillis();
+        String sql = "SELECT COALESCE(MAX(purchase_order_id), 0) + 1 AS next_seq FROM purchase_orders";
+        try (PreparedStatement ps = this.getConnection().prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                int nextSeq = rs.getInt("next_seq");
+                return String.format("PO-%03d", nextSeq);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PurchaseOrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "PO-001";
     }
 
     private PurchaseOrder mapResultSetToPurchaseOrder(ResultSet rs) throws SQLException {
