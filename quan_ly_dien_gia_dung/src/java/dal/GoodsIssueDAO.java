@@ -414,10 +414,7 @@ public class GoodsIssueDAO extends DBContext {
         return "{}";
     }
 
-    /**
-     * Tạo phiếu xuất kho (status = draft). Tồn kho chỉ giảm khi Manager duyệt
-     * (completed).
-     */
+
     public boolean createGoodsIssue(String issueCode, String issueType, String issueDate,
             String receiverName, String notes,
             int createdBy, List<GoodsIssueDetail> details) {

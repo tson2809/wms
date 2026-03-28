@@ -60,7 +60,6 @@ public class RoleDAO extends DBContext{
         return n;
     }
     
-    // Lấy role theo ID
     public Role getRoleById(int roleId) {
         String sql = """
                      SELECT * FROM roles WHERE role_id = ?
@@ -86,7 +85,6 @@ public class RoleDAO extends DBContext{
         return null;
     }
     
-    // Lấy danh sách permission IDs của một role
     public List<Integer> getRolePermissionIds(int roleId) {
         List<Integer> permissionIds = new ArrayList<>();
         String sql = """
@@ -135,7 +133,6 @@ public class RoleDAO extends DBContext{
         return permissionNames;
     }
     
-    // Cập nhật permissions cho một role
     public boolean updateRolePermissions(int roleId, List<Integer> permissionIds) {
         try (Connection conn = this.getConnection()) {
             conn.setAutoCommit(false);
