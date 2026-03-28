@@ -383,8 +383,6 @@ public class GoodsReceiptAddController extends HttpServlet {
         boolean hasSupplierParam = supplierId != null && !supplierId.trim().isEmpty();
         boolean isFromSale = hasSalesReturnId
                 || "SALE".equalsIgnoreCase(supplierId != null ? supplierId.trim() : "");
-        // Fallback for stale cached JS that may only send "serial" without source params.
-        // In that case, allow SOLD serial to pass pre-check; createReceipt still enforces final rule.
         if (!hasSalesReturnId && !hasSupplierParam) {
             isFromSale = true;
         }
@@ -423,7 +421,6 @@ public class GoodsReceiptAddController extends HttpServlet {
             m.put("name", d.getProductName());
             m.put("unit", d.getUnitName());
             m.put("price", d.getOriginalPrice() != null ? d.getOriginalPrice() : BigDecimal.ZERO);
-            // Không tự fill số lượng khi load từ sales return; staff sẽ nhập/scan sau.
             m.put("quantity", 0);
             m.put("serials", new ArrayList<>());
             out.add(m);

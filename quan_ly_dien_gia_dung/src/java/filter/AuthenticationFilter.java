@@ -43,17 +43,14 @@ public class AuthenticationFilter implements Filter {
         String requestURI = httpRequest.getRequestURI();
         String contextPath = httpRequest.getContextPath();
 
-        // Kiểm tra người dùng đã đăng nhập chưa
         if (session == null || session.getAttribute("user") == null) {
             httpResponse.sendRedirect(contextPath + "/login");
             return;
         }
 
-        // Lấy thông tin user từ session
         User user = (User) session.getAttribute("user");
         Role userRole = user.getRole();
 
-        // Kiểm tra user có role không
         if (userRole == null) {
             httpResponse.sendRedirect(contextPath + "/login");
             return;

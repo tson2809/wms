@@ -159,10 +159,7 @@ public class GoodsReceiptDAO extends DBContext {
         return gr;
     }
 
-    /**
-     * Cập nhật trạng thái phiếu nhập. Khi status = 'completed' thì mới tăng số lượng tồn kho và ghi inventory_transactions.
-     * @param approvedBy User duyệt (dùng khi status = 'completed'), có thể null khi hủy.
-     */
+
     public boolean updateGoodsReceiptStatus(int receiptId, String status, Integer approvedBy) {
         Connection conn = null;
         try {
@@ -177,7 +174,7 @@ public class GoodsReceiptDAO extends DBContext {
             if ("completed".equals(status)) {
                 if ("completed".equals(receipt.getStatus())) {
                     conn.rollback();
-                    return true; // Đã duyệt rồi, không áp dụng lại
+                    return true; 
                 }
                 applyReceiptToInventory(conn, receiptId, approvedBy != null ? approvedBy : 0);
             }
@@ -212,7 +209,6 @@ public class GoodsReceiptDAO extends DBContext {
         }
     }
 
-    /** Tăng tồn kho theo chi tiết phiếu nhập và ghi inventory_transactions. Gọi khi duyệt phiếu (completed). */
     private void applyReceiptToInventory(Connection conn, int receiptId, int createdBy) throws SQLException {
         List<model.GoodsReceiptDetail> details = getGoodsReceiptDetails(receiptId);
         String sqlQty = "SELECT quantity FROM product_variants WHERE variant_id = ?";
@@ -278,7 +274,6 @@ public class GoodsReceiptDAO extends DBContext {
         return "GR-001";
     }
 
-    /** Lấy receipt_id theo mã phiếu (dùng sau khi tạo phiếu để hoàn tất nhập kho). */
     public Integer getReceiptIdByReceiptCode(String receiptCode) {
         if (receiptCode == null || receiptCode.trim().isEmpty()) {
             return null;
@@ -310,11 +305,6 @@ public class GoodsReceiptDAO extends DBContext {
         return false;
     }
 
-    /**
-     * Check serial validity for receipt source.
-     * - Normal source: serial is blocked if it already exists.
-     * - Sale source: serial is blocked unless current status is 'sold'.
-     */
     public boolean isSerialBlockedForReceipt(String serialNumber, boolean isFromSale) {
         if (serialNumber == null || serialNumber.trim().isEmpty()) {
             return true;
@@ -355,11 +345,8 @@ public class GoodsReceiptDAO extends DBContext {
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
-            // "Đầu vào từ Sale" được map supplier_id = NULL ở controller.
-            // Vì vậy cần nhận diện nguồn Sale bằng cả salesReturnId và supplierId.
             boolean isFromSale = salesReturnId != null || supplierId == null;
             
-            // Validate serial numbers first.
             String sqlCheckSerial = "SELECT status, variant_id FROM product_serials WHERE serial_number = ? LIMIT 1";
             try (PreparedStatement psCheck = conn.prepareStatement(sqlCheckSerial)) {
                 Set<String> payloadSerials = new HashSet<>();
@@ -437,7 +424,6 @@ public class GoodsReceiptDAO extends DBContext {
                 }
             }
             
-            // Insert details + serials
             String sqlDetail = """
                               INSERT INTO goods_receipt_details 
                               (receipt_id, variant_id, quantity, unit_price, total_amount)
@@ -453,7 +439,7 @@ public class GoodsReceiptDAO extends DBContext {
                               SET variant_id = ?, receipt_detail_id = ?, status = 'in_stock'
                               WHERE serial_number = ? AND status = 'sold'
                               """;
-            // Số lượng chỉ tăng khi phiếu được duyệt (completed), không tăng lúc tạo draft
+            
             
             try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 for (model.GoodsReceiptDetail detail : details) {
@@ -464,7 +450,6 @@ public class GoodsReceiptDAO extends DBContext {
                     psDetail.setBigDecimal(5, detail.getTotalAmount());
                     psDetail.executeUpdate();
                     
-                    // Get the generated detail_id
                     ResultSet rsDetail = psDetail.getGeneratedKeys();
                     int detailId = 0;
                     if (rsDetail.next()) {
