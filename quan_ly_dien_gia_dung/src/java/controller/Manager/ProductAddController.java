@@ -14,8 +14,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import com.google.gson.Gson;
 import java.util.stream.Collectors;
 import jakarta.servlet.ServletException;
@@ -149,6 +151,36 @@ public class ProductAddController extends HttpServlet {
                     }
                 }
             }
+            // Trùng SKU/barcode giữa các dòng trong cùng form (isSkuExists chỉ kiểm tra DB nên không bắt được trường hợp này)
+            if (!hasError) {
+                Set<String> skuSeen = new HashSet<>();
+                for (String sku : variantSkus) {
+                    String t = sku != null ? sku.trim() : "";
+                    if (skuSeen.contains(t)) {
+                        request.setAttribute("errorVariant", "Mã SKU \"" + t + "\" bị trùng trong cùng form.");
+                        hasError = true;
+                        break;
+                    }
+                    skuSeen.add(t);
+                }
+            }
+            if (!hasError && variantBarcodes != null) {
+                Map<String, Integer> barcodeCount = new HashMap<>();
+                for (String barcode : variantBarcodes) {
+                    if (barcode == null || barcode.trim().isEmpty()) {
+                        continue;
+                    }
+                    String t = barcode.trim();
+                    barcodeCount.merge(t, 1, Integer::sum);
+                }
+                for (Map.Entry<String, Integer> e : barcodeCount.entrySet()) {
+                    if (e.getValue() > 1) {
+                        request.setAttribute("errorVariant", "Barcode \"" + e.getKey() + "\" bị trùng trong cùng form.");
+                        hasError = true;
+                        break;
+                    }
+                }
+            }
         } else {
             
             request.setAttribute("errorVariant", "Phải có ít nhất 1 phiên bản (SKU).");
@@ -156,29 +188,8 @@ public class ProductAddController extends HttpServlet {
         }
 
         if (hasError) {
-            request.setAttribute("productName", productName);
-            request.setAttribute("categoryId", categoryId);
-            request.setAttribute("brandId", brandId);
-            request.setAttribute("supplierId", supplierId);
-            request.setAttribute("unitId", unitId);
-            request.setAttribute("description", description);
-
-            
-            if (attributeNamesStr != null && variantAttrValuesArr != null && variantSkus != null && variantSkus.length > 0) {
-                Map<String, Object> preserve = new HashMap<>();
-                preserve.put("attributeNamesStr", attributeNamesStr);
-                preserve.put("variantAttrValues", variantAttrValuesArr != null ? Arrays.asList(variantAttrValuesArr) : new ArrayList<String>());
-                preserve.put("variantSkus", variantSkus != null ? Arrays.asList(variantSkus) : new ArrayList<String>());
-                preserve.put("variantBarcodes", variantBarcodes != null ? Arrays.asList(variantBarcodes) : new ArrayList<String>());
-                
-                List<String> variantImagesBase64 = new ArrayList<>();
-                for (int i = 0; i < (variantSkus != null ? variantSkus.length : 0); i++) {
-                    String base64Param = request.getParameter("variantImageBase64_" + i);
-                    variantImagesBase64.add(base64Param != null ? base64Param : "");
-                }
-                preserve.put("variantImagesBase64", variantImagesBase64);
-                request.setAttribute("preserveStateJson", gson.toJson(preserve));
-            }
+            preserveFormState(request, productName, categoryId, brandId, supplierId, unitId, description,
+                    attributeNamesStr, variantAttrValuesArr, variantSkus, variantBarcodes);
             request.getRequestDispatcher("/view/manager/product_add.jsp").forward(request, response);
             return;
         }
@@ -300,14 +311,40 @@ public class ProductAddController extends HttpServlet {
             loadDropdownData(request);
             request.getRequestDispatcher("/view/manager/product_add.jsp").forward(request, response);
         } else {
-            request.setAttribute("errorProductName", "Không thể thêm sản phẩm. Vui lòng thử lại.");
-            request.setAttribute("productName", productName);
-            request.setAttribute("categoryId", categoryId);
-            request.setAttribute("brandId", brandId);
-            request.setAttribute("supplierId", supplierId);
-            request.setAttribute("unitId", unitId);
-            request.setAttribute("description", description);
+            request.setAttribute("errorVariant", "Không thể thêm sản phẩm (có thể trùng SKU/barcode hoặc lỗi hệ thống). Vui lòng thử lại.");
+            preserveFormState(request, productName, categoryId, brandId, supplierId, unitId, description,
+                    attributeNamesStr, variantAttrValuesArr, variantSkus, variantBarcodes);
             request.getRequestDispatcher("/view/manager/product_add.jsp").forward(request, response);
+        }
+    }
+
+    /**
+     * Giữ lại toàn bộ dữ liệu form (kể cả phiên bản + ảnh base64) khi forward lại JSP sau lỗi.
+     */
+    private void preserveFormState(HttpServletRequest request, String productName, String categoryId,
+            String brandId, String supplierId, String unitId, String description,
+            String attributeNamesStr, String[] variantAttrValuesArr, String[] variantSkus, String[] variantBarcodes) {
+        request.setAttribute("productName", productName);
+        request.setAttribute("categoryId", categoryId);
+        request.setAttribute("brandId", brandId);
+        request.setAttribute("supplierId", supplierId);
+        request.setAttribute("unitId", unitId);
+        request.setAttribute("description", description);
+
+        if (attributeNamesStr != null && variantAttrValuesArr != null && variantSkus != null && variantSkus.length > 0) {
+            Map<String, Object> preserve = new HashMap<>();
+            preserve.put("attributeNamesStr", attributeNamesStr);
+            preserve.put("variantAttrValues", Arrays.asList(variantAttrValuesArr));
+            preserve.put("variantSkus", Arrays.asList(variantSkus));
+            preserve.put("variantBarcodes", variantBarcodes != null ? Arrays.asList(variantBarcodes) : new ArrayList<String>());
+
+            List<String> variantImagesBase64 = new ArrayList<>();
+            for (int i = 0; i < variantSkus.length; i++) {
+                String base64Param = request.getParameter("variantImageBase64_" + i);
+                variantImagesBase64.add(base64Param != null ? base64Param : "");
+            }
+            preserve.put("variantImagesBase64", variantImagesBase64);
+            request.setAttribute("preserveStateJson", gson.toJson(preserve));
         }
     }
 

@@ -262,7 +262,7 @@
 
             $('#btnSearchProduct').on('click', function() {
                 if (!$('#supplierId').val()) { alert('Chọn nhà cung cấp trước.'); return; }
-                loadProducts('');
+                loadProducts(($('#searchProduct').val() || '').trim());
             });
 
             $(document).on('click', '.del-btn', function() {
