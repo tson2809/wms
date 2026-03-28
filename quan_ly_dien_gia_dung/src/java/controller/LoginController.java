@@ -127,7 +127,7 @@ public class LoginController extends HttpServlet {
             case "sale":
                 return "/purchase-order/list";
             case "staff":
-                return "/purchase-order/list";
+                return "/inventory-list";
             default:
                 return "/view/common/login.jsp";
         }
