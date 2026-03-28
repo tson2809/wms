@@ -547,7 +547,6 @@ public class GoodsIssueAddController extends HttpServlet {
         return details;
     }
 
-    /** Giống logic sau khi Manager duyệt completed ở GoodsIssueEditController. */
     private void applyGoodsIssueCompletedSideEffects(GoodsIssue issue) {
         if (issue == null) {
             return;

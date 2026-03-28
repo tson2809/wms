@@ -13,6 +13,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import model.Unit;
 
+/**
+ *
+ * @author thais
+ */
 @WebServlet(name = "UnitListController", urlPatterns = {"/unit-list"})
 public class UnitListController extends HttpServlet {
     private final UnitDAO unitDAO = new UnitDAO();

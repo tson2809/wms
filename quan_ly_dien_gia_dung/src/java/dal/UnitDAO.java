@@ -8,7 +8,8 @@ import java.util.List;
 import model.Unit;
 
 /**
- * DAO cho bảng units (đơn vị tính)
+ * 
+ * @author thais
  */
 public class UnitDAO extends DBContext {
 
@@ -75,7 +76,6 @@ public class UnitDAO extends DBContext {
         return null;
     }
 
-    /** Kiểm tra tên đơn vị đã tồn tại chưa. excludeId != null khi edit (bỏ qua chính nó). */
     public boolean unitNameExists(String name, Integer excludeId) {
         String sql = "SELECT COUNT(*) FROM units WHERE LOWER(unit_name) = LOWER(?)"
                    + (excludeId != null ? " AND unit_id <> ?" : "");
@@ -114,7 +114,6 @@ public class UnitDAO extends DBContext {
         return false;
     }
 
-    /** Kiểm tra unit đang được dùng trong bảng products. */
     public boolean isUnitUsed(int unitId) {
         String sql = "SELECT COUNT(*) FROM products WHERE unit_id = ?";
         try (PreparedStatement ps = this.getConnection().prepareStatement(sql)) {

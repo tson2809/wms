@@ -51,7 +51,6 @@ public class AuditLogFilter implements Filter {
     }
 
     private boolean isSuccessfulMutation(HttpServletRequest request, HttpServletResponse response, int status) {
-        // Success with redirect (most POST flows in this codebase)
         if (status >= 300 && status < 400) {
             String location = response.getHeader("Location");
             if (location == null || location.isBlank()) {
@@ -64,7 +63,6 @@ public class AuditLogFilter implements Filter {
                     || lowerLocation.contains("invalid"));
         }
 
-        // Success with forward (e.g., supplier-add uses forward + successMessage)
         if (status >= 200 && status < 300) {
             Object successMessage = request.getAttribute("successMessage");
             Object successFlag = request.getAttribute("success");
