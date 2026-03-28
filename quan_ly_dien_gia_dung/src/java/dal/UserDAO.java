@@ -25,6 +25,20 @@ public class UserDAO extends DBContext {
 
     private static final Logger LOGGER = Logger.getLogger(UserDAO.class.getName());
 
+    private String encodePasswordIfNeeded(String password) {
+        if (password == null || password.isBlank()) {
+            return password;
+        }
+
+        // Prevent double-hashing when caller already provides a BCrypt hash.
+        if (password.matches("^\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}$")) {
+            return password;
+        }
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        return encoder.encode(password);
+    }
+
     public User findByUsernameWithRole(String username) throws SQLException {
         String sql = """
         SELECT
@@ -647,7 +661,7 @@ public class UserDAO extends DBContext {
         try (PreparedStatement ps = this.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getUserName());
             ps.setString(2, user.getEmail());
-            ps.setString(3, user.getPassword());
+            ps.setString(3, encodePasswordIfNeeded(user.getPassword()));
             ps.setString(4, user.getFullName());
             ps.setString(5, user.getPhone());
             ps.setString(6, user.getAddress());
